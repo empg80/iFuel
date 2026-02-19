@@ -1,151 +1,155 @@
+Here’s the README rewritten in English:
+
+***
+
 # iFuel – iRacing Fuel Overlay (React + Electron)
 
-iFuel es un overlay de **fuel y estrategia** para iRacing, pensado para ser ligero, claro y fácil de reutilizar en otros proyectos.  
-Consta de un servidor de telemetría (WebSocket) y una app de escritorio hecha con **React + Vite + Electron**.
+iFuel is a **fuel and strategy overlay** for iRacing, designed to be lightweight, clear, and easy to reuse in other projects.  
+It consists of a telemetry server (WebSocket) and a desktop app built with **React + Vite + Electron**.
 
-> Nota: este repositorio contiene la parte de cliente (overlay). El servidor de telemetría iFuel debe estar ejecutándose en `ws://localhost:7071/ifuel`.
-
-***
-
-## Características
-
-- Widget de fuel compacto, con diseño oscuro y tipografía monoespaciada.
-- Datos principales:
-  - Fuel actual, tiempo de fuel y vueltas estimadas restantes.
-  - Consumo por vuelta: `FUEL LAST`, `FUEL AVG`, medias de `2/5/10` vueltas.
-  - Estimación de **refuel necesario** (`EST REFUEL`) en vueltas o sesiones por tiempo.
-- Información de sesión:
-  - Vueltas restantes o tiempo restante (`SESSION`).
-  - Temperatura ambiente y de pista.
-- Información de vuelta:
-  - Número de vuelta, tiempo de vuelta y consumo de fuel de la vuelta actual.
-  - Diferencia de consumo frente a la media (verde/rojo).
-- Estrategia:
-  - Primera vuelta en la que puedes parar y llegar al final (`EARLY PIT`).
-  - Número mínimo de paradas por fuel (`STOPS`).
-  - Vueltas objetivo de cada stint (`STINTS`).
-- Mini-gráficos:
-  - Histórico de consumo de las últimas 5 vueltas.
-  - Histograma de consumo de las últimas 30 vueltas.
-- Panel de ajustes integrado:
-  - `Min lap time (s)` – filtra vueltas demasiado lentas (pits, trompos, etc.).
-  - `Min fuel / lap` – filtra consumos irreales.
-  - `Safety laps` – vueltas extra de seguridad para el cálculo de refuel.
-  - Selección de media (`AVG 2/5/10`).
-- Overlay movible dentro de la ventana:
-  - Botón de **candado** 🔒/🔓 para bloquear/desbloquear el movimiento.
-  - Panel de ajustes ⚙ con persistencia en `localStorage`.
-- Pensado para rendimiento:
-  - Throttling de actualizaciones de UI (~20 Hz).
-  - Uso de `React.memo`, `useMemo` y `useCallback` para reducir re-renders.
-  - Cálculos de medias y estrategia fuera del árbol de render.
+> Note: this repository contains the client (overlay). The iFuel telemetry server must be running at `ws://localhost:7071/ifuel`.
 
 ***
 
-## Arquitectura
+## Features
+
+- Compact fuel widget with dark UI and monospace typography.
+- Main data:
+  - Current fuel, fuel time, and estimated laps remaining.
+  - Fuel per lap: `FUEL LAST`, `FUEL AVG`, 2/5/10-lap rolling averages.
+  - Estimated **refuel needed** (`EST REFUEL`) for lap- or time-based sessions.
+- Session info:
+  - Laps remaining or time remaining (`SESSION`).
+  - Air and track temperature.
+- Lap info:
+  - Lap number, lap time, and fuel used on the current lap.
+  - Fuel delta vs. average (green/red).
+- Strategy:
+  - Earliest lap where you can pit and still reach the end (`EARLY PIT`).
+  - Minimum number of fuel stops (`STOPS`).
+  - Target laps for each stint (`STINTS`).
+- Mini charts:
+  - Fuel history for the last 5 laps.
+  - Fuel histogram for the last 30 laps.
+- Integrated settings panel:
+  - `Min lap time (s)` – filter very slow laps (pit, spins, etc.).
+  - `Min fuel / lap` – filter unrealistic fuel usage.
+  - `Safety laps` – extra safety laps for refuel calculation.
+  - Average selection (`AVG 2/5/10`).
+- Movable overlay inside the window:
+  - **Lock** button 🔒/🔓 to lock/unlock widget movement.
+  - ⚙ settings panel with `localStorage` persistence.
+- Performance-oriented:
+  - UI update throttling (~20 Hz).
+  - Uses `React.memo`, `useMemo`, and `useCallback` to reduce re-renders.
+  - Fuel/strategy calculations kept outside the render tree where possible.
+
+***
+
+## Architecture
 
 - **Frontend**: React + TypeScript + Vite.
-- **Desktop wrapper**: Electron (ventana transparente/normal según se prefiera).
-- **Comunicación**: WebSocket a `ws://localhost:7071/ifuel`.
-- **Estado de telemetría**:
-  - Hook `useIfuelWebSocket`:
-    - Se conecta al servidor WS.
-    - Acumula histórico de vueltas (`LapSample`).
-    - Calcula medias de consumo, estimaciones de fuel, estrategia y datos para gráficos.
-    - Aplica un throttling de estado para no re-renderizar al ritmo de cada tick de telemetría.
-  - Contenedor `FuelWidgetContainer`:
-    - Lee/guarda opciones en `localStorage` (`ifuel-settings-v1`).
-    - Gestiona el drag del overlay y el estado del candado.
-    - Construye labels como `sessionLabel`.
-    - Renderiza `FuelWidget` y el panel de ajustes.
+- **Desktop wrapper**: Electron (transparent or normal window).
+- **Communication**: WebSocket to `ws://localhost:7071/ifuel`.
+- **Telemetry state**:
+  - `useIfuelWebSocket` hook:
+    - Connects to the WS server.
+    - Accumulates lap history (`LapSample`).
+    - Computes fuel averages, refuel estimates, strategy and chart data.
+    - Applies state throttling so React doesn’t re-render at every telemetry tick.
+  - `FuelWidgetContainer`:
+    - Reads/saves options in `localStorage` (`ifuel-settings-v1`).
+    - Manages overlay drag and lock state.
+    - Builds labels like `sessionLabel`.
+    - Renders `FuelWidget` and the settings panel.
 
 ***
 
-## Requisitos
+## Requirements
 
-- Node.js (versión recomendada: LTS).
-- npm o yarn.
-- iRacing corriendo en el equipo.
-- Servidor de telemetría iFuel escuchando en `ws://localhost:7071/ifuel` (no incluido en este repo).
+- Node.js (LTS recommended).
+- npm or yarn.
+- iRacing running on the same machine.
+- iFuel telemetry server listening at `ws://localhost:7071/ifuel` (not included in this repo).
 
 ***
 
-## Instalación y ejecución
+## Installation & Running
 
-1. Clonar el repositorio:
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/empg80/iFuel.git
 cd iFuel
 ```
 
-2. Instalar dependencias:
+2. Install dependencies:
 
 ```bash
 npm install
-# o
+# or
 yarn install
 ```
 
-3. Ejecutar en modo desarrollo:
+3. Run in development mode:
 
 ```bash
 npm run dev
 ```
 
-4. Ejecutar el wrapper Electron (si está configurado):
+4. Run the Electron wrapper (if configured):
 
 ```bash
 npm run electron
 ```
 
-Asegúrate de que el servidor de telemetría está activo y enviando datos a `ws://localhost:7071/ifuel`.  
-En caso contrario, el overlay mostrará “Esperando datos de iRacing…”.
+Make sure the telemetry server is running and sending data to `ws://localhost:7071/ifuel`.  
+Otherwise, the overlay will display “Waiting for iRacing data…”.
 
 ***
 
-## Uso básico
+## Basic Usage
 
-- Abre la app iFuel.
-- Conecta iRacing y ponte en pista.
-- Ajusta los parámetros en el panel ⚙:
-  - Pon un `Min lap time` acorde al circuito (por ejemplo, 20–30 s en óvalo corto, 60–120 s en circuito normal).
-  - Configura `Min fuel / lap` y `Safety laps` a tu gusto.
-- Desbloquea el candado 🔓 para mover el widget dentro de la ventana, vuelve a bloquear 🔒 cuando esté en su sitio.
+- Launch the iFuel app.
+- Start iRacing and go on track.
+- Tune the ⚙ settings panel:
+  - Set `Min lap time` according to the track (e.g. 20–30 s for short ovals, 60–120 s for road courses).
+  - Adjust `Min fuel / lap` and `Safety laps` to your preference.
+- Unlock the 🔓 lock button to move the widget inside the window, then lock it 🔒 once it’s in place.
 
 ***
 
-## Desarrollo
+## Development
 
-Scripts habituales:
+Common scripts:
 
 ```bash
-# Arrancar en desarrollo
+# Start dev server
 npm run dev
 
-# Lint/format (según configuración del proyecto)
+# Lint / build (depending on your setup)
 npm run lint
 npm run build
 ```
 
-La lógica clave está en:
+Key files:
 
-- `src/useIfuelWebSocket.ts` – lectura de telemetría, medias, estrategia y throttling.
-- `src/components/FuelWidget.tsx` – presentación del overlay de fuel.
-- `src/components/FuelWidgetContainer.tsx` – WebSocket, ajustes, drag, candado y wiring de props.
-
-***
-
-## Roadmap / Ideas futuras
-
-- Añadir overlay de **deltas de tiempos** (ahead/behind) tipo “relative” con barras verde/rojo.
-- Soporte para varios perfiles de ajustes por coche/pista.
-- Exportar el hook de telemetría como pequeña librería independiente.
-- Integración más estrecha con Electron (always-on-top, click-through opcional, etc.).
+- `src/useIfuelWebSocket.ts` – telemetry reading, averages, strategy and throttling.
+- `src/components/FuelWidget.tsx` – fuel overlay UI.
+- `src/components/FuelWidgetContainer.tsx` – WebSocket, settings, drag, lock and prop wiring.
 
 ***
 
-## Licencia
+## Roadmap / Future ideas
 
-Pendiente de definir.  
-Mientras tanto, se considera uso personal/no comercial.
+- Add a **time delta overlay** (ahead/behind) similar to a relative timing bar.
+- Support multiple settings profiles per car/track.
+- Export the telemetry hook as a small standalone library.
+- Better Electron integration (always-on-top, optional click-through, etc.).
+
+***
+
+## License
+
+TBD.  
+For now, consider it for personal / non-commercial use.
