@@ -1,5 +1,3 @@
-Here’s the README rewritten in English:
-
 ***
 
 # iFuel – iRacing Fuel Overlay (React + Electron)
