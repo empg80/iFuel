@@ -42,6 +42,35 @@ It consists of a telemetry server (WebSocket) and a desktop app built with **Rea
   - Uses `React.memo`, `useMemo`, and `useCallback` to reduce re-renders.
   - Fuel/strategy calculations kept outside the render tree where possible.
 
+Podemos añadir una sección nueva en inglés explicando el widget multicategoría sin capturas todavía. Puedes pegar algo así en el README donde mejor encaje:
+
+```markdown
+## Multiclass Relative & Standing Battle
+
+iFuel now includes a **multiclass-relative overlay** focused on class battles and on-track traffic.
+
+### Standing Battle
+
+The *Standing Battle* widget shows:
+
+- Your current position **within class** (e.g. P4 in GT3).
+- The car directly ahead and behind in your class.
+- Time gap to each car, last lap, best lap, and lap‑time delta vs your last lap.
+- Class position badge next to each car number (e.g. `P2`, `P5`), color‑coded by class.
+
+Class colors are assigned per session: iFuel inspects all classes on the grid and maps each `classId` to one of six consistent colors, so every category is easy to distinguish at a glance.
+
+### On‑Track Relative
+
+Below the standing battle, the overlay adds an *On‑Track Relative* row:
+
+- Shows the physically closest car ahead and behind on track, regardless of class.
+- Displays the time gap in seconds and the lap difference (same lap, lapped, or lapping you).
+- Uses the same class color badges as the standing battle, so you can immediately see which category each car belongs to.
+
+This widget is driven by the same WebSocket telemetry server as the fuel calculator, so it updates smoothly in real time while keeping CPU usage low.
+```
+
 ***
 
 ## Architecture
