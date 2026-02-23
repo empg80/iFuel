@@ -42,9 +42,6 @@ It consists of a telemetry server (WebSocket) and a desktop app built with **Rea
   - Uses `React.memo`, `useMemo`, and `useCallback` to reduce re-renders.
   - Fuel/strategy calculations kept outside the render tree where possible.
 
-Podemos añadir una sección nueva en inglés explicando el widget multicategoría sin capturas todavía. Puedes pegar algo así en el README donde mejor encaje:
-
-```markdown
 ## Multiclass Relative & Standing Battle
 
 iFuel now includes a **multiclass-relative overlay** focused on class battles and on-track traffic.
@@ -69,7 +66,6 @@ Below the standing battle, the overlay adds an *On‑Track Relative* row:
 - Uses the same class color badges as the standing battle, so you can immediately see which category each car belongs to.
 
 This widget is driven by the same WebSocket telemetry server as the fuel calculator, so it updates smoothly in real time while keeping CPU usage low.
-```
 
 ***
 
