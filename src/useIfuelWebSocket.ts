@@ -1,21 +1,54 @@
 import { useEffect, useRef, useState } from "react";
 
+type RelativeCar = {
+  carNum: number | string | null;
+  position?: number | null;        // posición de carrera (clase)
+  gapSeconds: number | null;
+  lastLap: number | null;
+  bestLap: number | null;
+  deltaLastToMe: number | null;
+  classId?: number | null;         // <- NUEVO
+  classPosition?: number | null;   // <- NUEVO
+} | null;
+
+type RelativePayload = {
+  myPosition?: number | null;      // tu posición de carrera
+  ahead: RelativeCar;
+  behind: RelativeCar;
+};
+
+type OnTrackCar = {
+  carNum: number | string | null;
+  gapSeconds: number | null;
+  lapsDiff: number | null;
+  classId?: number | null;         // <- NUEVO
+  classPosition?: number | null;   // <- NUEVO
+} | null;
+
 type RawMessage = {
   fuelLevel: number;
   lap: number;
   lapCompleted: number;
-  lastLapTime: number;
+  lastLapTime: number | null;      // tu última vuelta
+  bestLapTime?: number | null;     // tu mejor vuelta
   sessionTimeRemain?: number;
   sessionLapsRemainEx?: number;
   fuelMax?: number;
-  airTemp?: number;    // ºC
-  trackTemp?: number;  // ºC
+  airTemp?: number;
+  trackTemp?: number;
+
+  relative?: RelativePayload;
+  relativeOnTrack?: {
+    ahead: OnTrackCar;
+    behind: OnTrackCar;
+  };
+  classColorIndexById?: Record<number, number>; // <- NUEVO
 };
 
 type LapSample = {
-  lapNumber: number;  // consumo de ESA vuelta
-  fuelUsed: number;   // litros
-  lapTime: number;    // en segundos
+  lapNumber: number;
+  fuelUsed: number;
+  lapTime: number;
 };
 
 export type IfuelState = {
@@ -38,20 +71,27 @@ export type IfuelState = {
   airTemp: number | null;
   trackTemp: number | null;
 
-  // estrategia
   earliestPitLap: number | null;
   totalStops: number | null;
   stintLaps: number[];
 
-  // historial para gráficos
   lapHistoryLast5: LapSample[];
   lapHistoryLast30: LapSample[];
+
+  relativeAhead: RelativeCar;
+  relativeBehind: RelativeCar;
+  relativeMyPosition?: number | null;   // tu posición
+  myBestLapTime?: number | null;        // tu mejor vuelta
+
+  onTrackAhead?: OnTrackCar | null;   // NUEVO
+  onTrackBehind?: OnTrackCar | null;  // NUEVO
+  classColorIndexById?: Record<number, number>; // <- NUEVO
 };
 
 export type IfuelOptions = {
   minLapTimeSeconds?: number;
   minFuelUsedPerLap?: number;
-  safetyExtraLaps?: number; // en vueltas-equivalentes
+  safetyExtraLaps?: number;
 };
 
 const DEFAULT_OPTS: Required<IfuelOptions> = {
@@ -63,24 +103,20 @@ const DEFAULT_OPTS: Required<IfuelOptions> = {
 export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   const optsRef = useRef({ ...DEFAULT_OPTS, ...options });
 
-  // sincronizamos options -> ref fuera del render
   useEffect(() => {
     optsRef.current = { ...DEFAULT_OPTS, ...options };
-  }, [options]); // <- aquí metemos options entero
+  }, [options]);
 
   const [state, setState] = useState<IfuelState | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
 
-  // vueltas
   const lastLapCompletedRef = useRef<number | null>(null);
   const lapStartFuelRef = useRef<number | null>(null);
   const lapsRef = useRef<LapSample[]>([]);
 
-  // capacidad barra
   const maxFuelSeenRef = useRef<number>(0);
 
-  // throttling de estado hacia React
   const lastUpdateTimeRef = useRef<number>(0);
   const pendingStateRef = useRef<IfuelState | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -110,31 +146,31 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           lap,
           lapCompleted,
           lastLapTime,
+          bestLapTime,
           fuelMax,
           sessionLapsRemainEx,
           sessionTimeRemain,
           airTemp,
           trackTemp,
+          relative,
+          relativeOnTrack,
+          classColorIndexById,          // <- NUEVO 
         } = msg;
 
         const opts = optsRef.current;
 
-        // capacidad máxima vista
         if (fuelLevel > maxFuelSeenRef.current) {
           maxFuelSeenRef.current = fuelLevel;
         }
         const fuelCapacity =
           fuelMax && fuelMax > 0 ? fuelMax : maxFuelSeenRef.current || null;
 
-        // --- vueltas ---
         const prevLapCompleted = lastLapCompletedRef.current;
 
         if (prevLapCompleted === null) {
-          // primera vez
           lastLapCompletedRef.current = lapCompleted;
           lapStartFuelRef.current = fuelLevel;
         } else {
-          // cambio de vuelta completada
           if (
             lapCompleted > prevLapCompleted &&
             lapStartFuelRef.current !== null
@@ -142,6 +178,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             const fuelUsed = lapStartFuelRef.current - fuelLevel;
 
             if (
+              lastLapTime != null &&
               lastLapTime > opts.minLapTimeSeconds &&
               fuelUsed > opts.minFuelUsedPerLap
             ) {
@@ -150,11 +187,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
                 fuelUsed,
                 lapTime: lastLapTime,
               };
-              // acumulamos histórico
               lapsRef.current = [...lapsRef.current, lapSample];
             }
 
-            // nueva vuelta
             lapStartFuelRef.current = fuelLevel;
             lastLapCompletedRef.current = lapCompleted;
           }
@@ -183,32 +218,25 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
         let estRefuel: number | null = null;
         let fuelTimeStr = "--:--";
 
-        // estimaciones
         if (laps.length >= 2 && fuelPerLapForEst && fuelPerLapForEst > 0) {
-          // 1) vueltas posibles con el fuel actual
           estLaps = fuelLevel / fuelPerLapForEst;
 
           const lapsRemain = sessionLapsRemainEx ?? 0;
           const timeRemain = sessionTimeRemain ?? 0;
 
-          // 2) combustible necesario según tipo de sesión
           if (lapsRemain > 0 && lapsRemain < 1000) {
-            // por vueltas
             const lapsWithSafety = lapsRemain + opts.safetyExtraLaps;
             const fuelNeededTotal = lapsWithSafety * fuelPerLapForEst;
             const fuelToAdd = fuelNeededTotal - fuelLevel;
             estRefuel = fuelToAdd > 0 ? fuelToAdd : 0;
           } else if (timeRemain > 0) {
-            // por tiempo
             const avgLapTimeSeconds =
               laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
 
             if (avgLapTimeSeconds > 0) {
-              // segundos de fuel que tienes ahora
               const lapsPossible = fuelLevel / fuelPerLapForEst;
               const secondsOfFuel = lapsPossible * avgLapTimeSeconds;
 
-              // tiempo a cubrir: tiempo restante + margen en vueltas-equivalentes
               const safetySeconds = opts.safetyExtraLaps * avgLapTimeSeconds;
               const targetSeconds = timeRemain + safetySeconds;
 
@@ -228,7 +256,6 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             estRefuel = 0;
           }
 
-          // 3) fuelTime
           const avgLapTimeSeconds =
             laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
 
@@ -245,11 +272,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           }
         }
 
-        // historiales para gráficos
         const lapHistoryLast5 = laps.slice(-5);
         const lapHistoryLast30 = laps.slice(-30);
 
-        // estrategia
         let earliestPitLap: number | null = null;
         let totalStops: number | null = null;
         let stintLaps: number[] = [];
@@ -258,7 +283,6 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
         const lapsRemainForRace = sessionLapsRemainEx ?? 0;
         const timeRemainForRace = sessionTimeRemain ?? 0;
 
-        // --- estrategia por vueltas ---
         if (
           lapNumberSafe !== null &&
           lapsRemainForRace > 0 &&
@@ -285,11 +309,11 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
           if (estLaps && estLaps > 0) {
             const lapsPossibleFromNow = estLaps;
-            const lapsRemain = lapsRemainForRace;
+            const lapsRemain2 = lapsRemainForRace;
 
-            if (lapsRemain > lapsPossibleFromNow) {
+            if (lapsRemain2 > lapsPossibleFromNow) {
               const lapsThatMustBeCoveredAfterStop =
-                lapsRemain - lapsPossibleFromNow;
+                lapsRemain2 - lapsPossibleFromNow;
 
               if (lapsThatMustBeCoveredAfterStop <= maxStintLaps) {
                 earliestPitLap =
@@ -305,9 +329,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               earliestPitLap = null;
             }
           }
-        }
-        // --- estrategia por tiempo ---
-        else if (
+        } else if (
           timeRemainForRace > 0 &&
           fuelPerLapForEst &&
           fuelPerLapForEst > 0 &&
@@ -367,10 +389,17 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           }
         }
 
+        const relativeAhead = relative?.ahead ?? null;
+        const relativeBehind = relative?.behind ?? null;
+        const relativeMyPosition = relative?.myPosition ?? null;
+
+        const onTrackAhead = relativeOnTrack?.ahead ?? null;
+        const onTrackBehind = relativeOnTrack?.behind ?? null;
+
         const nextState: IfuelState = {
           fuel: fuelLevel,
           fuelMax: fuelMax ?? null,
-          fuelCapacity: fuelCapacity,
+          fuelCapacity,
           lapNumber: lap ?? null,
           lapTime: lastLapTime || null,
           fuelLast,
@@ -392,17 +421,24 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           stintLaps,
           lapHistoryLast5,
           lapHistoryLast30,
+
+          relativeAhead,
+          relativeBehind,
+          relativeMyPosition,
+          myBestLapTime: bestLapTime ?? null,
+
+          onTrackAhead,
+          onTrackBehind,
+          classColorIndexById: classColorIndexById ?? undefined, // <- NUEVO
         };
 
-        // Throttle de updates a React:
-        // guardamos el último snapshot y dejamos que el RAF lo aplique como mucho ~20 veces/segundo.
         pendingStateRef.current = nextState;
 
         if (rafIdRef.current === null) {
           rafIdRef.current = window.requestAnimationFrame((ts) => {
             rafIdRef.current = null;
             const last = lastUpdateTimeRef.current;
-            const MIN_INTERVAL = 50; // ms ~ 20 Hz
+            const MIN_INTERVAL = 50;
 
             if (ts - last >= MIN_INTERVAL && pendingStateRef.current) {
               lastUpdateTimeRef.current = ts;
