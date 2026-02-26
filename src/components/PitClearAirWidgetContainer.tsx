@@ -1,17 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
-import { WidgetToggle } from "./WidgetToggle";
 import { PitClearAirWidget } from "./PitClearAirWidget";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_PITCLEAR = "ifuel-pos-pitclear";
 
 export const PitClearAirWidgetContainer: React.FC = () => {
-  const { visibility } = useWidgetVisibility();
+  const { visibility, widgetsLocked } = useWidgetVisibility();
   const { state, isConnected } = useIfuelWebSocket(WS_URL);
 
-  const [overlayLocked, setOverlayLocked] = useState(false);
   const [position, setPosition] = useState(() => {
     try {
       const raw = localStorage.getItem(POS_KEY_PITCLEAR);
@@ -58,7 +56,7 @@ export const PitClearAirWidgetContainer: React.FC = () => {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (overlayLocked) return;
+      if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
       draggingRef.current = true;
@@ -67,36 +65,11 @@ export const PitClearAirWidgetContainer: React.FC = () => {
         y: e.clientY - position.y,
       };
     },
-    [overlayLocked, position.x, position.y],
+    [widgetsLocked, position.x, position.y],
   );
 
-  const handleToggleLock = useCallback(() => {
-    setOverlayLocked((v) => !v);
-  }, []);
-
   if (!visibility.pitClearAir) {
-    return (
-      <div
-        className="pitclear-widget-container"
-        style={{ position: "relative", left: position.x, top: position.y }}
-        onMouseDown={handleMouseDown}
-      >
-        <WidgetToggle widget="pitClearAir" label="Pit Clear Air" />
-        <div
-          style={{
-            background: "#050505",
-            color: "#f5f5f5",
-            padding: "4px 8px",
-            borderRadius: 4,
-            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
-            fontSize: 11,
-            minWidth: 80,
-          }}
-        >
-          PIT CLEAR AIR HIDDEN
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -105,8 +78,6 @@ export const PitClearAirWidgetContainer: React.FC = () => {
       style={{ position: "relative", left: position.x, top: position.y }}
       onMouseDown={handleMouseDown}
     >
-      <WidgetToggle widget="pitClearAir" label="Pit Clear Air" />
-
       <PitClearAirWidget data={state?.pitClearAir ?? null} />
 
       <div
@@ -124,23 +95,6 @@ export const PitClearAirWidgetContainer: React.FC = () => {
         }}
       >
         PIT CLEAR {isConnected ? "ON" : "OFF"}
-      </div>
-
-      <div style={{ position: "absolute", top: -20, right: 0 }}>
-        <button
-          onClick={handleToggleLock}
-          style={{
-            padding: "2px 6px",
-            fontSize: 10,
-            borderRadius: 4,
-            cursor: "pointer",
-            background: overlayLocked ? "#c33" : "#333",
-            color: "#fff",
-            border: "1px solid #666",
-          }}
-        >
-          {overlayLocked ? "🔒" : "🔓"}
-        </button>
       </div>
     </div>
   );

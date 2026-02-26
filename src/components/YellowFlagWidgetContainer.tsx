@@ -3,16 +3,14 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { YellowFlagWidget } from "./YellowFlagWidget";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
-import { WidgetToggle } from "./WidgetToggle";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_YELLOW = "ifuel-pos-yellow";
 
 export const YellowFlagWidgetContainer: React.FC = () => {
-  const { visibility } = useWidgetVisibility();
+  const { visibility, widgetsLocked } = useWidgetVisibility();
   const { state, isConnected } = useIfuelWebSocket(WS_URL);
 
-  // posición y lock, igual que los otros (persistente)
   const [position, setPosition] = useState(() => {
     try {
       const raw = localStorage.getItem(POS_KEY_YELLOW);
@@ -26,11 +24,10 @@ export const YellowFlagWidgetContainer: React.FC = () => {
       return { x: 900, y: 100 };
     }
   });
-  const [locked, setLocked] = useState(false);
+
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  // drag global
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
@@ -54,7 +51,6 @@ export const YellowFlagWidgetContainer: React.FC = () => {
     };
   }, []);
 
-  // persistir posición
   useEffect(() => {
     try {
       localStorage.setItem(POS_KEY_YELLOW, JSON.stringify(position));
@@ -65,7 +61,7 @@ export const YellowFlagWidgetContainer: React.FC = () => {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (locked) return;
+      if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
 
@@ -75,39 +71,15 @@ export const YellowFlagWidgetContainer: React.FC = () => {
         y: e.clientY - position.y,
       };
     },
-    [locked, position.x, position.y],
+    [widgetsLocked, position.x, position.y],
   );
 
-  // MODO OCULTO: mini barra con toggle para poder reactivarlo
-  if (!visibility.yellowFlag) {
-    return (
-      <div
-        style={{
-          position: "absolute",
-          left: position.x,
-          top: position.y,
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <WidgetToggle widget="yellowFlag" label="Yellow Flag" />
-        <div
-          style={{
-            background: "#050505",
-            color: "#f5f5f5",
-            padding: "4px 8px",
-            borderRadius: 4,
-            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
-            fontSize: 11,
-            minWidth: 100,
-          }}
-        >
-          YELLOW HIDDEN
-        </div>
-      </div>
-    );
+  // visibilidad controlada por menú
+  if (!visibility.yellow) {
+    return null;
   }
 
-  // SIN DATOS DE WS
+  // si no hay WS o state, sigue mostrando el indicador y el placeholder
   if (!isConnected || !state) {
     return (
       <div
@@ -118,9 +90,6 @@ export const YellowFlagWidgetContainer: React.FC = () => {
         }}
         onMouseDown={handleMouseDown}
       >
-        <WidgetToggle widget="yellowFlag" label="Yellow Flag" />
-
-        {/* Indicador WS + lock */}
         <div
           style={{
             position: "absolute",
@@ -136,23 +105,6 @@ export const YellowFlagWidgetContainer: React.FC = () => {
           }}
         >
           YELL {isConnected ? "ON" : "OFF"}
-        </div>
-
-        <div style={{ position: "absolute", top: -20, right: 0 }}>
-          <button
-            onClick={() => setLocked((v) => !v)}
-            style={{
-              padding: "2px 6px",
-              fontSize: 10,
-              borderRadius: 4,
-              cursor: "pointer",
-              background: locked ? "#c33" : "#333",
-              color: "#fff",
-              border: "1px solid #666",
-            }}
-          >
-            {locked ? "🔒" : "🔓"}
-          </button>
         </div>
 
         <div
@@ -183,9 +135,6 @@ export const YellowFlagWidgetContainer: React.FC = () => {
       }}
       onMouseDown={handleMouseDown}
     >
-      <WidgetToggle widget="yellowFlag" label="Yellow Flag" />
-
-      {/* Indicador WS + lock */}
       <div
         style={{
           position: "absolute",
@@ -201,23 +150,6 @@ export const YellowFlagWidgetContainer: React.FC = () => {
         }}
       >
         YELL {isConnected ? "ON" : "OFF"}
-      </div>
-
-      <div style={{ position: "absolute", top: -20, right: 0 }}>
-        <button
-          onClick={() => setLocked((v) => !v)}
-          style={{
-            padding: "2px 6px",
-            fontSize: 10,
-            borderRadius: 4,
-            cursor: "pointer",
-            background: locked ? "#c33" : "#333",
-            color: "#fff",
-            border: "1px solid #666",
-          }}
-        >
-          {locked ? "🔒" : "🔓"}
-        </button>
       </div>
 
       <YellowFlagWidget

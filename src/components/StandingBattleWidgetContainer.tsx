@@ -2,14 +2,12 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RelativeWidget } from "./StandingBattleWidget";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
-import { WidgetToggle } from "./WidgetToggle";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_RELATIVE = "ifuel-pos-relative";
 
 export const RelativeWidgetContainer: React.FC = () => {
-  // 1) TODOS LOS HOOKS ARRIBA
-  const { visibility } = useWidgetVisibility();
+  const { visibility, widgetsLocked } = useWidgetVisibility();
 
   const [position, setPosition] = useState(() => {
     try {
@@ -24,7 +22,6 @@ export const RelativeWidgetContainer: React.FC = () => {
       return { x: 500, y: 100 };
     }
   });
-  const [locked, setLocked] = useState(false);
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
@@ -64,7 +61,7 @@ export const RelativeWidgetContainer: React.FC = () => {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (locked) return;
+      if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
       draggingRef.current = true;
@@ -73,7 +70,7 @@ export const RelativeWidgetContainer: React.FC = () => {
         y: e.clientY - position.y,
       };
     },
-    [locked, position.x, position.y],
+    [widgetsLocked, position.x, position.y],
   );
 
   const ahead = state?.relativeAhead ?? null;
@@ -90,36 +87,10 @@ export const RelativeWidgetContainer: React.FC = () => {
     onTrackAhead != null ||
     onTrackBehind != null;
 
-  // 2) MODO OCULTO: mini barra con toggle
   if (!visibility.standingBattle) {
-    return (
-      <div
-        style={{
-          position: "relative",
-          left: position.x,
-          top: position.y,
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <WidgetToggle widget="standingBattle" label="Standing Battle" />
-        <div
-          style={{
-            background: "#050505",
-            color: "#f5f5f5",
-            padding: "4px 8px",
-            borderRadius: 4,
-            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
-            fontSize: 11,
-            minWidth: 120,
-          }}
-        >
-          STANDING HIDDEN
-        </div>
-      </div>
-    );
+    return null;
   }
 
-  // 3) JSX normal
   return (
     <div
       style={{
@@ -129,10 +100,7 @@ export const RelativeWidgetContainer: React.FC = () => {
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Widget Toggle */}
-      <WidgetToggle widget="standingBattle" label="Standing Battle" />
-
-      {/* WS indicator + controls */}
+      {/* WS indicator */}
       <div
         style={{
           position: "absolute",
@@ -148,24 +116,6 @@ export const RelativeWidgetContainer: React.FC = () => {
         }}
       >
         STND {isConnected ? "ON" : "OFF"}
-      </div>
-
-      <div style={{ position: "absolute", top: -20, right: 0 }}>
-        <button
-          onClick={() => setLocked((v) => !v)}
-          style={{
-            marginRight: 4,
-            padding: "2px 6px",
-            fontSize: 10,
-            borderRadius: 4,
-            cursor: "pointer",
-            background: locked ? "#c33" : "#333",
-            color: "#fff",
-            border: "1px solid #666",
-          }}
-        >
-          {locked ? "🔒" : "🔓"}
-        </button>
       </div>
 
       {state && hasRelative ? (

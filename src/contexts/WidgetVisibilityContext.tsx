@@ -1,17 +1,21 @@
 // src/contexts/WidgetVisibilityContext.tsx
 import { createContext } from "react";
 
-interface WidgetVisibility {
+export type VisibilityState = {
   fuel: boolean;
   standingBattle: boolean;
-  yellowFlag: boolean;
-  pitClearAir: boolean; // NUEVO
-}
+  yellow: boolean;
+  pitClearAir: boolean;
+  widgetsLocked: boolean;
+};
 
-export interface WidgetVisibilityContextType {
-  visibility: WidgetVisibility;
-  toggleWidget: (widget: keyof WidgetVisibility) => void;
-}
+export const defaultVisibilityState: VisibilityState = {
+  fuel: true,
+  standingBattle: true,
+  yellow: true,
+  pitClearAir: true,
+  widgetsLocked: true,
+};
 
 export const WidgetVisibilityContext =
-  createContext<WidgetVisibilityContextType | undefined>(undefined);
+  createContext<VisibilityState>(defaultVisibilityState);

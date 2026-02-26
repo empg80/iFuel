@@ -1,40 +1,34 @@
-// src/contexts/WidgetVisibilityProvider.tsx
-import React, { useState } from "react";
-import type { ReactNode } from "react";
+import React, { useEffect, useState } from "react";
 import {
   WidgetVisibilityContext,
-  type WidgetVisibilityContextType,
+  defaultVisibilityState,
+  type VisibilityState,
 } from "./WidgetVisibilityContext";
 
-interface WidgetVisibility {
-  fuel: boolean;
-  standingBattle: boolean;
-  yellowFlag: boolean;
-  pitClearAir: boolean; // NUEVO
-}
-
-export const WidgetVisibilityProvider: React.FC<{ children: ReactNode }> = ({
+export const WidgetVisibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [visibility, setVisibility] = useState<WidgetVisibility>({
-    fuel: true,
-    standingBattle: true,
-    yellowFlag: true,
-    pitClearAir: true, // NUEVO
-  });
+  const [state, setState] = useState<VisibilityState>(defaultVisibilityState);
 
-  const toggleWidget: WidgetVisibilityContextType["toggleWidget"] = (
-    widget,
-  ) => {
-    setVisibility((prev) => ({
-      ...prev,
-      [widget]: !prev[widget],
-    }));
-  };
+  useEffect(() => {
+    const api = window.ifuelOverlay;
+    if (!api || typeof api.onOverlayStateChanged !== "function") return;
+
+    api.onOverlayStateChanged((overlayState) => {
+      setState({
+        fuel: overlayState.fuelVisible ?? true,
+        standingBattle: overlayState.standingBattleVisible ?? true,
+        yellow: overlayState.yellowVisible ?? true,
+        pitClearAir: overlayState.pitClearAirVisible ?? true,
+        widgetsLocked: overlayState.widgetsLocked ?? true,
+      });
+    });
+  }, []);
 
   return (
-    <WidgetVisibilityContext.Provider value={{ visibility, toggleWidget }}>
+    <WidgetVisibilityContext.Provider value={state}>
       {children}
     </WidgetVisibilityContext.Provider>
   );
 };
+

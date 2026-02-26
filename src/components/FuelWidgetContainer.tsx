@@ -8,7 +8,6 @@ import React, {
 import { FuelWidget } from "./FuelWidget";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
-import { WidgetToggle } from "./WidgetToggle";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const LS_KEY = "ifuel-settings-v1";
@@ -28,7 +27,6 @@ const DEFAULT_FUEL_OPTS: FuelOpts = {
   avgMode: "5",
 };
 
-// Panel de ajustes memoizado para no re-renderizar en cada tick de telemetría
 const FuelSettingsPanel: React.FC<{
   fuelOpts: FuelOpts;
   onChange: (next: FuelOpts) => void;
@@ -122,7 +120,6 @@ const FuelSettingsPanel: React.FC<{
   );
 });
 
-// emptyState debe cumplir todo IfuelState
 const emptyState: import("../useIfuelWebSocket").IfuelState = {
   fuel: 0,
   fuelMax: null,
@@ -146,7 +143,6 @@ const emptyState: import("../useIfuelWebSocket").IfuelState = {
   stintLaps: [],
   lapHistoryLast5: [],
   lapHistoryLast30: [],
-  // campos relative / on-track / yellow del IfuelState
   relativeAhead: null,
   relativeBehind: null,
   relativeMyPosition: null,
@@ -165,8 +161,7 @@ const emptyState: import("../useIfuelWebSocket").IfuelState = {
 };
 
 export const FuelWidgetContainer: React.FC = () => {
-  // TODOS los hooks al principio
-  const { visibility } = useWidgetVisibility();
+  const { visibility, widgetsLocked } = useWidgetVisibility();
 
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() => {
     try {
@@ -184,10 +179,6 @@ export const FuelWidgetContainer: React.FC = () => {
 
   const [showSettings, setShowSettings] = useState(false);
 
-  // candado: true = fijo, false = se puede mover
-  const [overlayLocked, setOverlayLocked] = useState(false);
-
-  // posición y drag (persistente)
   const [position, setPosition] = useState(() => {
     try {
       const raw = localStorage.getItem(POS_KEY_FUEL);
@@ -205,7 +196,6 @@ export const FuelWidgetContainer: React.FC = () => {
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  // Persistencia de ajustes
   useEffect(() => {
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(fuelOpts));
@@ -214,7 +204,6 @@ export const FuelWidgetContainer: React.FC = () => {
     }
   }, [fuelOpts]);
 
-  // Persistencia de posición
   useEffect(() => {
     try {
       localStorage.setItem(POS_KEY_FUEL, JSON.stringify(position));
@@ -223,14 +212,12 @@ export const FuelWidgetContainer: React.FC = () => {
     }
   }, [position]);
 
-  // Hook de telemetría (con throttling interno en el hook)
   const { state, isConnected, sendMessage } = useIfuelWebSocket(WS_URL, {
     minLapTimeSeconds: fuelOpts.minLapTimeSeconds,
     minFuelUsedPerLap: fuelOpts.minFuelUsedPerLap,
     safetyExtraLaps: fuelOpts.safetyExtraLaps,
   });
 
-  // Manejo de drag global sin recrear handlers en cada render
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
@@ -256,7 +243,7 @@ export const FuelWidgetContainer: React.FC = () => {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (overlayLocked) return;
+      if (widgetsLocked) return;
 
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
@@ -267,12 +254,8 @@ export const FuelWidgetContainer: React.FC = () => {
         y: e.clientY - position.y,
       };
     },
-    [overlayLocked, position.x, position.y],
+    [widgetsLocked, position.x, position.y],
   );
-
-  const handleToggleLock = useCallback(() => {
-    setOverlayLocked((v) => !v);
-  }, []);
 
   const handleToggleSettings = useCallback(() => {
     setShowSettings((v) => !v);
@@ -311,21 +294,20 @@ export const FuelWidgetContainer: React.FC = () => {
   const capacity = fuelCapacity ?? fuelMax ?? fuel;
   const fuelLevelRatio = capacity > 0 ? fuel / capacity : 0;
 
-  // Enviar ventana de paradas al servidor para Pit Clear Air
-useEffect(() => {
-  if (!earliestPitLap || !estLaps) return;
+  useEffect(() => {
+    if (!earliestPitLap || !estLaps) return;
 
-  const pitWindowStartLap = earliestPitLap;
-  const pitWindowEndLap = earliestPitLap + 3; // por ahora ventana de 3 vueltas
-  const pitDeltaSeconds = 32; // pérdida estimada en boxes (ajustable)
+    const pitWindowStartLap = earliestPitLap;
+    const pitWindowEndLap = earliestPitLap + 3;
+    const pitDeltaSeconds = 32;
 
-  sendMessage({
-    type: "updatePitStrategy",
-    pitWindowStartLap,
-    pitWindowEndLap,
-    pitDeltaSeconds,
-  });
-}, [earliestPitLap, estLaps, sendMessage]);
+    sendMessage({
+      type: "updatePitStrategy",
+      pitWindowStartLap,
+      pitWindowEndLap,
+      pitDeltaSeconds,
+    });
+  }, [earliestPitLap, estLaps, sendMessage]);
 
   const lapTimeStr =
     lapTime && lapTime > 0
@@ -369,34 +351,8 @@ useEffect(() => {
     return "--";
   }, [hasState, isLapsRace, sessionLapsRemainEx, sessionTimeRemain]);
 
-  // Modo oculto: mini barra con toggle para poder reactivarlo
   if (!visibility.fuel) {
-    return (
-      <div
-        className="fuel-widget-container"
-        style={{
-          position: "relative",
-          left: position.x,
-          top: position.y,
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <WidgetToggle widget="fuel" label="Fuel" />
-        <div
-          style={{
-            background: "#050505",
-            color: "#f5f5f5",
-            padding: "4px 8px",
-            borderRadius: 4,
-            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
-            fontSize: 11,
-            minWidth: 80,
-          }}
-        >
-          FUEL HIDDEN
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -409,8 +365,6 @@ useEffect(() => {
       }}
       onMouseDown={handleMouseDown}
     >
-      <WidgetToggle widget="fuel" label="Fuel" />
-
       {!hasState ? (
         <div className="fuel-widget">
           <div className="label">Esperando datos de iRacing...</div>
@@ -459,24 +413,8 @@ useEffect(() => {
         FUEL {isConnected ? "ON" : "OFF"}
       </div>
 
-      {/* Botones candado + ajustes */}
+      {/* Botón ajustes */}
       <div style={{ position: "absolute", top: -20, right: 0 }}>
-        <button
-          onClick={handleToggleLock}
-          style={{
-            marginRight: 4,
-            padding: "2px 6px",
-            fontSize: 10,
-            borderRadius: 4,
-            cursor: "pointer",
-            background: overlayLocked ? "#c33" : "#333",
-            color: "#fff",
-            border: "1px solid #666",
-          }}
-        >
-          {overlayLocked ? "🔒" : "🔓"}
-        </button>
-
         <button
           style={{
             padding: "2px 6px",
@@ -489,12 +427,8 @@ useEffect(() => {
         </button>
       </div>
 
-      {/* Panel ajustes */}
       {showSettings && (
-        <FuelSettingsPanel
-          fuelOpts={fuelOpts}
-          onChange={handleSettingsChange}
-        />
+        <FuelSettingsPanel fuelOpts={fuelOpts} onChange={handleSettingsChange} />
       )}
     </div>
   );
