@@ -129,10 +129,9 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
     onTrackBehind,
     classColorIndexById,
   }) {
-    // Posiciones en la barra central: 0 = detrás máximo, 0.5 = tú, 1 = delante máximo
     const { aheadPos, behindPos } = useMemo(() => {
       const clamp = (v: number) => Math.max(0, Math.min(1, v));
-      const MAX_GAP = 5; // segundos a cada lado para la barra
+      const MAX_GAP = 5;
 
       const aheadGap = ahead?.gapSeconds ?? null;
       const behindGap = behind?.gapSeconds ?? null;
@@ -157,13 +156,15 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
     return (
       <div
         style={{
-          flex: 1,
-          textAlign: "center",
-          fontSize: 12,          // antes 11
+          fontSize: 11,
           color: "#777",
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
         }}
       >
-        {label}: -- --
+        <div className="label">{label}</div>
+        <div>-- / --</div>
       </div>
     );
   }
@@ -175,20 +176,36 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
   }
 
   return (
-    <div style={{ flex: 1, textAlign: "center", fontSize: 12 }}>
-      <div style={{ fontSize: 10, color: "#b0b0b0" }}>{label}</div>
+    <div
+      style={{
+        fontSize: 11,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <div className="label">{label}</div>
       <div
-        style={{ display: "flex", justifyContent: "center", gap: 6 }}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto auto auto",
+          alignItems: "center",
+          columnGap: 6,
+        }}
       >
+        {/* CarNum + clase */}
         <span
           style={{
+            minWidth: 32,
             background: "#222",
-            padding: "2px 5px",    // un pelín más grande
-            borderRadius: 3,
-            fontSize: 11,          // antes 10
-            color,
+            padding: "1px 6px",
+            borderRadius: 4,
+            fontSize: 11,
             display: "inline-flex",
             alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+            color,
           }}
         >
           {car.carNum ?? "--"}
@@ -199,19 +216,23 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
             classColorIndexById={classColorIndexById}
           />
         </span>
-        <span style={{ color, fontSize: 12 }}>
+
+        {/* Gap */}
+        <span style={{ color, fontSize: 11 }}>
           {formatGap(car.gapSeconds)}
         </span>
-      </div>
-      {car.lapsDiff != null && (
-        <div style={{ fontSize: 10, color }}>
-          {car.lapsDiff === 0
+
+        {/* Laps diff */}
+        <span style={{ fontSize: 10, color }}>
+          {car.lapsDiff == null
+            ? ""
+            : car.lapsDiff === 0
             ? "same lap"
             : car.lapsDiff > 0
-            ? `+${car.lapsDiff} lap`
-            : `${car.lapsDiff} lap`}
-        </div>
-      )}
+            ? `+${car.lapsDiff}L`
+            : `${car.lapsDiff}L`}
+        </span>
+      </div>
     </div>
   );
 };
@@ -219,53 +240,45 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
 
     return (
       <div
-        className="relative-widget"
+        className="fuel-widget relative-widget"
         style={{
-          background: "#050505",
-          color: "#f5f5f5",
-          padding: "8px 12px",
           display: "flex",
           flexDirection: "column",
           gap: 6,
-          minWidth: 360,
-          borderRadius: 4,
-          boxShadow: "0 0 12px rgba(0, 0, 0, 0.8)",
-          fontFamily:
-            '"Roboto Mono", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          fontSize: 12,
+          minWidth: 320,
+          fontSize: 11,
         }}
       >
-        {/* Línea 1: BEHIND / POSITION / AHEAD */}
+        {/* Fila 1: BEHIND / YOU / AHEAD alineados en grid */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
+            display: "grid",
+            gridTemplateColumns: "1fr 0.7fr 1fr", // mismo patrón arriba y abajo
+            alignItems: "center",
+            columnGap: 8,
           }}
         >
           {/* BEHIND */}
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ minWidth: 0 }}>
+            <div className="label">BEHIND</div>
             <div
               style={{
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 1.2,
-                color: "#b0b0b0",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
-            >
-              BEHIND
-            </div>
-            <div
-              style={{ display: "flex", alignItems: "baseline", gap: 4 }}
             >
               <span
                 style={{
+                  minWidth: 32,
                   background: "#222",
-                  padding: "2px 4px",
-                  borderRadius: 3,
-                  fontSize: 10,
+                  padding: "1px 6px",
+                  borderRadius: 4,
+                  fontSize: 11,
                   display: "inline-flex",
                   alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
                 }}
               >
                 {behind?.carNum ?? "--"}
@@ -275,27 +288,18 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
                   classColorIndexById={classColorIndexById}
                 />
               </span>
-              <span style={{ fontSize: 18, fontWeight: 600 }}>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>
                 {formatGap(behind?.gapSeconds ?? null)}
               </span>
             </div>
           </div>
 
-          {/* POSITION */}
-          <div style={{ textAlign: "center" }}>
+          {/* YOU */}
+          <div style={{ textAlign: "center", minWidth: 0 }}>
+            <div className="label">POS</div>
             <div
               style={{
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 1.2,
-                color: "#b0b0b0",
-              }}
-            >
-              POSITION
-            </div>
-            <div
-              style={{
-                fontSize: 20,
+                fontSize: 14,
                 fontWeight: 700,
                 color: "#4da3ff",
               }}
@@ -305,42 +309,30 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
           </div>
 
           {/* AHEAD */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              textAlign: "right",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 1.2,
-                color: "#b0b0b0",
-              }}
-            >
-              AHEAD
-            </div>
+          <div style={{ minWidth: 0, textAlign: "right" }}>
+            <div className="label">AHEAD</div>
             <div
               style={{
                 display: "flex",
-                alignItems: "baseline",
-                gap: 4,
+                alignItems: "center",
+                gap: 6,
                 justifyContent: "flex-end",
               }}
             >
-              <span style={{ fontSize: 18, fontWeight: 600 }}>
+              <span style={{ fontSize: 12, fontWeight: 600 }}>
                 {formatGap(ahead?.gapSeconds ?? null)}
               </span>
               <span
                 style={{
+                  minWidth: 32,
                   background: "#222",
-                  padding: "2px 4px",
-                  borderRadius: 3,
-                  fontSize: 10,
+                  padding: "1px 6px",
+                  borderRadius: 4,
+                  fontSize: 11,
                   display: "inline-flex",
                   alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
                 }}
               >
                 {ahead?.carNum ?? "--"}
@@ -354,20 +346,18 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
           </div>
         </div>
 
-        {/* Línea 2: barra central con iconos */}
+        {/* Fila 2: barra central estilo fuel, más fina */}
         <div
           style={{
             position: "relative",
-            height: 16,
-            marginTop: 4,
-            marginBottom: 2,
+            height: 12,
+            marginTop: 2,
             background:
               "linear-gradient(to right, #444 0%, #777 50%, #444 100%)",
-            borderRadius: 8,
+            borderRadius: 999,
             overflow: "hidden",
           }}
         >
-          {/* Flecha central (tu coche) */}
           <div
             style={{
               position: "absolute",
@@ -379,7 +369,6 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
               transform: "translateX(-50%)",
             }}
           />
-          {/* Icono coche detrás */}
           {behind && (
             <div
               style={{
@@ -387,14 +376,13 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
                 left: `${behindPos * 100}%`,
                 top: 1,
                 transform: "translateX(-50%)",
-                fontSize: 10,
+                fontSize: 9,
                 color: "#ff5252",
               }}
             >
               ◀
             </div>
           )}
-          {/* Icono coche delante */}
           {ahead && (
             <div
               style={{
@@ -402,7 +390,7 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
                 left: `${aheadPos * 100}%`,
                 top: 1,
                 transform: "translateX(-50%)",
-                fontSize: 10,
+                fontSize: 9,
                 color: "#4caf50",
               }}
             >
@@ -411,19 +399,20 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
           )}
         </div>
 
-        {/* Línea 3: tiempos last/best y delta */}
+        {/* Fila 3: tiempos/deltas en tres columnas compactas */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             marginTop: 2,
+            gap: 8,
           }}
         >
           {/* BEHIND */}
-          <div style={{ minWidth: 100 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 color:
                   behind?.deltaLastToMe && behind?.deltaLastToMe > 0
                     ? "#f44336"
@@ -432,81 +421,71 @@ export const RelativeWidget: React.FC<RelativeWidgetProps> = React.memo(
             >
               {behindDeltaText || "--"}
             </div>
-            <div style={{ fontSize: 9, color: "#b0b0b0" }}>LAST</div>
-            <div style={{ fontSize: 12 }}>
-              {formatLapTime(behind?.lastLap ?? null)}
-            </div>
-            <div
-              style={{ fontSize: 9, color: "#b0b0b0", marginTop: 2 }}
-            >
-              BEST
-            </div>
-            <div style={{ fontSize: 12 }}>
-              {formatLapTime(behind?.bestLap ?? null)}
+            <div className="label">LAST / BEST</div>
+            <div style={{ fontSize: 11 }}>
+              {formatLapTime(behind?.lastLap ?? null)}{" "}
+              <span style={{ opacity: 0.7 }}>
+                ({formatLapTime(behind?.bestLap ?? null)})
+              </span>
             </div>
           </div>
 
           {/* YOU */}
-          <div style={{ textAlign: "center", minWidth: 110 }}>
-            <div style={{ fontSize: 9, color: "#b0b0b0" }}>YOUR LAST</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>
-              {formatLapTime(myLastLap)}
-            </div>
-            <div
-              style={{ fontSize: 9, color: "#b0b0b0", marginTop: 2 }}
-            >
-              YOUR BEST
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>
-              {formatLapTime(myBestLap)}
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              textAlign: "center",
+            }}
+          >
+            <div className="label">YOU</div>
+            <div style={{ fontSize: 11 }}>
+              {formatLapTime(myLastLap)}{" "}
+              <span style={{ opacity: 0.7 }}>
+                ({formatLapTime(myBestLap)})
+              </span>
             </div>
           </div>
 
           {/* AHEAD */}
-          <div style={{ textAlign: "right", minWidth: 100 }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              textAlign: "right",
+            }}
+          >
             <div
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 color:
-                  ahead?.deltaLastToMe != null &&
-                  ahead?.deltaLastToMe < 0
+                  ahead?.deltaLastToMe != null && ahead?.deltaLastToMe < 0
                     ? "#4caf50"
                     : "#b0b0b0",
               }}
             >
               {aheadDeltaText || "--"}
             </div>
-            <div style={{ fontSize: 9, color: "#b0b0b0" }}>LAST</div>
-            <div style={{ fontSize: 12 }}>
-              {formatLapTime(ahead?.lastLap ?? null)}
-            </div>
-            <div
-              style={{ fontSize: 9, color: "#b0b0b0", marginTop: 2 }}
-            >
-              BEST
-            </div>
-            <div style={{ fontSize: 12 }}>
-              {formatLapTime(ahead?.bestLap ?? null)}
+            <div className="label">LAST / BEST</div>
+            <div style={{ fontSize: 11 }}>
+              {formatLapTime(ahead?.lastLap ?? null)}{" "}
+              <span style={{ opacity: 0.7 }}>
+                ({formatLapTime(ahead?.bestLap ?? null)})
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Separador */}
-        <div
-          style={{
-            marginTop: 6,
-            marginBottom: 4,
-            height: 1,
-            background: "#333",
-          }}
-        />
+        {/* Separador glass */}
+        <div className="fuel-separator" />
 
-        {/* Línea nueva: On-track relative */}
+        {/* On-track relative en 2 columnas alineadas */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 8,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            columnGap: 8,
+            marginTop: 4,
           }}
         >
           {renderOnTrackCar("ON-TRACK BEHIND", onTrackBehind ?? null)}

@@ -60,7 +60,6 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
     trackTemp,
   } = props;
 
-  // Normalización del ratio y clase de color de la barra
   const { ratio, barClass } = useMemo(() => {
     const r = Math.min(1, Math.max(0, fuelLevelRatio));
     let cls = "fuel-bar-fill fuel-bar-orange";
@@ -69,7 +68,6 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
     return { ratio: r, barClass: cls };
   }, [fuelLevelRatio]);
 
-  // Diferencia de fuel de la vuelta actual vs media
   const { fuelDiff, fuelDiffText } = useMemo(() => {
     if (lapFuel === undefined) {
       return { fuelDiff: undefined as number | undefined, fuelDiffText: "" };
@@ -79,7 +77,6 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
     return { fuelDiff: diff, fuelDiffText: text };
   }, [lapFuel, fuelAvg]);
 
-  // Texto de stint laps (para evitar recrear el array en cada render)
   const stintLapsText = useMemo(() => {
     if (!stintLaps || stintLaps.length === 0) return "--";
     return stintLaps
@@ -121,7 +118,7 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
         </div>
         <div className="fuel-block right">
           <div className="label">FUEL</div>
-          <div className="value">{fuel.toFixed(2)}</div>
+          <div className="value fuel-main">{fuel.toFixed(2)}</div>
         </div>
       </div>
 
@@ -220,7 +217,6 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
         </div>
       </div>
 
-      {/* Histograma (últimas 30 vueltas) */}
       {lapHistoryLast30 && lapHistoryLast30.length > 0 && (
         <>
           <div className="fuel-separator" />
@@ -230,3 +226,4 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
     </div>
   );
 });
+

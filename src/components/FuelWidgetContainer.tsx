@@ -7,9 +7,12 @@ import React, {
 } from "react";
 import { FuelWidget } from "./FuelWidget";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
+import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+import { WidgetToggle } from "./WidgetToggle";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const LS_KEY = "ifuel-settings-v1";
+const POS_KEY_FUEL = "ifuel-pos-fuel";
 
 type FuelOpts = {
   minLapTimeSeconds: number;
@@ -119,7 +122,8 @@ const FuelSettingsPanel: React.FC<{
   );
 });
 
-const emptyState = {
+// emptyState debe cumplir todo IfuelState
+const emptyState: import("../useIfuelWebSocket").IfuelState = {
   fuel: 0,
   fuelMax: null,
   fuelCapacity: null,
@@ -139,12 +143,31 @@ const emptyState = {
   trackTemp: null,
   earliestPitLap: null,
   totalStops: null,
-  stintLaps: [] as number[],
-  lapHistoryLast5: [] as { lapNumber: number; fuelUsed: number; lapTime: number }[],
-  lapHistoryLast30: [] as { lapNumber: number; fuelUsed: number; lapTime: number }[],
-} satisfies import("../useIfuelWebSocket").IfuelState;
+  stintLaps: [],
+  lapHistoryLast5: [],
+  lapHistoryLast30: [],
+  // campos relative / on-track / yellow del IfuelState
+  relativeAhead: null,
+  relativeBehind: null,
+  relativeMyPosition: null,
+  myBestLapTime: null,
+  onTrackAhead: null,
+  onTrackBehind: null,
+  classColorIndexById: {},
+  yellowWarning: {
+    active: false,
+    distanceMeters: null,
+    timeSeconds: null,
+    carNum: null,
+    classId: null,
+    classPosition: null,
+  },
+};
 
 export const FuelWidgetContainer: React.FC = () => {
+  // TODOS los hooks al principio
+  const { visibility } = useWidgetVisibility();
+
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -164,8 +187,21 @@ export const FuelWidgetContainer: React.FC = () => {
   // candado: true = fijo, false = se puede mover
   const [overlayLocked, setOverlayLocked] = useState(false);
 
-  // posición y drag
-  const [position, setPosition] = useState({ x: 100, y: 100 });
+  // posición y drag (persistente)
+  const [position, setPosition] = useState(() => {
+    try {
+      const raw = localStorage.getItem(POS_KEY_FUEL);
+      if (!raw) return { x: 100, y: 100 };
+      const parsed = JSON.parse(raw) as { x: number; y: number };
+      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+        return parsed;
+      }
+      return { x: 100, y: 100 };
+    } catch {
+      return { x: 100, y: 100 };
+    }
+  });
+
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -178,8 +214,17 @@ export const FuelWidgetContainer: React.FC = () => {
     }
   }, [fuelOpts]);
 
+  // Persistencia de posición
+  useEffect(() => {
+    try {
+      localStorage.setItem(POS_KEY_FUEL, JSON.stringify(position));
+    } catch (e) {
+      console.error("Error guardando posición fuel:", e);
+    }
+  }, [position]);
+
   // Hook de telemetría (con throttling interno en el hook)
-  const { state, isConnected } = useIfuelWebSocket(WS_URL, {
+  const { state, isConnected, sendMessage } = useIfuelWebSocket(WS_URL, {
     minLapTimeSeconds: fuelOpts.minLapTimeSeconds,
     minFuelUsedPerLap: fuelOpts.minFuelUsedPerLap,
     safetyExtraLaps: fuelOpts.safetyExtraLaps,
@@ -266,6 +311,22 @@ export const FuelWidgetContainer: React.FC = () => {
   const capacity = fuelCapacity ?? fuelMax ?? fuel;
   const fuelLevelRatio = capacity > 0 ? fuel / capacity : 0;
 
+  // Enviar ventana de paradas al servidor para Pit Clear Air
+useEffect(() => {
+  if (!earliestPitLap || !estLaps) return;
+
+  const pitWindowStartLap = earliestPitLap;
+  const pitWindowEndLap = earliestPitLap + 3; // por ahora ventana de 3 vueltas
+  const pitDeltaSeconds = 32; // pérdida estimada en boxes (ajustable)
+
+  sendMessage({
+    type: "updatePitStrategy",
+    pitWindowStartLap,
+    pitWindowEndLap,
+    pitDeltaSeconds,
+  });
+}, [earliestPitLap, estLaps, sendMessage]);
+
   const lapTimeStr =
     lapTime && lapTime > 0
       ? new Date(lapTime * 1000).toISOString().substring(14, 23)
@@ -308,16 +369,48 @@ export const FuelWidgetContainer: React.FC = () => {
     return "--";
   }, [hasState, isLapsRace, sessionLapsRemainEx, sessionTimeRemain]);
 
+  // Modo oculto: mini barra con toggle para poder reactivarlo
+  if (!visibility.fuel) {
+    return (
+      <div
+        className="fuel-widget-container"
+        style={{
+          position: "relative",
+          left: position.x,
+          top: position.y,
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <WidgetToggle widget="fuel" label="Fuel" />
+        <div
+          style={{
+            background: "#050505",
+            color: "#f5f5f5",
+            padding: "4px 8px",
+            borderRadius: 4,
+            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
+            fontSize: 11,
+            minWidth: 80,
+          }}
+        >
+          FUEL HIDDEN
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="fuel-widget-container"
       style={{
-        position: "absolute",
+        position: "relative",
         left: position.x,
         top: position.y,
       }}
       onMouseDown={handleMouseDown}
     >
+      <WidgetToggle widget="fuel" label="Fuel" />
+
       {!hasState ? (
         <div className="fuel-widget">
           <div className="label">Esperando datos de iRacing...</div>
@@ -363,7 +456,7 @@ export const FuelWidgetContainer: React.FC = () => {
           color: "#fff",
         }}
       >
-        WS {isConnected ? "ON" : "OFF"}
+        FUEL {isConnected ? "ON" : "OFF"}
       </div>
 
       {/* Botones candado + ajustes */}

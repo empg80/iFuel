@@ -2,17 +2,17 @@ import { useEffect, useRef, useState } from "react";
 
 type RelativeCar = {
   carNum: number | string | null;
-  position?: number | null;        // posición de carrera (clase)
+  position?: number | null;
   gapSeconds: number | null;
   lastLap: number | null;
   bestLap: number | null;
   deltaLastToMe: number | null;
-  classId?: number | null;         // <- NUEVO
-  classPosition?: number | null;   // <- NUEVO
+  classId?: number | null;
+  classPosition?: number | null;
 } | null;
 
 type RelativePayload = {
-  myPosition?: number | null;      // tu posición de carrera
+  myPosition?: number | null;
   ahead: RelativeCar;
   behind: RelativeCar;
 };
@@ -21,16 +21,36 @@ type OnTrackCar = {
   carNum: number | string | null;
   gapSeconds: number | null;
   lapsDiff: number | null;
-  classId?: number | null;         // <- NUEVO
-  classPosition?: number | null;   // <- NUEVO
+  classId?: number | null;
+  classPosition?: number | null;
+} | null;
+
+// NUEVO
+type YellowWarning = {
+  active: boolean;
+  distanceMeters: number | null;
+  timeSeconds: number | null;
+  carNum: number | string | null;
+  classId: number | null;
+  classPosition: number | null;
+} | null;
+
+type PitClearAirOption = {
+  lap: number;
+  trafficScore: number;
+};
+
+type PitClearAir = {
+  suggestedLap: number | null;
+  options: PitClearAirOption[];
 } | null;
 
 type RawMessage = {
   fuelLevel: number;
   lap: number;
   lapCompleted: number;
-  lastLapTime: number | null;      // tu última vuelta
-  bestLapTime?: number | null;     // tu mejor vuelta
+  lastLapTime: number | null;
+  bestLapTime?: number | null;
   sessionTimeRemain?: number;
   sessionLapsRemainEx?: number;
   fuelMax?: number;
@@ -42,7 +62,11 @@ type RawMessage = {
     ahead: OnTrackCar;
     behind: OnTrackCar;
   };
-  classColorIndexById?: Record<number, number>; // <- NUEVO
+  classColorIndexById?: Record<number, number>;
+
+  // NUEVO
+  yellowWarning?: YellowWarning;
+  pitClearAir?: PitClearAir; // NUEVO
 };
 
 type LapSample = {
@@ -50,6 +74,7 @@ type LapSample = {
   fuelUsed: number;
   lapTime: number;
 };
+
 
 export type IfuelState = {
   fuel: number;
@@ -80,12 +105,16 @@ export type IfuelState = {
 
   relativeAhead: RelativeCar;
   relativeBehind: RelativeCar;
-  relativeMyPosition?: number | null;   // tu posición
-  myBestLapTime?: number | null;        // tu mejor vuelta
+  relativeMyPosition?: number | null;
+  myBestLapTime?: number | null;
 
-  onTrackAhead?: OnTrackCar | null;   // NUEVO
-  onTrackBehind?: OnTrackCar | null;  // NUEVO
-  classColorIndexById?: Record<number, number>; // <- NUEVO
+  onTrackAhead?: OnTrackCar | null;
+  onTrackBehind?: OnTrackCar | null;
+  classColorIndexById?: Record<number, number>;
+
+  // NUEVO
+  yellowWarning?: YellowWarning;
+  pitClearAir?: PitClearAir; // NUEVO
 };
 
 export type IfuelOptions = {
@@ -132,6 +161,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     socket.onclose = (event) => {
       setIsConnected(false);
       console.log("WS closed", event.code, event.reason);
+      socketRef.current = null;
     };
 
     socket.onerror = (err) => {
@@ -154,7 +184,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           trackTemp,
           relative,
           relativeOnTrack,
-          classColorIndexById,          // <- NUEVO 
+          classColorIndexById,
+          yellowWarning, // NUEVO
+          pitClearAir, // NUEVO
         } = msg;
 
         const opts = optsRef.current;
@@ -429,7 +461,10 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
           onTrackAhead,
           onTrackBehind,
-          classColorIndexById: classColorIndexById ?? undefined, // <- NUEVO
+          classColorIndexById: classColorIndexById ?? undefined,
+
+          yellowWarning: yellowWarning ?? null, // NUEVO
+          pitClearAir: pitClearAir ?? null, // NUEVO
         };
 
         pendingStateRef.current = nextState;
@@ -460,5 +495,16 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     };
   }, [url]);
 
-  return { state, isConnected };
+  // NUEVO: función para enviar mensajes arbitrarios al servidor
+  const sendMessage = (msg: unknown) => {
+    const s = socketRef.current;
+    if (!s || s.readyState !== WebSocket.OPEN) return;
+    try {
+      s.send(JSON.stringify(msg));
+    } catch (e) {
+      console.error("Error enviando mensaje iFuel WS:", e);
+    }
+  };
+
+  return { state, isConnected, sendMessage };
 }

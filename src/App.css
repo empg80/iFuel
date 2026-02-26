@@ -17,38 +17,55 @@ body,
   justify-content: center;
 }
 
-/* Widget */
-
+/* Panel principal tipo vidrio */
 .fuel-widget {
-  background: #050505;
+  border-radius: 18px;
+  padding: 10px 16px;
+  background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(0, 0, 0, 0.92)
+    );
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: #f5f5f5;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 340px;
-  border-radius: 4px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    sans-serif;
 }
 
-/* ya no usamos app-region: quitamos esto por completo */
-/*
-.fuel-widget button,
-.fuel-widget input,
-.fuel-widget select {
-  -webkit-app-region: no-drag;
+/* Cabecera SESSION/TEMPS en estilo pequeño y espaciado */
+.fuel-widget .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.7);
 }
-*/
 
+/* Valores dentro del fuel widget */
+.fuel-widget .value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Número grande para FUEL */
+.fuel-widget .value.fuel-main {
+  font-size: 32px;
+  font-weight: 600;
+}
+
+/* Fila tipo barra */
 .fuel-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
+/* Bloques */
 .fuel-block {
-  display: flex;
-  flex-direction: column;
-  min-width: 90px;    /* un poco más ancho cada bloque */
+  flex: 1;
 }
 
 .fuel-block.center {
@@ -61,6 +78,8 @@ body,
   align-items: flex-end;
 }
 
+/* Si tienes otros widgets que sigan usando .label/.value globales,
+   puedes dejar esto; si no, lo puedes borrar */
 .label {
   font-size: 9px;
   letter-spacing: 1.2px;
@@ -73,37 +92,43 @@ body,
   font-weight: 600;
 }
 
-
+/* Barra de fuel moderna */
 .fuel-bar {
   position: relative;
-  height: 10px;
-  background: #202020;
+  margin: 6px 0 10px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
 }
 
 .fuel-bar-fill {
   height: 100%;
-  width: 0;
-  transition: width 0.25s linear;
+  border-radius: 999px;
+  transition: width 0.25s ease;
 }
 
-/* Colores según nivel de fuel */
+/* Colores de la barra */
 .fuel-bar-green {
-  background: linear-gradient(to right, #2ecc71, #6ee7a8);
+  background: linear-gradient(90deg, #34c759, #0fd850);
 }
-
 .fuel-bar-orange {
-  background: linear-gradient(to right, #ff7b00, #ffa733);
+  background: linear-gradient(90deg, #ffcc00, #ff9500);
 }
-
 .fuel-bar-red {
-  background: linear-gradient(to right, #f44336, #ff7961);
+  background: linear-gradient(90deg, #ff3b30, #ff2d55);
 }
 
+/* Separador sutil */
 .fuel-separator {
   height: 1px;
-  background: #ff9100;
-  margin-top: 4px;
+  margin: 6px 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
 }
 
 .fuel-row.lap-info .value {
@@ -116,9 +141,15 @@ body,
 }
 
 .fuel-diff-good {
-  color: #4caf50; /* verde */
+  color: #4caf50;
 }
 
 .fuel-diff-bad {
-  color: #f44336; /* rojo */
+  color: #f44336;
+}
+
+/* Si quieres mantener el yellow más grande, deja esto; si no, bórralo */
+.yellow-flag-widget {
+  transform: scale(2);
+  transform-origin: top left;
 }
