@@ -2,35 +2,28 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RelativeWidget } from "./StandingBattleWidget";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+import { loadWidgetPosition } from "../utils/position";
+import { saveJsonToStorage } from "../utils/storage";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_RELATIVE = "ifuel-pos-relative";
 
 export const RelativeWidgetContainer: React.FC = () => {
-  const {
-    standingBattle,
-    widgetsLocked,
-    relativeScale,
-  } = useWidgetVisibility();
+  const { standingBattle, widgetsLocked, relativeScale } =
+    useWidgetVisibility();
 
-  const [position, setPosition] = useState(() => {
-    try {
-      const raw = localStorage.getItem(POS_KEY_RELATIVE);
-      if (!raw) return { x: 500, y: 100 };
-      const parsed = JSON.parse(raw) as { x: number; y: number };
-      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        return parsed;
-      }
-      return { x: 500, y: 100 };
-    } catch {
-      return { x: 500, y: 100 };
-    }
-  });
+  const [position, setPosition] = useState(() =>
+    loadWidgetPosition(POS_KEY_RELATIVE, { x: 500, y: 100 }),
+  );
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   const { state, isConnected } = useIfuelWebSocket(WS_URL, {});
+
+  useEffect(() => {
+    saveJsonToStorage(POS_KEY_RELATIVE, position);
+  }, [position]);
 
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
@@ -54,14 +47,6 @@ export const RelativeWidgetContainer: React.FC = () => {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(POS_KEY_RELATIVE, JSON.stringify(position));
-    } catch (e) {
-      console.error("Error guardando posición relative:", e);
-    }
-  }, [position]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -97,29 +82,20 @@ export const RelativeWidgetContainer: React.FC = () => {
 
   return (
     <div
+      className="relative-widget-container"
       style={{
-        position: "relative",
         left: position.x,
         top: position.y,
         transform: `scale(${relativeScale ?? 1})`,
-        transformOrigin: "top left",
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* WS indicator */}
       <div
-        style={{
-          position: "absolute",
-          top: -20,
-          left: 0,
-          padding: "2px 6px",
-          borderRadius: 4,
-          fontSize: 10,
-          background: isConnected
-            ? "rgba(0, 128, 0, 0.7)"
-            : "rgba(128, 0, 0, 0.7)",
-          color: "#fff",
-        }}
+        className={`relative-widget-status ${
+          isConnected
+            ? "relative-widget-status--connected"
+            : "relative-widget-status--disconnected"
+        }`}
       >
         STND {isConnected ? "ON" : "OFF"}
       </div>

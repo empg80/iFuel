@@ -78,20 +78,6 @@ body,
   align-items: flex-end;
 }
 
-/* Si tienes otros widgets que sigan usando .label/.value globales,
-   puedes dejar esto; si no, lo puedes borrar */
-.label {
-  font-size: 9px;
-  letter-spacing: 1.2px;
-  color: #b0b0b0;
-  text-transform: uppercase;
-}
-
-.value {
-  font-size: 20px;
-  font-weight: 600;
-}
-
 /* Barra de fuel moderna */
 .fuel-bar {
   position: relative;
@@ -148,8 +134,465 @@ body,
   color: #f44336;
 }
 
-/* Si quieres mantener el yellow más grande, deja esto; si no, bórralo */
-.yellow-flag-widget {
-  transform: scale(2);
+/* Mini histogramas de fuel */
+.fuel-histogram-mini {
+  margin-top: 6px;
+}
+
+.fuel-histogram-mini__title {
+  font-size: 10px;
+  color: #aaa;
+  margin-bottom: 2px;
+}
+
+.fuel-history-mini {
+  margin-top: 6px;
+}
+
+.fuel-history-mini__title {
+  font-size: 10px;
+  color: #aaa;
+  margin-bottom: 2px;
+}
+
+/* Alineados y temperaturas en cabecera */
+.value--align-right {
+  text-align: right;
+}
+
+.value__temp {
+  margin-right: 6px;
+}
+
+.value__temp--track {
+  margin-right: 0;
+}
+
+/* Contenedor y estado del widget fuel */
+.fuel-widget-container {
+  position: relative;
   transform-origin: top left;
+}
+
+.fuel-widget-status {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #fff;
+}
+
+.fuel-widget-status--connected {
+  background: rgba(0, 128, 0, 0.7);
+}
+
+.fuel-widget-status--disconnected {
+  background: rgba(128, 0, 0, 0.7);
+}
+
+/* Panel de ajustes fuel */
+.fuel-settings {
+  position: absolute;
+  top: 4px;
+  right: 100%;
+  margin-right: 8px;
+  padding: 2px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 10px;
+  min-width: 180px;
+  z-index: 10;
+}
+
+.fuel-settings__title {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.fuel-settings__field {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.fuel-settings__input {
+  width: 100%;
+  font-size: 10px;
+}
+
+.fuel-settings__avg {
+  margin-top: 4px;
+}
+
+.fuel-settings__avg-buttons {
+  margin-top: 2px;
+  display: flex;
+  gap: 4px;
+}
+
+.fuel-settings__avg-button {
+  flex: 1;
+  font-size: 10px;
+  padding: 2px 0;
+  border-radius: 3px;
+  border: 1px solid #555;
+  background: #222;
+  color: #fff;
+}
+
+.fuel-settings__avg-button--active {
+  border-color: #0f0;
+  background: #064;
+}
+
+.pit-clear-air-widget__options {
+  margin-top: 6px;
+}
+
+.pit-clear-air-widget__option {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.pitclear-widget-container {
+  position: relative;
+  transform-origin: top left;
+}
+
+.pitclear-widget-status {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #fff;
+}
+
+.pitclear-widget-status--connected {
+  background: rgba(0, 128, 0, 0.7);
+}
+
+.pitclear-widget-status--disconnected {
+  background: rgba(128, 0, 0, 0.7);
+}
+
+.class-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.class-badge--normal {
+  width: 24px;
+  height: 20px;
+  font-size: 12px;
+}
+
+.class-badge--small {
+  width: 20px;
+  height: 16px;
+  font-size: 10px;
+}
+
+.relative-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 340px;
+  font-size: 12px;
+}
+
+.relative-row {
+  display: grid;
+  column-gap: 8px;
+}
+
+.relative-row--top {
+  grid-template-columns: 1fr 0.7fr 1fr;
+  align-items: center;
+}
+
+.relative-row--times {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  gap: 8px;
+}
+
+.relative-cell {
+  min-width: 0;
+}
+
+.relative-cell--you {
+  text-align: center;
+}
+
+.relative-cell--ahead {
+  text-align: right;
+}
+
+.relative-car-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.relative-car-row--right {
+  justify-content: flex-end;
+}
+
+.relative-car {
+  min-width: 36px;
+  background: #222;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.relative-gap {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.relative-pos {
+  font-size: 16px;
+  font-weight: 800;
+  color: #4da3ff;
+}
+
+/* Barra central */
+.relative-bar {
+  position: relative;
+  height: 12px;
+  margin-top: 2px;
+  background: linear-gradient(to right, #444 0%, #777 50%, #444 100%);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.relative-bar__center {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ff9100;
+  transform: translateX(-50%);
+}
+
+.relative-bar__marker {
+  position: absolute;
+  top: 1px;
+  transform: translateX(-50%);
+  font-size: 10px;
+}
+
+.relative-bar__marker--behind {
+  color: #ff5252;
+}
+
+.relative-bar__marker--ahead {
+  color: #4caf50;
+}
+
+/* Tiempos y deltas */
+.relative-times {
+  flex: 1;
+  min-width: 0;
+}
+
+.relative-times--you {
+  text-align: center;
+}
+
+.relative-times--ahead {
+  text-align: right;
+}
+
+.relative-delta {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b0b0b0;
+}
+
+.relative-delta--good {
+  color: #4caf50;
+}
+
+.relative-delta--bad {
+  color: #f44336;
+}
+
+.relative-laptimes {
+  font-size: 12px;
+}
+
+.relative-laptimes__best {
+  opacity: 0.7;
+}
+
+/* On‑track */
+.relative-ontrack-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 8px;
+  margin-top: 4px;
+}
+
+.relative-ontrack {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.relative-ontrack--empty {
+  color: #777;
+}
+
+.relative-ontrack__row {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  column-gap: 6px;
+}
+
+.relative-ontrack__car {
+  min-width: 36px;
+  background: #222;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.relative-ontrack__gap {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.relative-ontrack__laps {
+  font-size: 11px;
+}
+
+.relative-ontrack__text--lapped {
+  color: #4da3ff; /* coche doblado */
+}
+
+.relative-ontrack__text--ahead-lap {
+  color: #ff5252; /* coche con una vuelta más */
+}
+
+.relative-widget-container {
+  position: relative;
+  transform-origin: top left;
+}
+
+.relative-widget-status {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #fff;
+}
+
+.relative-widget-status--connected {
+  background: rgba(0, 128, 0, 0.7);
+}
+
+.relative-widget-status--disconnected {
+  background: rgba(128, 0, 0, 0.7);
+}
+
+.yellow-flag-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.yellow-flag-widget__icon {
+  width: 32px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+.yellow-flag-widget__icon-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+}
+
+.yellow-flag-widget__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.yellow-flag-widget__status {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.yellow-flag-widget__incident {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.yellow-flag-widget__badge {
+  margin-left: 8px;
+  width: 28px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.yellow-widget-container {
+  position: absolute;
+  transform-origin: top left;
+}
+
+.yellow-widget-status {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #fff;
+}
+
+.yellow-widget-status--connected {
+  background: rgba(0, 128, 0, 0.7);
+}
+
+.yellow-widget-status--disconnected {
+  background: rgba(128, 0, 0, 0.7);
 }

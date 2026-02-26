@@ -1,17 +1,11 @@
-import React from "react";
-
-type FuelHistoryPoint = {
-  lapNumber: number;
-  fuelUsed: number;
-};
+import type { FuelHistoryPoint } from "../types/telemetry";
+import { computeFuelStats, getFuelBarColor } from "../utils/fuelStats";
 
 type FuelHistogramMiniProps = {
   history: FuelHistoryPoint[];
 };
 
-export const FuelHistogramMini: React.FC<FuelHistogramMiniProps> = ({
-  history,
-}) => {
+export const FuelHistogramMini = ({ history }: FuelHistogramMiniProps) => {
   if (!history.length) return null;
 
   const width = 340;
@@ -21,31 +15,16 @@ export const FuelHistogramMini: React.FC<FuelHistogramMiniProps> = ({
   const barCount = history.length;
   const barWidth = (width - barGap * (barCount - 1)) / barCount;
 
-  const minFuel = Math.min(...history.map((h) => h.fuelUsed));
-  const maxFuel = Math.max(...history.map((h) => h.fuelUsed));
-  const range = maxFuel - minFuel || 1;
+  const { minFuel, avgFuel, range, safeThreshold } = computeFuelStats(history);
 
-  const avgFuel =
-    history.reduce((acc, h) => acc + h.fuelUsed, 0) / history.length;
-
-  const safeThreshold = avgFuel * 1.02;
-
-  const textColor = "#aaa";
   const gridColor = "#333";
 
-  const getBarColor = (value: number) => {
-    if (value <= avgFuel * 0.98) return "#22c55e"; // verde
-    if (value <= safeThreshold) return "#eab308";  // amarillo
-    return "#f97316";                              // naranja/rojo
-  };
-
   return (
-    <div style={{ marginTop: 6 }}>
-      <div style={{ fontSize: 10, color: textColor, marginBottom: 2 }}>
+    <div className="fuel-histogram-mini">
+      <div className="fuel-histogram-mini__title">
         FUEL HISTOGRAM (last {history.length} laps)
       </div>
       <svg width={width} height={height}>
-        {/* línea de media */}
         <line
           x1={0}
           x2={width}
@@ -55,13 +34,12 @@ export const FuelHistogramMini: React.FC<FuelHistogramMiniProps> = ({
           strokeWidth={0.5}
           strokeDasharray="2 2"
         />
-
         {history.map((h, idx) => {
           const x = idx * (barWidth + barGap);
           const norm = (h.fuelUsed - minFuel) / range;
           const barHeight = norm * height;
           const y = height - barHeight;
-          const color = getBarColor(h.fuelUsed);
+          const color = getFuelBarColor(h.fuelUsed, avgFuel, safeThreshold);
 
           return (
             <rect

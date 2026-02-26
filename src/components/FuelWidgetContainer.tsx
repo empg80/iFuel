@@ -8,17 +8,13 @@ import React, {
 import { FuelWidget } from "./FuelWidget";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+import type { FuelOpts } from "../types/fuel";
+import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
+import { loadWidgetPosition } from "../utils/position";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const LS_KEY = "ifuel-settings-v1";
 const POS_KEY_FUEL = "ifuel-pos-fuel";
-
-type FuelOpts = {
-  minLapTimeSeconds: number;
-  minFuelUsedPerLap: number;
-  safetyExtraLaps: number;
-  avgMode: "2" | "5" | "10";
-};
 
 const DEFAULT_FUEL_OPTS: FuelOpts = {
   minLapTimeSeconds: 20,
@@ -27,34 +23,23 @@ const DEFAULT_FUEL_OPTS: FuelOpts = {
   avgMode: "5",
 };
 
-const FuelSettingsPanel: React.FC<{
+const FuelSettingsPanel = React.memo(function FuelSettingsPanel({
+  fuelOpts,
+  onChange,
+}: {
   fuelOpts: FuelOpts;
   onChange: (next: FuelOpts) => void;
-}> = React.memo(function FuelSettingsPanel({ fuelOpts, onChange }) {
+}) {
   const update = useCallback(
     (patch: Partial<FuelOpts>) => onChange({ ...fuelOpts, ...patch }),
     [fuelOpts, onChange],
   );
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: 4,
-        right: "100%",
-        marginRight: 8,
-        padding: "2px",
-        borderRadius: 4,
-        background: "rgba(0,0,0,0.85)",
-        color: "#fff",
-        fontSize: 10,
-        minWidth: 180,
-        zIndex: 10,
-      }}
-    >
-      <div style={{ marginBottom: 4, fontWeight: 600 }}>iFuel settings</div>
+    <div className="fuel-settings">
+      <div className="fuel-settings__title">iFuel settings</div>
 
-      <label style={{ display: "block", marginBottom: 4 }}>
+      <label className="fuel-settings__field">
         Min lap time (s)
         <input
           type="number"
@@ -62,11 +47,11 @@ const FuelSettingsPanel: React.FC<{
           onChange={(e) =>
             update({ minLapTimeSeconds: Number(e.target.value) || 0 })
           }
-          style={{ width: "100%", fontSize: 10 }}
+          className="fuel-settings__input"
         />
       </label>
 
-      <label style={{ display: "block", marginBottom: 4 }}>
+      <label className="fuel-settings__field">
         Min fuel / lap
         <input
           type="number"
@@ -75,11 +60,11 @@ const FuelSettingsPanel: React.FC<{
           onChange={(e) =>
             update({ minFuelUsedPerLap: Number(e.target.value) || 0 })
           }
-          style={{ width: "100%", fontSize: 10 }}
+          className="fuel-settings__input"
         />
       </label>
 
-      <label style={{ display: "block", marginBottom: 4 }}>
+      <label className="fuel-settings__field">
         Safety laps
         <input
           type="number"
@@ -87,33 +72,30 @@ const FuelSettingsPanel: React.FC<{
           onChange={(e) =>
             update({ safetyExtraLaps: Number(e.target.value) || 0 })
           }
-          style={{ width: "100%", fontSize: 10 }}
+          className="fuel-settings__input"
         />
       </label>
 
-      <div style={{ marginTop: 4 }}>
+      <div className="fuel-settings__avg">
         Avg laps:
-        <div style={{ marginTop: 2, display: "flex", gap: 4 }}>
-          {["2", "5", "10"].map((mode) => (
-            <button
-              key={mode}
-              onClick={() => update({ avgMode: mode as FuelOpts["avgMode"] })}
-              style={{
-                flex: 1,
-                fontSize: 10,
-                padding: "2px 0",
-                borderRadius: 3,
-                border:
-                  fuelOpts.avgMode === mode
-                    ? "1px solid #0f0"
-                    : "1px solid #555",
-                background: fuelOpts.avgMode === mode ? "#064" : "#222",
-                color: "#fff",
-              }}
-            >
-              {mode}
-            </button>
-          ))}
+        <div className="fuel-settings__avg-buttons">
+          {["2", "5", "10"].map((mode) => {
+            const selected = fuelOpts.avgMode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => update({ avgMode: mode as FuelOpts["avgMode"] })}
+                className={
+                  selected
+                    ? "fuel-settings__avg-button fuel-settings__avg-button--active"
+                    : "fuel-settings__avg-button"
+                }
+              >
+                {mode}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -161,58 +143,26 @@ const emptyState: import("../useIfuelWebSocket").IfuelState = {
 };
 
 export const FuelWidgetContainer: React.FC = () => {
-  const {
-    fuel: fuelVisible,
-    widgetsLocked,
-    fuelSettingsVisible,
-    fuelScale,
-  } = useWidgetVisibility();
+  const { fuel: fuelVisible, widgetsLocked, fuelSettingsVisible, fuelScale } =
+    useWidgetVisibility();
 
-  const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return DEFAULT_FUEL_OPTS;
-      const parsed = JSON.parse(raw) as Partial<FuelOpts>;
-      return {
-        ...DEFAULT_FUEL_OPTS,
-        ...parsed,
-      };
-    } catch {
-      return DEFAULT_FUEL_OPTS;
-    }
-  });
+  const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() =>
+    loadJsonFromStorage(LS_KEY, DEFAULT_FUEL_OPTS),
+  );
 
-  const [position, setPosition] = useState(() => {
-    try {
-      const raw = localStorage.getItem(POS_KEY_FUEL);
-      if (!raw) return { x: 100, y: 100 };
-      const parsed = JSON.parse(raw) as { x: number; y: number };
-      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        return parsed;
-      }
-      return { x: 100, y: 100 };
-    } catch {
-      return { x: 100, y: 100 };
-    }
-  });
+  const [position, setPosition] = useState(() =>
+    loadWidgetPosition(POS_KEY_FUEL, { x: 100, y: 100 }),
+  );
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(fuelOpts));
-    } catch (e) {
-      console.error("Error guardando ifuel settings:", e);
-    }
+    saveJsonToStorage(LS_KEY, fuelOpts);
   }, [fuelOpts]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(POS_KEY_FUEL, JSON.stringify(position));
-    } catch (e) {
-      console.error("Error guardando posición fuel:", e);
-    }
+    saveJsonToStorage(POS_KEY_FUEL, position);
   }, [position]);
 
   const { state, isConnected, sendMessage } = useIfuelWebSocket(WS_URL, {
@@ -354,12 +304,11 @@ export const FuelWidgetContainer: React.FC = () => {
 
   return (
     <div
+      className="fuel-widget-container"
       style={{
-        position: "relative",
         left: position.x,
         top: position.y,
         transform: `scale(${fuelScale ?? 1})`,
-        transformOrigin: "top left",
       }}
       onMouseDown={handleMouseDown}
     >
@@ -393,25 +342,16 @@ export const FuelWidgetContainer: React.FC = () => {
         />
       )}
 
-      {/* Indicador WS */}
       <div
-        style={{
-          position: "absolute",
-          top: -20,
-          left: 0,
-          padding: "2px 6px",
-          borderRadius: 4,
-          fontSize: 10,
-          background: isConnected
-            ? "rgba(0, 128, 0, 0.7)"
-            : "rgba(128, 0, 0, 0.7)",
-          color: "#fff",
-        }}
+        className={`fuel-widget-status ${
+          isConnected
+            ? "fuel-widget-status--connected"
+            : "fuel-widget-status--disconnected"
+        }`}
       >
         FUEL {isConnected ? "ON" : "OFF"}
       </div>
 
-      {/* Panel ajustes controlado desde el menú Fuel */}
       {fuelSettingsVisible && (
         <FuelSettingsPanel fuelOpts={fuelOpts} onChange={handleSettingsChange} />
       )}

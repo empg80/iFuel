@@ -1,11 +1,14 @@
 import React, { useMemo } from "react";
 import { FuelHistoryMiniChart } from "./FuelHistoryMiniChart";
 import { FuelHistogramMini } from "./FuelHistogramMini";
-
-type LapHistoryItem = {
-  lapNumber: number;
-  fuelUsed: number;
-};
+import type { LapHistoryItem } from "../types/telemetry";
+import {
+  formatFuel,
+  formatFuelDiff,
+  formatLapLabel,
+  formatLapTime,
+  formatTemperatureC,
+} from "../utils/format";
 
 type FuelWidgetProps = {
   fuel: number;
@@ -33,9 +36,7 @@ type FuelWidgetProps = {
   trackTemp: number | null;
 };
 
-export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWidget(
-  props,
-) {
+export const FuelWidget = React.memo(function FuelWidget(props: FuelWidgetProps) {
   const {
     fuel,
     fuelTime,
@@ -68,14 +69,10 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
     return { ratio: r, barClass: cls };
   }, [fuelLevelRatio]);
 
-  const { fuelDiff, fuelDiffText } = useMemo(() => {
-    if (lapFuel === undefined) {
-      return { fuelDiff: undefined as number | undefined, fuelDiffText: "" };
-    }
-    const diff = lapFuel - fuelAvg;
-    const text = `${diff > 0 ? "+" : ""}${diff.toFixed(3)}`;
-    return { fuelDiff: diff, fuelDiffText: text };
-  }, [lapFuel, fuelAvg]);
+  const { fuelDiff, text: fuelDiffText } = useMemo(
+    () => formatFuelDiff(lapFuel, fuelAvg),
+    [lapFuel, fuelAvg],
+  );
 
   const stintLapsText = useMemo(() => {
     if (!stintLaps || stintLaps.length === 0) return "--";
@@ -95,12 +92,12 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
 
         <div className="fuel-block right">
           <div className="label">TEMPS</div>
-          <div className="value" style={{ textAlign: "right" }}>
-            <span style={{ marginRight: 6 }}>
-              ☀ {airTemp !== null ? `${airTemp.toFixed(1)}°C` : "--"}
+          <div className="value value--align-right">
+            <span className="value__temp value__temp--air">
+              ☀ {formatTemperatureC(airTemp)}
             </span>
-            <span>
-              🛣 {trackTemp !== null ? `${trackTemp.toFixed(1)}°C` : "--"}
+            <span className="value__temp value__temp--track">
+              🛣 {formatTemperatureC(trackTemp)}
             </span>
           </div>
         </div>
@@ -129,11 +126,11 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
       <div className="fuel-row bottom">
         <div className="fuel-block">
           <div className="label">FUEL LAST</div>
-          <div className="value">{fuelLast.toFixed(3)}</div>
+          <div className="value">{formatFuel(fuelLast)}</div>
         </div>
         <div className="fuel-block center">
           <div className="label">FUEL AVG</div>
-          <div className="value">{fuelAvg.toFixed(3)}</div>
+          <div className="value">{formatFuel(fuelAvg)}</div>
         </div>
         <div className="fuel-block right">
           <div className="label">EST REFUEL</div>
@@ -144,15 +141,15 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
       <div className="fuel-row bottom">
         <div className="fuel-block">
           <div className="label">FUEL AVG 2</div>
-          <div className="value">{fuelAvg2.toFixed(3)}</div>
+          <div className="value">{formatFuel(fuelAvg2)}</div>
         </div>
         <div className="fuel-block center">
           <div className="label">FUEL AVG 5</div>
-          <div className="value">{fuelAvg5.toFixed(3)}</div>
+          <div className="value">{formatFuel(fuelAvg5)}</div>
         </div>
         <div className="fuel-block right">
           <div className="label">FUEL AVG 10</div>
-          <div className="value">{fuelAvg10.toFixed(3)}</div>
+          <div className="value">{formatFuel(fuelAvg10)}</div>
         </div>
       </div>
 
@@ -161,18 +158,16 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
       <div className="fuel-row lap-info">
         <div className="fuel-block">
           <div className="label">LAP</div>
-          <div className="value">
-            {lapNumber !== undefined ? `L${lapNumber}` : "--"}
-          </div>
+          <div className="value">{formatLapLabel(lapNumber)}</div>
         </div>
         <div className="fuel-block center">
           <div className="label">LAP TIME</div>
-          <div className="value">{lapTime ?? "--:--.---"}</div>
+          <div className="value">{formatLapTime(lapTime)}</div>
         </div>
         <div className="fuel-block right">
           <div className="label">FUEL LAP</div>
           <div className="value">
-            {lapFuel !== undefined ? lapFuel.toFixed(3) : "--"}
+            {lapFuel !== undefined ? formatFuel(lapFuel) : "--"}
             {fuelDiff !== undefined && (
               <span
                 className={
@@ -226,4 +221,5 @@ export const FuelWidget: React.FC<FuelWidgetProps> = React.memo(function FuelWid
     </div>
   );
 });
+
 

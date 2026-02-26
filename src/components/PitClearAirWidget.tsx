@@ -1,16 +1,10 @@
-import React from "react";
+import type { PitClearAirData } from "../types/pit";
 
-type PitClearAirOption = {
-  lap: number;
-  trafficScore: number;
+type PitClearAirWidgetProps = {
+  data: PitClearAirData;
 };
 
-export type PitClearAirData = {
-  suggestedLap: number | null;
-  options: PitClearAirOption[];
-} | null;
-
-export const PitClearAirWidget: React.FC<{ data: PitClearAirData }> = ({ data }) => {
+export const PitClearAirWidget = ({ data }: PitClearAirWidgetProps) => {
   if (!data || !data.suggestedLap) {
     return (
       <div className="fuel-widget">
@@ -21,13 +15,13 @@ export const PitClearAirWidget: React.FC<{ data: PitClearAirData }> = ({ data })
   }
 
   return (
-    <div className="fuel-widget">
+    <div className="fuel-widget pit-clear-air-widget">
       <div className="label">PIT CLEAR AIR</div>
       <div className="value fuel-main">Lap {data.suggestedLap}</div>
 
-      <div style={{ marginTop: 6 }}>
+      <div className="pit-clear-air-widget__options">
         {data.options.map((o) => (
-          <div key={o.lap} className="value" style={{ fontSize: 12, fontWeight: 400 }}>
+          <div key={o.lap} className="value pit-clear-air-widget__option">
             Lap {o.lap}: {o.trafficScore} cars ±3s
           </div>
         ))}

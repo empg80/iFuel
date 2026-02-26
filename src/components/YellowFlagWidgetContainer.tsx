@@ -1,33 +1,20 @@
-// src/components/YellowFlagWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { YellowFlagWidget } from "./YellowFlagWidget";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+import { loadWidgetPosition } from "../utils/position";
+import { saveJsonToStorage } from "../utils/storage";
 
 const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_YELLOW = "ifuel-pos-yellow";
 
 export const YellowFlagWidgetContainer: React.FC = () => {
-  const {
-    yellow,
-    widgetsLocked,
-    yellowScale,
-  } = useWidgetVisibility();
+  const { yellow, widgetsLocked, yellowScale } = useWidgetVisibility();
   const { state, isConnected } = useIfuelWebSocket(WS_URL);
 
-  const [position, setPosition] = useState(() => {
-    try {
-      const raw = localStorage.getItem(POS_KEY_YELLOW);
-      if (!raw) return { x: 900, y: 100 };
-      const parsed = JSON.parse(raw) as { x: number; y: number };
-      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        return parsed;
-      }
-      return { x: 900, y: 100 };
-    } catch {
-      return { x: 900, y: 100 };
-    }
-  });
+  const [position, setPosition] = useState(() =>
+    loadWidgetPosition(POS_KEY_YELLOW, { x: 900, y: 100 }),
+  );
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
@@ -56,11 +43,7 @@ export const YellowFlagWidgetContainer: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(POS_KEY_YELLOW, JSON.stringify(position));
-    } catch (e) {
-      console.error("Error guardando posición yellow:", e);
-    }
+    saveJsonToStorage(POS_KEY_YELLOW, position);
   }, [position]);
 
   const handleMouseDown = useCallback(
@@ -78,83 +61,45 @@ export const YellowFlagWidgetContainer: React.FC = () => {
     [widgetsLocked, position.x, position.y],
   );
 
-  // visibilidad controlada por menú
   if (!yellow) {
     return null;
   }
 
-  // si no hay WS o state, sigue mostrando el indicador y el placeholder
-  if (!isConnected || !state) {
-    return (
-      <div
-        style={{
-          position: "absolute",
-          left: position.x,
-          top: position.y,
-          transform: `scale(${yellowScale ?? 1})`,
-          transformOrigin: "top left",
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: -20,
-            left: 0,
-            padding: "2px 6px",
-            borderRadius: 4,
-            fontSize: 10,
-            background: isConnected
-              ? "rgba(0, 128, 0, 0.7)"
-              : "rgba(128, 0, 0, 0.7)",
-            color: "#fff",
-          }}
-        >
-          YELL {isConnected ? "ON" : "OFF"}
-        </div>
+  const warning = state?.yellowWarning ?? null;
+  const classColorIndexById = state?.classColorIndexById;
 
-        <div className="fuel-widget">
-          <div className="label">ESPERANDO DATOS DE IRACING…</div>
-        </div>
-      </div>
-    );
-  }
-
-  const warning = state.yellowWarning ?? null;
-  const classColorIndexById = state.classColorIndexById;
+  const hasState = !!state;
 
   return (
     <div
+      className="yellow-widget-container"
       style={{
-        position: "absolute",
         left: position.x,
         top: position.y,
         transform: `scale(${yellowScale ?? 1})`,
-        transformOrigin: "top left",
       }}
       onMouseDown={handleMouseDown}
     >
       <div
-        style={{
-          position: "absolute",
-          top: -20,
-          left: 0,
-          padding: "2px 6px",
-          borderRadius: 4,
-          fontSize: 10,
-          background: isConnected
-            ? "rgba(0, 128, 0, 0.7)"
-            : "rgba(128, 0, 0, 0.7)",
-          color: "#fff",
-        }}
+        className={`yellow-widget-status ${
+          isConnected
+            ? "yellow-widget-status--connected"
+            : "yellow-widget-status--disconnected"
+        }`}
       >
         YELL {isConnected ? "ON" : "OFF"}
       </div>
 
-      <YellowFlagWidget
-        warning={warning}
-        classColorIndexById={classColorIndexById}
-      />
+      {hasState ? (
+        <YellowFlagWidget
+          warning={warning}
+          classColorIndexById={classColorIndexById}
+        />
+      ) : (
+        <div className="fuel-widget">
+          <div className="label">ESPERANDO DATOS DE IRACING…</div>
+        </div>
+      )}
     </div>
   );
 };
