@@ -7,7 +7,11 @@ const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_RELATIVE = "ifuel-pos-relative";
 
 export const RelativeWidgetContainer: React.FC = () => {
-  const { visibility, widgetsLocked } = useWidgetVisibility();
+  const {
+    standingBattle,
+    widgetsLocked,
+    relativeScale,
+  } = useWidgetVisibility();
 
   const [position, setPosition] = useState(() => {
     try {
@@ -87,7 +91,7 @@ export const RelativeWidgetContainer: React.FC = () => {
     onTrackAhead != null ||
     onTrackBehind != null;
 
-  if (!visibility.standingBattle) {
+  if (!standingBattle) {
     return null;
   }
 
@@ -97,6 +101,8 @@ export const RelativeWidgetContainer: React.FC = () => {
         position: "relative",
         left: position.x,
         top: position.y,
+        transform: `scale(${relativeScale ?? 1})`,
+        transformOrigin: "top left",
       }}
       onMouseDown={handleMouseDown}
     >
@@ -130,17 +136,8 @@ export const RelativeWidgetContainer: React.FC = () => {
           classColorIndexById={classColorIndexById}
         />
       ) : (
-        <div
-          style={{
-            background: "#050505",
-            color: "#f5f5f5",
-            padding: "8px 12px",
-            borderRadius: 4,
-            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
-            fontSize: 12,
-          }}
-        >
-          ESPERANDO DATOS DE IRACING…
+        <div className="fuel-widget">
+          <div className="label">ESPERANDO DATOS DE IRACING…</div>
         </div>
       )}
     </div>

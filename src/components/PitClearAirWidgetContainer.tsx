@@ -7,7 +7,11 @@ const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_PITCLEAR = "ifuel-pos-pitclear";
 
 export const PitClearAirWidgetContainer: React.FC = () => {
-  const { visibility, widgetsLocked } = useWidgetVisibility();
+  const {
+    pitClearAir,
+    widgetsLocked,
+    pitClearScale,
+  } = useWidgetVisibility();
   const { state, isConnected } = useIfuelWebSocket(WS_URL);
 
   const [position, setPosition] = useState(() => {
@@ -68,14 +72,20 @@ export const PitClearAirWidgetContainer: React.FC = () => {
     [widgetsLocked, position.x, position.y],
   );
 
-  if (!visibility.pitClearAir) {
+  if (!pitClearAir) {
     return null;
   }
 
   return (
     <div
       className="pitclear-widget-container"
-      style={{ position: "relative", left: position.x, top: position.y }}
+      style={{
+        position: "relative",
+        left: position.x,
+        top: position.y,
+        transform: `scale(${pitClearScale ?? 1})`,
+        transformOrigin: "top left",
+      }}
       onMouseDown={handleMouseDown}
     >
       <PitClearAirWidget data={state?.pitClearAir ?? null} />

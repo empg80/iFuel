@@ -11,6 +11,13 @@ let overlayState = {
   yellowVisible: true,
   pitClearAirVisible: true,
   widgetsLocked: true,
+  fuelSettingsVisible: false,
+
+  // escalas
+  fuelScale: 1,
+  relativeScale: 1,
+  pitClearScale: 1,
+  yellowScale: 1,
 };
 
 function sendOverlayState() {
@@ -69,6 +76,199 @@ function createMenu() {
             sendOverlayState();
           },
         },
+        { type: "separator" },
+
+        // Escala Relative / Standing
+        {
+          label: "Standing / Relative size",
+          submenu: [
+            {
+              label: "75%",
+              type: "radio",
+              checked: overlayState.relativeScale === 0.75,
+              click: () => {
+                overlayState.relativeScale = 0.75;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "100%",
+              type: "radio",
+              checked: overlayState.relativeScale === 1,
+              click: () => {
+                overlayState.relativeScale = 1;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "125%",
+              type: "radio",
+              checked: overlayState.relativeScale === 1.25,
+              click: () => {
+                overlayState.relativeScale = 1.25;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "150%",
+              type: "radio",
+              checked: overlayState.relativeScale === 1.5,
+              click: () => {
+                overlayState.relativeScale = 1.5;
+                sendOverlayState();
+              },
+            },
+          ],
+        },
+
+        // Escala Fuel
+        {
+          label: "Fuel size",
+          submenu: [
+            {
+              label: "75%",
+              type: "radio",
+              checked: overlayState.fuelScale === 0.75,
+              click: () => {
+                overlayState.fuelScale = 0.75;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "100%",
+              type: "radio",
+              checked: overlayState.fuelScale === 1,
+              click: () => {
+                overlayState.fuelScale = 1;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "125%",
+              type: "radio",
+              checked: overlayState.fuelScale === 1.25,
+              click: () => {
+                overlayState.fuelScale = 1.25;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "150%",
+              type: "radio",
+              checked: overlayState.fuelScale === 1.5,
+              click: () => {
+                overlayState.fuelScale = 1.5;
+                sendOverlayState();
+              },
+            },
+          ],
+        },
+
+        // Escala Yellow
+        {
+          label: "Yellow size",
+          submenu: [
+            {
+              label: "75%",
+              type: "radio",
+              checked: overlayState.yellowScale === 0.75,
+              click: () => {
+                overlayState.yellowScale = 0.75;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "100%",
+              type: "radio",
+              checked: overlayState.yellowScale === 1,
+              click: () => {
+                overlayState.yellowScale = 1;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "125%",
+              type: "radio",
+              checked: overlayState.yellowScale === 1.25,
+              click: () => {
+                overlayState.yellowScale = 1.25;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "150%",
+              type: "radio",
+              checked: overlayState.yellowScale === 1.5,
+              click: () => {
+                overlayState.yellowScale = 1.5;
+                sendOverlayState();
+              },
+            },
+          ],
+        },
+
+        // Escala Pit Clear
+        {
+          label: "Pit Clear size",
+          submenu: [
+            {
+              label: "75%",
+              type: "radio",
+              checked: overlayState.pitClearScale === 0.75,
+              click: () => {
+                overlayState.pitClearScale = 0.75;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "100%",
+              type: "radio",
+              checked: overlayState.pitClearScale === 1,
+              click: () => {
+                overlayState.pitClearScale = 1;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "125%",
+              type: "radio",
+              checked: overlayState.pitClearScale === 1.25,
+              click: () => {
+                overlayState.pitClearScale = 1.25;
+                sendOverlayState();
+              },
+            },
+            {
+              label: "150%",
+              type: "radio",
+              checked: overlayState.pitClearScale === 1.5,
+              click: () => {
+                overlayState.pitClearScale = 1.5;
+                sendOverlayState();
+              },
+            },
+          ],
+        },
+
+        { type: "separator" },
+        {
+          label: "Reload widgets",
+          role: "reload",
+        },
+      ],
+    },
+    {
+      label: "Fuel",
+      submenu: [
+        {
+          label: "Show settings panel",
+          type: "checkbox",
+          checked: overlayState.fuelSettingsVisible,
+          click: (item) => {
+            overlayState.fuelSettingsVisible = item.checked;
+            sendOverlayState();
+          },
+        },
       ],
     },
   ];
@@ -107,7 +307,6 @@ function createWindow() {
     mainWindow = null;
   });
 
-  // enviar estado inicial al cargar
   mainWindow.webContents.on("did-finish-load", () => {
     sendOverlayState();
   });

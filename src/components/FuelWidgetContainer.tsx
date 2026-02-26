@@ -161,7 +161,12 @@ const emptyState: import("../useIfuelWebSocket").IfuelState = {
 };
 
 export const FuelWidgetContainer: React.FC = () => {
-  const { visibility, widgetsLocked } = useWidgetVisibility();
+  const {
+    fuel: fuelVisible,
+    widgetsLocked,
+    fuelSettingsVisible,
+    fuelScale,
+  } = useWidgetVisibility();
 
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() => {
     try {
@@ -176,8 +181,6 @@ export const FuelWidgetContainer: React.FC = () => {
       return DEFAULT_FUEL_OPTS;
     }
   });
-
-  const [showSettings, setShowSettings] = useState(false);
 
   const [position, setPosition] = useState(() => {
     try {
@@ -256,10 +259,6 @@ export const FuelWidgetContainer: React.FC = () => {
     },
     [widgetsLocked, position.x, position.y],
   );
-
-  const handleToggleSettings = useCallback(() => {
-    setShowSettings((v) => !v);
-  }, []);
 
   const handleSettingsChange = useCallback((next: FuelOpts) => {
     setFuelOpts(next);
@@ -351,17 +350,16 @@ export const FuelWidgetContainer: React.FC = () => {
     return "--";
   }, [hasState, isLapsRace, sessionLapsRemainEx, sessionTimeRemain]);
 
-  if (!visibility.fuel) {
-    return null;
-  }
+  if (!fuelVisible) return null;
 
   return (
     <div
-      className="fuel-widget-container"
       style={{
         position: "relative",
         left: position.x,
         top: position.y,
+        transform: `scale(${fuelScale ?? 1})`,
+        transformOrigin: "top left",
       }}
       onMouseDown={handleMouseDown}
     >
@@ -413,21 +411,8 @@ export const FuelWidgetContainer: React.FC = () => {
         FUEL {isConnected ? "ON" : "OFF"}
       </div>
 
-      {/* Botón ajustes */}
-      <div style={{ position: "absolute", top: -20, right: 0 }}>
-        <button
-          style={{
-            padding: "2px 6px",
-            fontSize: 10,
-            borderRadius: 4,
-          }}
-          onClick={handleToggleSettings}
-        >
-          ⚙
-        </button>
-      </div>
-
-      {showSettings && (
+      {/* Panel ajustes controlado desde el menú Fuel */}
+      {fuelSettingsVisible && (
         <FuelSettingsPanel fuelOpts={fuelOpts} onChange={handleSettingsChange} />
       )}
     </div>

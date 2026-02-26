@@ -1,4 +1,3 @@
-// src/contexts/WidgetVisibilityContext.tsx
 import { createContext } from "react";
 
 export type VisibilityState = {
@@ -7,6 +6,12 @@ export type VisibilityState = {
   yellow: boolean;
   pitClearAir: boolean;
   widgetsLocked: boolean;
+  fuelSettingsVisible: boolean;
+
+  fuelScale: number;
+  relativeScale: number;
+  pitClearScale: number;
+  yellowScale: number;
 };
 
 export const defaultVisibilityState: VisibilityState = {
@@ -15,6 +20,12 @@ export const defaultVisibilityState: VisibilityState = {
   yellow: true,
   pitClearAir: true,
   widgetsLocked: true,
+  fuelSettingsVisible: false,
+
+  fuelScale: 1,
+  relativeScale: 1,
+  pitClearScale: 1,
+  yellowScale: 1,
 };
 
 export const WidgetVisibilityContext =

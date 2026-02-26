@@ -14,15 +14,23 @@ export const WidgetVisibilityProvider: React.FC<{ children: React.ReactNode }> =
     const api = window.ifuelOverlay;
     if (!api || typeof api.onOverlayStateChanged !== "function") return;
 
-    api.onOverlayStateChanged((overlayState) => {
-      setState({
-        fuel: overlayState.fuelVisible ?? true,
-        standingBattle: overlayState.standingBattleVisible ?? true,
-        yellow: overlayState.yellowVisible ?? true,
-        pitClearAir: overlayState.pitClearAirVisible ?? true,
-        widgetsLocked: overlayState.widgetsLocked ?? true,
-      });
-    });
+    api.onOverlayStateChanged((overlayState: IfuelOverlayState) => {
+  setState((prev) => ({
+    ...prev,
+    fuel: overlayState.fuelVisible ?? prev.fuel,
+    standingBattle: overlayState.standingBattleVisible ?? prev.standingBattle,
+    yellow: overlayState.yellowVisible ?? prev.yellow,
+    pitClearAir: overlayState.pitClearAirVisible ?? prev.pitClearAir,
+    widgetsLocked: overlayState.widgetsLocked ?? prev.widgetsLocked,
+    fuelSettingsVisible:
+      overlayState.fuelSettingsVisible ?? prev.fuelSettingsVisible,
+    fuelScale: overlayState.fuelScale ?? prev.fuelScale,
+    relativeScale: overlayState.relativeScale ?? prev.relativeScale,
+    pitClearScale: overlayState.pitClearScale ?? prev.pitClearScale,
+    yellowScale: overlayState.yellowScale ?? prev.yellowScale,
+  }));
+});
+
   }, []);
 
   return (
@@ -31,4 +39,3 @@ export const WidgetVisibilityProvider: React.FC<{ children: React.ReactNode }> =
     </WidgetVisibilityContext.Provider>
   );
 };
-

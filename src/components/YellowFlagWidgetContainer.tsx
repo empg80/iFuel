@@ -8,7 +8,11 @@ const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_YELLOW = "ifuel-pos-yellow";
 
 export const YellowFlagWidgetContainer: React.FC = () => {
-  const { visibility, widgetsLocked } = useWidgetVisibility();
+  const {
+    yellow,
+    widgetsLocked,
+    yellowScale,
+  } = useWidgetVisibility();
   const { state, isConnected } = useIfuelWebSocket(WS_URL);
 
   const [position, setPosition] = useState(() => {
@@ -75,7 +79,7 @@ export const YellowFlagWidgetContainer: React.FC = () => {
   );
 
   // visibilidad controlada por menú
-  if (!visibility.yellow) {
+  if (!yellow) {
     return null;
   }
 
@@ -87,6 +91,8 @@ export const YellowFlagWidgetContainer: React.FC = () => {
           position: "absolute",
           left: position.x,
           top: position.y,
+          transform: `scale(${yellowScale ?? 1})`,
+          transformOrigin: "top left",
         }}
         onMouseDown={handleMouseDown}
       >
@@ -107,17 +113,8 @@ export const YellowFlagWidgetContainer: React.FC = () => {
           YELL {isConnected ? "ON" : "OFF"}
         </div>
 
-        <div
-          style={{
-            background: "#050505",
-            color: "#f5f5f5",
-            padding: "4px 8px",
-            borderRadius: 4,
-            boxShadow: "0 0 12px rgba(0,0,0,0.8)",
-            fontSize: 10,
-          }}
-        >
-          ESPERANDO DATOS DE IRACING…
+        <div className="fuel-widget">
+          <div className="label">ESPERANDO DATOS DE IRACING…</div>
         </div>
       </div>
     );
@@ -132,6 +129,8 @@ export const YellowFlagWidgetContainer: React.FC = () => {
         position: "absolute",
         left: position.x,
         top: position.y,
+        transform: `scale(${yellowScale ?? 1})`,
+        transformOrigin: "top left",
       }}
       onMouseDown={handleMouseDown}
     >
@@ -153,7 +152,7 @@ export const YellowFlagWidgetContainer: React.FC = () => {
       </div>
 
       <YellowFlagWidget
-        warning={warning ?? null}
+        warning={warning}
         classColorIndexById={classColorIndexById}
       />
     </div>

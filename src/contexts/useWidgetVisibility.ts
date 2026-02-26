@@ -2,18 +2,11 @@ import { useContext } from "react";
 import {
   WidgetVisibilityContext,
   defaultVisibilityState,
+  type VisibilityState,
 } from "./WidgetVisibilityContext";
 
-export function useWidgetVisibility() {
-  const state = useContext(WidgetVisibilityContext) ?? defaultVisibilityState;
-
-  return {
-    visibility: {
-      fuel: state.fuel,
-      standingBattle: state.standingBattle,
-      yellow: state.yellow,
-      pitClearAir: state.pitClearAir,
-    },
-    widgetsLocked: state.widgetsLocked,
-  };
+export function useWidgetVisibility(): VisibilityState {
+  const state = useContext(WidgetVisibilityContext) as VisibilityState | undefined;
+  const safeState = state ?? defaultVisibilityState;
+  return safeState;
 }
