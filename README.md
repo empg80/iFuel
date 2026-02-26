@@ -1,5 +1,3 @@
-***
-
 # iFuel – iRacing Fuel Overlay (React + Electron)
 
 iFuel is a **fuel and strategy overlay** for iRacing, designed to be lightweight, clear, and easy to reuse in other projects.  
@@ -11,11 +9,13 @@ It consists of a telemetry server (WebSocket) and a desktop app built with **Rea
 
 ## Features
 
+### Fuel & strategy
+
 - Compact fuel widget with dark UI and monospace typography.
 - Main data:
   - Current fuel, fuel time, and estimated laps remaining.
-  - Fuel per lap: `FUEL LAST`, `FUEL AVG`, 2/5/10-lap rolling averages.
-  - Estimated **refuel needed** (`EST REFUEL`) for lap- or time-based sessions.
+  - Fuel per lap: `FUEL LAST`, `FUEL AVG`, 2/5/10‑lap rolling averages.
+  - Estimated **refuel needed** (`EST REFUEL`) for lap‑ or time‑based sessions.
 - Session info:
   - Laps remaining or time remaining (`SESSION`).
   - Air and track temperature.
@@ -35,18 +35,18 @@ It consists of a telemetry server (WebSocket) and a desktop app built with **Rea
   - `Safety laps` – extra safety laps for refuel calculation.
   - Average selection (`AVG 2/5/10`).
 - Movable overlay inside the window:
-  - **Lock** button 🔒/🔓 to lock/unlock widget movement.
-  - ⚙ settings panel with `localStorage` persistence.
-- Performance-oriented:
+  - Widgets can be dragged to custom positions and locked in place.
+  - All user settings are persisted via `localStorage`.
+- Performance‑oriented:
   - UI update throttling (~20 Hz).
-  - Uses `React.memo`, `useMemo`, and `useCallback` to reduce re-renders.
+  - Uses `React.memo`, `useMemo`, and `useCallback` to reduce re‑renders.
   - Fuel/strategy calculations kept outside the render tree where possible.
 
-## Multiclass Relative & Standing Battle
+### Multiclass Relative & Standing Battle
 
-iFuel now includes a **multiclass-relative overlay** focused on class battles and on-track traffic.
+iFuel includes a **multiclass‑relative overlay** focused on class battles and on‑track traffic.
 
-### Standing Battle
+#### Standing Battle
 
 The *Standing Battle* widget shows:
 
@@ -54,10 +54,11 @@ The *Standing Battle* widget shows:
 - The car directly ahead and behind in your class.
 - Time gap to each car, last lap, best lap, and lap‑time delta vs your last lap.
 - Class position badge next to each car number (e.g. `P2`, `P5`), color‑coded by class.
+- A compact, fuel‑style layout with aligned columns for BEHIND / YOU / AHEAD and their lap times.
 
-Class colors are assigned per session: iFuel inspects all classes on the grid and maps each `classId` to one of six consistent colors, so every category is easy to distinguish at a glance.
+Class colors are assigned and reused across sessions: iFuel inspects the car classes on the grid, maps each `classId` to a color index, and persists this mapping so categories keep a consistent color over time.
 
-### On‑Track Relative
+#### On‑Track Relative
 
 Below the standing battle, the overlay adds an *On‑Track Relative* row:
 
@@ -66,6 +67,27 @@ Below the standing battle, the overlay adds an *On‑Track Relative* row:
 - Uses the same class color badges as the standing battle, so you can immediately see which category each car belongs to.
 
 This widget is driven by the same WebSocket telemetry server as the fuel calculator, so it updates smoothly in real time while keeping CPU usage low.
+
+### Yellow Flag widget
+
+iFuel provides a dedicated **Yellow Flag widget** which is always visible:
+
+- Shows a **green flag** when the track is clear.
+- Shows a **solid yellow flag** for standard cautions.
+- Shows a **yellow flag with red stripes** for debris / surface warnings.
+- When a clear incident car can be identified:
+  - Displays approximate **distance (m)** and **time (s)** to the incident.
+  - Shows the incident car number and its class position, with class color badge.
+
+### Pit Clear Air widget (experimental)
+
+An experimental **Pit Clear Air** widget helps you choose cleaner pit windows:
+
+- Uses your current stint pace, your pit delta and a configurable pit window.
+- Simulates where you would rejoin the track for each candidate lap.
+- Scores traffic density around the projected pit exit and suggests:
+  - One **recommended lap**.
+  - A small list of alternative laps with their relative “traffic score”.
 
 ***
 
@@ -79,12 +101,11 @@ This widget is driven by the same WebSocket telemetry server as the fuel calcula
     - Connects to the WS server.
     - Accumulates lap history (`LapSample`).
     - Computes fuel averages, refuel estimates, strategy and chart data.
-    - Applies state throttling so React doesn’t re-render at every telemetry tick.
-  - `FuelWidgetContainer`:
-    - Reads/saves options in `localStorage` (`ifuel-settings-v1`).
-    - Manages overlay drag and lock state.
-    - Builds labels like `sessionLabel`.
-    - Renders `FuelWidget` and the settings panel.
+    - Applies state throttling so React doesn’t re‑render at every telemetry tick.
+  - Widget containers:
+    - Read/save options in `localStorage`.
+    - Manage overlay drag and lock state.
+    - Wire telemetry state into the individual widgets (Fuel, Relative, Yellow, Pit Clear Air).
 
 ***
 
@@ -104,75 +125,71 @@ This widget is driven by the same WebSocket telemetry server as the fuel calcula
 ```bash
 git clone https://github.com/empg80/iFuel.git
 cd iFuel
-```
+Install dependencies:
 
-2. Install dependencies:
-
-```bash
+bash
 npm install
 # or
 yarn install
-```
+Run in development mode:
 
-3. Run in development mode:
-
-```bash
+bash
 npm run dev
-```
+Run the Electron wrapper (if configured):
 
-4. Run the Electron wrapper (if configured):
-
-```bash
+bash
 npm run electron
-```
-
-Make sure the telemetry server is running and sending data to `ws://localhost:7071/ifuel`.  
+Make sure the telemetry server is running and sending data to ws://localhost:7071/ifuel.
 Otherwise, the overlay will display “Waiting for iRacing data…”.
 
-***
+Basic Usage
+Launch the iFuel app.
 
-## Basic Usage
+Start iRacing and go on track.
 
-- Launch the iFuel app.
-- Start iRacing and go on track.
-- Tune the ⚙ settings panel:
-  - Set `Min lap time` according to the track (e.g. 20–30 s for short ovals, 60–120 s for road courses).
-  - Adjust `Min fuel / lap` and `Safety laps` to your preference.
-- Unlock the 🔓 lock button to move the widget inside the window, then lock it 🔒 once it’s in place.
+Configure the settings panel in the fuel widget:
 
-***
+Set Min lap time according to the track (e.g. 20–30 s for short ovals, 60–120 s for road courses).
 
-## Development
+Adjust Min fuel / lap and Safety laps to your preference.
 
+Unlock widget movement, drag the widgets to your preferred positions, then lock them again once they are in place.
+
+Development
 Common scripts:
 
-```bash
+bash
 # Start dev server
 npm run dev
 
 # Lint / build (depending on your setup)
 npm run lint
 npm run build
-```
-
 Key files:
 
-- `src/useIfuelWebSocket.ts` – telemetry reading, averages, strategy and throttling.
-- `src/components/FuelWidget.tsx` – fuel overlay UI.
-- `src/components/FuelWidgetContainer.tsx` – WebSocket, settings, drag, lock and prop wiring.
+src/useIfuelWebSocket.ts – telemetry reading, averages, strategy and throttling.
 
-***
+src/components/FuelWidget.tsx – fuel overlay UI.
 
-## Roadmap / Future ideas
+src/components/FuelWidgetContainer.tsx – WebSocket, settings, drag, lock and prop wiring.
 
-- Add a **time delta overlay** (ahead/behind) similar to a relative timing bar.
-- Support multiple settings profiles per car/track.
-- Export the telemetry hook as a small standalone library.
-- Better Electron integration (always-on-top, optional click-through, etc.).
+src/components/RelativeWidget.tsx / container – multiclass relative and on‑track view.
 
-***
+src/components/YellowFlagWidget.tsx / container – global yellow / debris status.
 
-## License
+src/components/PitClearAirWidget.tsx / container – pit clear air suggestions.
 
-TBD.  
-For now, consider it for personal / non-commercial use.
+Roadmap / Future ideas
+Move widget visibility and lock/unlock controls into the Electron window menu and remove in‑widget toggles.
+
+Add a dedicated time delta overlay (ahead/behind) similar to a relative timing bar.
+
+Support multiple settings profiles per car/track.
+
+Export the telemetry hook as a small standalone library.
+
+Better Electron integration (always‑on‑top, optional click‑through, etc.).
+
+License
+TBD.
+For now, consider it for personal / non‑commercial use.
