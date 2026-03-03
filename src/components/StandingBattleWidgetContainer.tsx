@@ -1,14 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RelativeWidget } from "./StandingBattleWidget";
-import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
+import type { IfuelState } from "../useIfuelWebSocket";
 
-const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_RELATIVE = "ifuel-pos-relative";
 
-export const RelativeWidgetContainer: React.FC = () => {
+type Props = {
+  state: IfuelState | null;
+  isConnected: boolean;
+};
+
+export const RelativeWidgetContainer: React.FC<Props> = ({
+  state,
+  isConnected,
+}) => {
   const { standingBattle, widgetsLocked, relativeScale } =
     useWidgetVisibility();
 
@@ -18,8 +25,6 @@ export const RelativeWidgetContainer: React.FC = () => {
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
-
-  const { state, isConnected } = useIfuelWebSocket(WS_URL, {});
 
   useEffect(() => {
     saveJsonToStorage(POS_KEY_RELATIVE, position);
@@ -62,6 +67,8 @@ export const RelativeWidgetContainer: React.FC = () => {
     [widgetsLocked, position.x, position.y],
   );
 
+  if (!standingBattle) return null;
+
   const ahead = state?.relativeAhead ?? null;
   const behind = state?.relativeBehind ?? null;
   const myPos = state?.relativeMyPosition ?? null;
@@ -75,10 +82,6 @@ export const RelativeWidgetContainer: React.FC = () => {
     behind != null ||
     onTrackAhead != null ||
     onTrackBehind != null;
-
-  if (!standingBattle) {
-    return null;
-  }
 
   return (
     <div

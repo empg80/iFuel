@@ -289,6 +289,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
       preload: path.join(__dirname, "preload.cjs"),
     },
   });

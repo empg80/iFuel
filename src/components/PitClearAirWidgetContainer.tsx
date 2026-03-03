@@ -1,16 +1,26 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { PitClearAirWidget } from "./PitClearAirWidget";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
+import type { PitClearAirData } from "../types/pit";
 
-const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_PITCLEAR = "ifuel-pos-pitclear";
 
-export const PitClearAirWidgetContainer: React.FC = () => {
-  const { pitClearAir, widgetsLocked, pitClearScale } = useWidgetVisibility();
-  const { state, isConnected } = useIfuelWebSocket(WS_URL);
+type Props = {
+  pitClearAir: PitClearAirData | undefined;
+  isConnected: boolean;
+};
+
+export const PitClearAirWidgetContainer: React.FC<Props> = ({
+  pitClearAir,
+  isConnected,
+}) => {
+  const {
+    pitClearAir: pitClearVisible,
+    widgetsLocked,
+    pitClearScale,
+  } = useWidgetVisibility();
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_PITCLEAR, { x: 300, y: 100 }),
@@ -58,9 +68,8 @@ export const PitClearAirWidgetContainer: React.FC = () => {
     [widgetsLocked, position.x, position.y],
   );
 
-  if (!pitClearAir) {
-    return null;
-  }
+  // respetar toggle de visibilidad
+  if (!pitClearVisible) return null;
 
   return (
     <div
@@ -72,7 +81,7 @@ export const PitClearAirWidgetContainer: React.FC = () => {
       }}
       onMouseDown={handleMouseDown}
     >
-      <PitClearAirWidget data={state?.pitClearAir ?? null} />
+      <PitClearAirWidget data={pitClearAir} />
 
       <div
         className={`pitclear-widget-status ${

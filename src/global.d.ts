@@ -17,7 +17,9 @@ declare global {
   }
 
   interface IfuelOverlayAPI {
-    onOverlayStateChanged: (callback: (state: IfuelOverlayState) => void) => void;
+    onOverlayStateChanged(
+      callback: (state: IfuelOverlayState) => void,
+    ): () => void;
   }
 
   interface Window {

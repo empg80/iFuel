@@ -1,16 +1,22 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { YellowFlagWidget } from "./YellowFlagWidget";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
+import type { IfuelState } from "../useIfuelWebSocket";
 
-const WS_URL = "ws://localhost:7071/ifuel";
 const POS_KEY_YELLOW = "ifuel-pos-yellow";
 
-export const YellowFlagWidgetContainer: React.FC = () => {
+type Props = {
+  state: IfuelState | null;
+  isConnected: boolean;
+};
+
+export const YellowFlagWidgetContainer: React.FC<Props> = ({
+  state,
+  isConnected,
+}) => {
   const { yellow, widgetsLocked, yellowScale } = useWidgetVisibility();
-  const { state, isConnected } = useIfuelWebSocket(WS_URL);
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_YELLOW, { x: 900, y: 100 }),
@@ -61,13 +67,10 @@ export const YellowFlagWidgetContainer: React.FC = () => {
     [widgetsLocked, position.x, position.y],
   );
 
-  if (!yellow) {
-    return null;
-  }
+  if (!yellow) return null;
 
   const warning = state?.yellowWarning ?? null;
   const classColorIndexById = state?.classColorIndexById;
-
   const hasState = !!state;
 
   return (

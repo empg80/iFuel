@@ -6,13 +6,12 @@ import React, {
   useRef,
 } from "react";
 import { FuelWidget } from "./FuelWidget";
-import { useIfuelWebSocket } from "../useIfuelWebSocket";
 import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
 import { loadWidgetPosition } from "../utils/position";
+import type { IfuelState } from "../useIfuelWebSocket";
 
-const WS_URL = "ws://localhost:7071/ifuel";
 const LS_KEY = "ifuel-settings-v1";
 const POS_KEY_FUEL = "ifuel-pos-fuel";
 
@@ -102,7 +101,7 @@ const FuelSettingsPanel = React.memo(function FuelSettingsPanel({
   );
 });
 
-const emptyState: import("../useIfuelWebSocket").IfuelState = {
+const emptyState: IfuelState = {
   fuel: 0,
   fuelMax: null,
   fuelCapacity: null,
@@ -140,11 +139,26 @@ const emptyState: import("../useIfuelWebSocket").IfuelState = {
     classId: null,
     classPosition: null,
   },
+  pitClearAir: null,
 };
 
-export const FuelWidgetContainer: React.FC = () => {
-  const { fuel: fuelVisible, widgetsLocked, fuelSettingsVisible, fuelScale } =
-    useWidgetVisibility();
+type FuelWidgetContainerProps = {
+  state: IfuelState | null;
+  isConnected: boolean;
+  sendMessage: (msg: unknown) => void;
+};
+
+export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
+  state,
+  isConnected,
+  sendMessage,
+}) => {
+  const {
+    fuel: fuelVisible,
+    widgetsLocked,
+    fuelSettingsVisible,
+    fuelScale,
+  } = useWidgetVisibility();
 
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() =>
     loadJsonFromStorage(LS_KEY, DEFAULT_FUEL_OPTS),
@@ -157,6 +171,13 @@ export const FuelWidgetContainer: React.FC = () => {
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
+  // NUEVO: recordamos la última ventana enviada
+  const lastSentPitStrategyRef = useRef<{
+    start: number;
+    end: number;
+    delta: number;
+  } | null>(null);
+
   useEffect(() => {
     saveJsonToStorage(LS_KEY, fuelOpts);
   }, [fuelOpts]);
@@ -164,12 +185,6 @@ export const FuelWidgetContainer: React.FC = () => {
   useEffect(() => {
     saveJsonToStorage(POS_KEY_FUEL, position);
   }, [position]);
-
-  const { state, isConnected, sendMessage } = useIfuelWebSocket(WS_URL, {
-    minLapTimeSeconds: fuelOpts.minLapTimeSeconds,
-    minFuelUsedPerLap: fuelOpts.minFuelUsedPerLap,
-    safetyExtraLaps: fuelOpts.safetyExtraLaps,
-  });
 
   useEffect(() => {
     function handleMouseMove(e: MouseEvent) {
@@ -243,12 +258,31 @@ export const FuelWidgetContainer: React.FC = () => {
   const capacity = fuelCapacity ?? fuelMax ?? fuel;
   const fuelLevelRatio = capacity > 0 ? fuel / capacity : 0;
 
+  // si quieres seguir mandando pit strategy desde aquí:
   useEffect(() => {
     if (!earliestPitLap || !estLaps) return;
 
     const pitWindowStartLap = earliestPitLap;
     const pitWindowEndLap = earliestPitLap + 3;
     const pitDeltaSeconds = 32;
+
+    const prev = lastSentPitStrategyRef.current;
+    const next = {
+      start: pitWindowStartLap,
+      end: pitWindowEndLap,
+      delta: pitDeltaSeconds,
+    };
+
+    if (
+      prev &&
+      prev.start === next.start &&
+      prev.end === next.end &&
+      prev.delta === next.delta
+    ) {
+      return; // misma ventana, no enviar
+    }
+
+    lastSentPitStrategyRef.current = next;
 
     sendMessage({
       type: "updatePitStrategy",
@@ -353,7 +387,10 @@ export const FuelWidgetContainer: React.FC = () => {
       </div>
 
       {fuelSettingsVisible && (
-        <FuelSettingsPanel fuelOpts={fuelOpts} onChange={handleSettingsChange} />
+        <FuelSettingsPanel
+          fuelOpts={fuelOpts}
+          onChange={handleSettingsChange}
+        />
       )}
     </div>
   );

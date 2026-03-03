@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 type RelativeCar = {
   carNum: number | string | null;
@@ -74,7 +74,6 @@ type LapSample = {
   fuelUsed: number;
   lapTime: number;
 };
-
 
 export type IfuelState = {
   fuel: number;
@@ -155,13 +154,30 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     socketRef.current = socket;
 
     socket.onopen = () => {
+      console.log("[iFuel] WS open");
       setIsConnected(true);
     };
 
     socket.onclose = (event) => {
+      console.log(
+        "[iFuel] WS closed",
+        event.code,
+        event.reason,
+        "readyState:",
+        socket.readyState,
+      );
       setIsConnected(false);
-      console.log("WS closed", event.code, event.reason);
       socketRef.current = null;
+
+      // Opcional: reintento básico
+      setTimeout(() => {
+        if (!socketRef.current) {
+          console.log("[iFuel] Reintentando conexión WS...");
+          // aquí NO crees el WebSocket a mano,
+          // dejas que React re‑monte el hook (por ejemplo
+          // cambiando una key en el componente padre)
+        }
+      }, 2000);
     };
 
     socket.onerror = (err) => {
@@ -277,8 +293,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               if (extraSecondsNeeded <= 0) {
                 estRefuel = 0;
               } else {
-                const extraLapsNeeded =
-                  extraSecondsNeeded / avgLapTimeSeconds;
+                const extraLapsNeeded = extraSecondsNeeded / avgLapTimeSeconds;
                 estRefuel = extraLapsNeeded * fuelPerLapForEst;
               }
             } else {
@@ -373,8 +388,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
 
           if (avgLapTimeSeconds > 0) {
-            const timeDone =
-              (lapNumberSafe ?? 0) * avgLapTimeSeconds;
+            const timeDone = (lapNumberSafe ?? 0) * avgLapTimeSeconds;
             const raceTimeTotal = timeDone + timeRemainForRace;
 
             const stintTimeMax =
@@ -395,26 +409,45 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             }
 
             if (estLaps && estLaps > 0 && stintTimeMax > 0) {
-              const secondsOfFuelNow =
-                estLaps * avgLapTimeSeconds;
-              const secondsShort =
-                timeRemainForRace - secondsOfFuelNow;
+              const secondsOfFuelNow = estLaps * avgLapTimeSeconds;
+              const secondsShort = timeRemainForRace - secondsOfFuelNow;
 
               if (secondsShort <= 0) {
                 earliestPitLap = null;
               } else {
                 const fullTankSeconds =
                   (fuelCapacity / fuelPerLapForEst) * avgLapTimeSeconds;
-                const extraSecondsFromFull =
-                  fullTankSeconds - secondsOfFuelNow;
+                const extraSecondsFromFull = fullTankSeconds - secondsOfFuelNow;
 
                 if (extraSecondsFromFull > 0) {
-                  const lapsToDelay =
-                    secondsShort / extraSecondsFromFull;
+                  const lapsToDelay = secondsShort / extraSecondsFromFull;
                   const baseLap = lapNumberSafe ?? 0;
                   earliestPitLap = Math.round(baseLap + lapsToDelay);
                 } else {
                   earliestPitLap = lapNumberSafe ?? null;
+                }
+              }
+            }
+
+            // FALLOUT PARA SESIONES SOLO POR TIEMPO:
+            // si después de todo lo anterior earliestPitLap sigue null,
+            // aproximamos una vuelta de parada usando "vueltas virtuales".
+            if (earliestPitLap == null) {
+              const raceLapsTotal = raceTimeTotal / avgLapTimeSeconds; // vueltas virtuales
+
+              if (raceLapsTotal > 0 && fuelPerLapForEst > 0) {
+                const maxStintLaps = fuelCapacity / fuelPerLapForEst;
+                if (maxStintLaps > 0) {
+                  const totalStopsTime = Math.max(
+                    0,
+                    Math.ceil(raceLapsTotal / maxStintLaps) - 1,
+                  );
+
+                  if (totalStopsTime > 0) {
+                    const approxStintLaps =
+                      raceLapsTotal / (totalStopsTime + 1);
+                    earliestPitLap = Math.round(approxStintLaps);
+                  }
                 }
               }
             }
@@ -491,20 +524,66 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
-      socket.close();
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN
+      ) {
+        socketRef.current.close();
+      }
+      socketRef.current = null;
     };
   }, [url]);
 
   // NUEVO: función para enviar mensajes arbitrarios al servidor
-  const sendMessage = (msg: unknown) => {
+  const sendMessage = useCallback((msg: unknown) => {
     const s = socketRef.current;
+    console.log(
+      "[iFuel] sendMessage called",
+      "readyState:",
+      s?.readyState,
+      "msg:",
+      msg,
+    );
     if (!s || s.readyState !== WebSocket.OPEN) return;
     try {
       s.send(JSON.stringify(msg));
     } catch (e) {
       console.error("Error enviando mensaje iFuel WS:", e);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!state || !isConnected) return;
+
+    const { earliestPitLap, estLaps } = state;
+    if (earliestPitLap == null || earliestPitLap <= 0) return;
+    if (!estLaps || estLaps <= 0) return;
+
+    const centerLap = Math.round(earliestPitLap);
+    const pitWindowStartLap = Math.max(1, centerLap - 5);
+    const pitWindowEndLap = centerLap + 5;
+    const pitDeltaSeconds = 32;
+
+    console.log("[iFuel] Sending pit strategy", {
+      earliestPitLap,
+      estLaps,
+      pitWindowStartLap,
+      pitWindowEndLap,
+      pitDeltaSeconds,
+    });
+
+    sendMessage({
+      type: "updatePitStrategy",
+      pitWindowStartLap,
+      pitWindowEndLap,
+      pitDeltaSeconds,
+    });
+  }, [state, isConnected, sendMessage]);
+
+  useEffect(() => {
+    // Debug: exponer el último estado en window sin usar `any`
+    (window as unknown as { ifuelState: IfuelState | null }).ifuelState = state;
+  }, [state]);
 
   return { state, isConnected, sendMessage };
 }

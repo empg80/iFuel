@@ -1,13 +1,14 @@
+// PitClearAirWidget.tsx
 import type { PitClearAirData } from "../types/pit";
 
 type PitClearAirWidgetProps = {
-  data: PitClearAirData;
+  data: PitClearAirData | undefined;
 };
 
 export const PitClearAirWidget = ({ data }: PitClearAirWidgetProps) => {
   if (!data || !data.suggestedLap) {
     return (
-      <div className="fuel-widget">
+      <div className="fuel-widget pit-clear-air-widget">
         <div className="label">PIT CLEAR AIR</div>
         <div className="value">Waiting for window…</div>
       </div>
