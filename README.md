@@ -2,7 +2,15 @@ iFuel – iRacing Fuel Overlay (React + Electron)
 iFuel is a fuel and strategy overlay for iRacing, designed to be lightweight, clear, and easy to reuse in other projects.
 It consists of a telemetry server (WebSocket) and a desktop app built with React + Vite + Electron.
 
+<p align="center">
+  <img src="docs/ifuel-overlay-2026-03-04.jpg" alt="iFuel overlay during an iRacing race" width="900">
+</p>
+
 Note: this repository contains the client (overlay) and a minimal telemetry server in iFuel-telemetry-node. The overlay expects a WebSocket server at ws://localhost:7071/ifuel.
+
+Features
+Fuel & strategy
+Compact fuel widget with dark UI and monospace typography.
 
 Features
 Fuel & strategy
