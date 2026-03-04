@@ -7,7 +7,6 @@ import {
 } from "../utils/relativeFormat";
 import { ClassBadge } from "./ClassBadge";
 
-
 type RelativeWidgetProps = {
   ahead: RelativeCar;
   behind: RelativeCar;
@@ -30,20 +29,26 @@ export const RelativeWidget = React.memo(function RelativeWidget({
   classColorIndexById,
 }: RelativeWidgetProps) {
   const { aheadPos, behindPos } = useMemo(() => {
-    const clamp = (v: number) => Math.max(0, Math.min(1, v));
-    const MAX_GAP = 5;
+    const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+    const MAX_GAP = 5; // segundos
 
     const aheadGap = ahead?.gapSeconds ?? null;
     const behindGap = behind?.gapSeconds ?? null;
 
-    const aheadPos =
-      aheadGap != null
-        ? 0.5 + clamp(Math.min(aheadGap / MAX_GAP, 1)) * 0.5
-        : 0.5;
-    const behindPos =
-      behindGap != null
-        ? 0.5 - clamp(Math.min(behindGap / MAX_GAP, 1)) * 0.5
-        : 0.5;
+    let aheadPos = 0.5;
+    let behindPos = 0.5;
+
+    if (aheadGap != null) {
+      const mag = clamp01(Math.abs(aheadGap) / MAX_GAP);
+      // de centro (0.5) hacia la derecha (1) según gap
+      aheadPos = 0.5 + mag * 0.5;
+    }
+
+    if (behindGap != null) {
+      const mag = clamp01(Math.abs(behindGap) / MAX_GAP);
+      // de centro (0.5) hacia la izquierda (0) según gap
+      behindPos = 0.5 - mag * 0.5;
+    }
 
     return { aheadPos, behindPos };
   }, [ahead, behind]);
@@ -90,10 +95,10 @@ export const RelativeWidget = React.memo(function RelativeWidget({
             {car.lapsDiff == null
               ? ""
               : car.lapsDiff === 0
-              ? "same lap"
-              : car.lapsDiff > 0
-              ? `+${car.lapsDiff}L`
-              : `${car.lapsDiff}L`}
+                ? "same lap"
+                : car.lapsDiff > 0
+                  ? `+${car.lapsDiff}L`
+                  : `${car.lapsDiff}L`}
           </span>
         </div>
       </div>
@@ -154,17 +159,13 @@ export const RelativeWidget = React.memo(function RelativeWidget({
           <div
             className="relative-bar__marker relative-bar__marker--behind"
             style={{ left: `${behindPos * 100}%` }}
-          >
-            ◀
-          </div>
+          />
         )}
         {ahead && (
           <div
             className="relative-bar__marker relative-bar__marker--ahead"
             style={{ left: `${aheadPos * 100}%` }}
-          >
-            ▶
-          </div>
+          />
         )}
       </div>
 

@@ -10,11 +10,15 @@ const POS_KEY_PITCLEAR = "ifuel-pos-pitclear";
 type Props = {
   pitClearAir: PitClearAirData | undefined;
   isConnected: boolean;
+  lapNumber: number | null | undefined;
+  earliestPitLap: number | null | undefined;
 };
 
 export const PitClearAirWidgetContainer: React.FC<Props> = ({
   pitClearAir,
   isConnected,
+  lapNumber,
+  earliestPitLap,
 }) => {
   const {
     pitClearAir: pitClearVisible,
@@ -71,6 +75,16 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
   // respetar toggle de visibilidad
   if (!pitClearVisible) return null;
 
+  // Derivar ventana local a partir de earliestPitLap (igual que en Fuel)
+  let pitWindowStartLap: number | null = null;
+  let pitWindowEndLap: number | null = null;
+
+  if (earliestPitLap && earliestPitLap > 0) {
+    const centerLap = Math.round(earliestPitLap);
+    pitWindowStartLap = Math.max(1, centerLap - 5);
+    pitWindowEndLap = centerLap + 5;
+  }
+
   return (
     <div
       className="pitclear-widget-container"
@@ -81,7 +95,12 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
       }}
       onMouseDown={handleMouseDown}
     >
-      <PitClearAirWidget data={pitClearAir} />
+      <PitClearAirWidget
+        data={pitClearAir}
+        lapNumber={lapNumber ?? null}
+        pitWindowStartLap={pitWindowStartLap}
+        pitWindowEndLap={pitWindowEndLap}
+      />
 
       <div
         className={`pitclear-widget-status ${

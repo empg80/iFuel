@@ -258,12 +258,34 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   const capacity = fuelCapacity ?? fuelMax ?? fuel;
   const fuelLevelRatio = capacity > 0 ? fuel / capacity : 0;
 
+  const MIN_VALID_LAPS_FOR_PIT_CLEAR = 5;
+  const validLapsCount = state?.lapHistoryLast30.length ?? 0;
+
   // si quieres seguir mandando pit strategy desde aquí:
   useEffect(() => {
     if (!earliestPitLap || !estLaps) return;
 
-    const pitWindowStartLap = earliestPitLap;
-    const pitWindowEndLap = earliestPitLap + 3;
+    // aún no hay suficiente histórico de fuel → no activamos Pit Clear Air
+    if (validLapsCount < MIN_VALID_LAPS_FOR_PIT_CLEAR) return;
+
+    // Duración típica de stint: usa el primer stint calculado si existe
+    const firstStint = stintLaps?.[0] ?? null;
+    const stintLength = firstStint && firstStint > 0 ? firstStint : estLaps; // fallback
+
+    // ancho base: 20 % del stint, acotado
+    const baseHalfWidth = Math.round(stintLength * 0.2);
+
+    const MIN_HALF_WIDTH = 2; // al menos ±2 vueltas
+    const MAX_HALF_WIDTH = 8; // no más de ±8 vueltas
+
+    const halfWidth = Math.min(
+      MAX_HALF_WIDTH,
+      Math.max(MIN_HALF_WIDTH, baseHalfWidth),
+    );
+
+    const centerLap = earliestPitLap;
+    const pitWindowStartLap = Math.max(1, centerLap - halfWidth);
+    const pitWindowEndLap = centerLap + halfWidth;
     const pitDeltaSeconds = 32;
 
     const prev = lastSentPitStrategyRef.current;
@@ -290,7 +312,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
       pitWindowEndLap,
       pitDeltaSeconds,
     });
-  }, [earliestPitLap, estLaps, sendMessage]);
+  }, [earliestPitLap, estLaps, stintLaps, validLapsCount, sendMessage]);
 
   const lapTimeStr =
     lapTime && lapTime > 0

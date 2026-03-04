@@ -371,39 +371,45 @@ body,
   color: #4da3ff;
 }
 
-/* Barra central */
+/* Barra central un pelín más alta */
 .relative-bar {
   position: relative;
-  height: 12px;
+  height: 14px;
   margin-top: 2px;
   background: linear-gradient(to right, #444 0%, #777 50%, #444 100%);
   border-radius: 999px;
   overflow: hidden;
 }
 
+/* Centro igual o ligeramente más grueso */
 .relative-bar__center {
   position: absolute;
   left: 50%;
   top: 0;
   bottom: 0;
-  width: 2px;
+  width: 3px;
   background: #ff9100;
   transform: translateX(-50%);
 }
 
+/* Marcador como “píldora” en vez de triángulo minúsculo */
 .relative-bar__marker {
   position: absolute;
   top: 1px;
   transform: translateX(-50%);
-  font-size: 10px;
+  width: 6px;
+  height: 12px;
+  border-radius: 999px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
 }
 
+/* Colores muy vivos */
 .relative-bar__marker--behind {
-  color: #ff5252;
+  background: #ff3333;
 }
 
 .relative-bar__marker--ahead {
-  color: #4caf50;
+  background: #00ff66;
 }
 
 /* Tiempos y deltas */
@@ -595,4 +601,12 @@ body,
 
 .yellow-widget-status--disconnected {
   background: rgba(128, 0, 0, 0.7);
+}
+
+.pit-clear-air-widget__title--now {
+  color: #ff5555;
+}
+
+.pit-clear-air-widget__title--soon {
+  color: #ffcc44;
 }

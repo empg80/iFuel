@@ -24,6 +24,8 @@ const App: React.FC = () => {
         <PitClearAirWidgetContainer
           pitClearAir={state?.pitClearAir}
           isConnected={isConnected}
+          lapNumber={state?.lapNumber ?? null}
+          earliestPitLap={state?.earliestPitLap ?? null}
         />
       </div>
     </WidgetVisibilityProvider>
