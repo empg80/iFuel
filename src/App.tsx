@@ -5,15 +5,34 @@ import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContaine
 import { PitClearAirWidgetContainer } from "./components/PitClearAirWidgetContainer";
 import { WidgetVisibilityProvider } from "./contexts/WidgetVisibilityProvider";
 import { useIfuelWebSocket } from "./useIfuelWebSocket";
+import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
+import { useApplyPitBoardLayout } from "./contexts/useApplyPitBoardLayout";
 
 const App: React.FC = () => {
-  const { state, isConnected, sendMessage } = useIfuelWebSocket(
+  const { state, isConnected, sendMessage, serverStatus } = useIfuelWebSocket(
     "ws://localhost:7071/ifuel",
   );
+
+  useApplyPitBoardLayout();
+
+  let label: string;
+
+  if (serverStatus === "connected") {
+    // WS ok pero aún sin datos de sesión
+    label = state ? "SERVER ON" : "WAITING FOR SESSION";
+  } else if (serverStatus === "connecting") {
+    label = "SERVER CONNECTING";
+  } else {
+    label = "SERVER OFF";
+  }
 
   return (
     <WidgetVisibilityProvider>
       <div className="app-root">
+        <div className={`server-status server-status--${serverStatus}`}>
+          {label}
+        </div>
+
         <FuelWidgetContainer
           state={state}
           isConnected={isConnected}
@@ -21,6 +40,7 @@ const App: React.FC = () => {
         />
         <RelativeWidgetContainer state={state} isConnected={isConnected} />
         <YellowFlagWidgetContainer state={state} isConnected={isConnected} />
+        <RaceStandingsWidgetContainer wsUrl="ws://localhost:7071/ifuel" />
         <PitClearAirWidgetContainer
           pitClearAir={state?.pitClearAir}
           isConnected={isConnected}

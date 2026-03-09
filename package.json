@@ -33,29 +33,34 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "prettier": "^3.8.1",
+    "rollup-plugin-visualizer": "^7.0.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1",
     "wait-on": "^9.0.4"
   },
   "build": {
-  "appId": "com.ifuel.overlay",
-  "productName": "iFuel",
-  "directories": {
-    "output": "dist/electron"
-  },
-  "files": ["dist/**", "electron/**", "package.json"],
-  "win": {
-    "target": "nsis",
-    "icon": "public/icon.ico",
-    "signAndEditExecutable": false
-  },
-  "nsis": {
-    "oneClick": false,
-    "perMachine": false,
-    "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
-  },
-  "publish": null
-}
+    "appId": "com.ifuel.overlay",
+    "productName": "iFuel",
+    "directories": {
+      "output": "dist/electron"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": null
+  }
 }

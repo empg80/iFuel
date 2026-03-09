@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { YellowFlagWidget } from "./YellowFlagWidget";
-import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
+import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
 
 const POS_KEY_YELLOW = "ifuel-pos-yellow";
 
@@ -16,7 +17,13 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
   state,
   isConnected,
 }) => {
-  const { yellow, widgetsLocked, yellowScale } = useWidgetVisibility();
+  const overlayState = useOverlayState(); // NUEVO
+
+  const yellowVisible = overlayState.yellowVisible ?? true;
+  const widgetsLocked = overlayState.widgetsLocked ?? true;
+  const yellowScale = overlayState.yellowScale ?? 1;
+
+  // const { yellow, widgetsLocked, yellowScale } = useWidgetVisibility();
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_YELLOW, { x: 900, y: 100 }),
@@ -67,7 +74,7 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
     [widgetsLocked, position.x, position.y],
   );
 
-  if (!yellow) return null;
+  if (!yellowVisible) return null;
 
   const warning = state?.yellowWarning ?? null;
   const classColorIndexById = state?.classColorIndexById;

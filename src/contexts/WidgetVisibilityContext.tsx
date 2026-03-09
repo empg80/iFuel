@@ -5,6 +5,7 @@ export type VisibilityState = {
   standingBattle: boolean;
   yellow: boolean;
   pitClearAir: boolean;
+  standings: boolean; // ← NUEVO
   widgetsLocked: boolean;
   fuelSettingsVisible: boolean;
 
@@ -12,6 +13,8 @@ export type VisibilityState = {
   relativeScale: number;
   pitClearScale: number;
   yellowScale: number;
+  standingsScale: number;
+  layoutMode: "free" | "pitboard";
 };
 
 export const defaultVisibilityState: VisibilityState = {
@@ -19,6 +22,7 @@ export const defaultVisibilityState: VisibilityState = {
   standingBattle: true,
   yellow: true,
   pitClearAir: true,
+  standings: true, // ← NUEVO (o false si prefieres)
   widgetsLocked: true,
   fuelSettingsVisible: false,
 
@@ -26,7 +30,10 @@ export const defaultVisibilityState: VisibilityState = {
   relativeScale: 1,
   pitClearScale: 1,
   yellowScale: 1,
+  standingsScale: 1,
+  layoutMode: "free",
 };
 
-export const WidgetVisibilityContext =
-  createContext<VisibilityState>(defaultVisibilityState);
+export const WidgetVisibilityContext = createContext<VisibilityState>(
+  defaultVisibilityState,
+);

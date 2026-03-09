@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import type { StandingsRow } from "./types/standings";
 
 type RelativeCar = {
   carNum: number | string | null;
@@ -45,6 +46,16 @@ type PitClearAir = {
   options: PitClearAirOption[];
 } | null;
 
+type StandingsRowPayload = {
+  position: number;
+  carNumber: string;
+  classId: number;
+  driverName: string;
+  bestLapSeconds: number | null;
+  stintLapCount: number;
+  lastPitDurationSeconds: number | null;
+};
+
 type RawMessage = {
   fuelLevel: number;
   lap: number;
@@ -67,6 +78,7 @@ type RawMessage = {
   // NUEVO
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir; // NUEVO
+  standings?: StandingsRowPayload[];
 };
 
 type LapSample = {
@@ -114,6 +126,7 @@ export type IfuelState = {
   // NUEVO
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir; // NUEVO
+  standings?: StandingsRow[];
 };
 
 export type IfuelOptions = {
@@ -137,6 +150,10 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
   const [state, setState] = useState<IfuelState | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [serverStatus, setServerStatus] = useState<
+    "connecting" | "connected" | "disconnected"
+  >("connecting");
+
   const socketRef = useRef<WebSocket | null>(null);
 
   const lastLapCompletedRef = useRef<number | null>(null);
@@ -150,376 +167,398 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   const rafIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket(url);
-    socketRef.current = socket;
+    let closedByApp = false;
+    let socket: WebSocket | null = null;
 
-    socket.onopen = () => {
-      console.log("[iFuel] WS open");
-      setIsConnected(true);
-    };
+    function connect() {
+      setServerStatus("connecting");
+      socket = new WebSocket(url);
+      socketRef.current = socket;
 
-    socket.onclose = (event) => {
-      console.log(
-        "[iFuel] WS closed",
-        event.code,
-        event.reason,
-        "readyState:",
-        socket.readyState,
-      );
-      setIsConnected(false);
-      socketRef.current = null;
+      socket.onopen = () => {
+        console.log("[iFuel] WS open");
+        setIsConnected(true);
+        setServerStatus("connected");
+      };
 
-      // Opcional: reintento básico
-      setTimeout(() => {
-        if (!socketRef.current) {
-          console.log("[iFuel] Reintentando conexión WS...");
-          // aquí NO crees el WebSocket a mano,
-          // dejas que React re‑monte el hook (por ejemplo
-          // cambiando una key en el componente padre)
-        }
-      }, 2000);
-    };
+      socket.onclose = (event) => {
+        console.log(
+          "[iFuel] WS closed",
+          event.code,
+          event.reason,
+          "readyState:",
+          socket?.readyState,
+        );
+        setIsConnected(false);
+        setServerStatus("disconnected");
+        socketRef.current = null;
 
-    socket.onerror = (err) => {
-      console.error("Error en WebSocket iFuel:", err);
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const msg: RawMessage = JSON.parse(event.data);
-        const {
-          fuelLevel,
-          lap,
-          lapCompleted,
-          lastLapTime,
-          bestLapTime,
-          fuelMax,
-          sessionLapsRemainEx,
-          sessionTimeRemain,
-          airTemp,
-          trackTemp,
-          relative,
-          relativeOnTrack,
-          classColorIndexById,
-          yellowWarning, // NUEVO
-          pitClearAir, // NUEVO
-        } = msg;
-
-        const opts = optsRef.current;
-
-        if (fuelLevel > maxFuelSeenRef.current) {
-          maxFuelSeenRef.current = fuelLevel;
-        }
-        const fuelCapacity =
-          fuelMax && fuelMax > 0 ? fuelMax : maxFuelSeenRef.current || null;
-
-        const prevLapCompleted = lastLapCompletedRef.current;
-
-        if (prevLapCompleted === null) {
-          lastLapCompletedRef.current = lapCompleted;
-          lapStartFuelRef.current = fuelLevel;
-        } else {
-          if (
-            lapCompleted > prevLapCompleted &&
-            lapStartFuelRef.current !== null
-          ) {
-            const fuelUsed = lapStartFuelRef.current - fuelLevel;
-
-            if (
-              lastLapTime != null &&
-              lastLapTime > opts.minLapTimeSeconds &&
-              fuelUsed > opts.minFuelUsedPerLap
-            ) {
-              const lapSample: LapSample = {
-                lapNumber: lapCompleted,
-                fuelUsed,
-                lapTime: lastLapTime,
-              };
-              lapsRef.current = [...lapsRef.current, lapSample];
+        if (!closedByApp) {
+          setTimeout(() => {
+            if (!socketRef.current) {
+              console.log("[iFuel] Reintentando conexión WS...");
+              connect();
             }
-
-            lapStartFuelRef.current = fuelLevel;
-            lastLapCompletedRef.current = lapCompleted;
-          }
+          }, 2000);
         }
+      };
 
-        const laps = lapsRef.current;
+      socket.onerror = (err) => {
+        console.error("Error en WebSocket iFuel:", err);
+        setServerStatus("disconnected");
+      };
 
-        const takeLastN = (n: number): number | null => {
-          if (laps.length === 0) return null;
-          const slice = laps.slice(-n);
-          const total = slice.reduce((acc, l) => acc + l.fuelUsed, 0);
-          return total / slice.length;
-        };
+      socket.onmessage = (event) => {
+        try {
+          const msg: RawMessage = JSON.parse(event.data);
+          const {
+            fuelLevel,
+            lap,
+            lapCompleted,
+            lastLapTime,
+            bestLapTime,
+            fuelMax,
+            sessionLapsRemainEx,
+            sessionTimeRemain,
+            airTemp,
+            trackTemp,
+            relative,
+            relativeOnTrack,
+            classColorIndexById,
+            yellowWarning,
+            pitClearAir,
+            standings: standingsRaw,
+          } = msg;
 
-        const fuelLast = laps.length ? laps[laps.length - 1].fuelUsed : null;
-        const fuelAvg =
-          laps.length > 0
-            ? laps.reduce((acc, l) => acc + l.fuelUsed, 0) / laps.length
-            : null;
-        const fuelAvg2 = takeLastN(2);
-        const fuelAvg5 = takeLastN(5);
-        const fuelAvg10 = takeLastN(10);
+          const opts = optsRef.current;
 
-        const fuelPerLapForEst = fuelAvg5 ?? fuelAvg ?? null;
-        let estLaps: number | null = null;
-        let estRefuel: number | null = null;
-        let fuelTimeStr = "--:--";
+          if (fuelLevel > maxFuelSeenRef.current) {
+            maxFuelSeenRef.current = fuelLevel;
+          }
+          const fuelCapacity =
+            fuelMax && fuelMax > 0 ? fuelMax : maxFuelSeenRef.current || null;
 
-        if (laps.length >= 2 && fuelPerLapForEst && fuelPerLapForEst > 0) {
-          estLaps = fuelLevel / fuelPerLapForEst;
+          const prevLapCompleted = lastLapCompletedRef.current;
 
-          const lapsRemain = sessionLapsRemainEx ?? 0;
-          const timeRemain = sessionTimeRemain ?? 0;
+          if (prevLapCompleted === null) {
+            lastLapCompletedRef.current = lapCompleted;
+            lapStartFuelRef.current = fuelLevel;
+          } else {
+            if (
+              lapCompleted > prevLapCompleted &&
+              lapStartFuelRef.current !== null
+            ) {
+              const fuelUsed = lapStartFuelRef.current - fuelLevel;
 
-          if (lapsRemain > 0 && lapsRemain < 1000) {
-            const lapsWithSafety = lapsRemain + opts.safetyExtraLaps;
-            const fuelNeededTotal = lapsWithSafety * fuelPerLapForEst;
-            const fuelToAdd = fuelNeededTotal - fuelLevel;
-            estRefuel = fuelToAdd > 0 ? fuelToAdd : 0;
-          } else if (timeRemain > 0) {
-            const avgLapTimeSeconds =
-              laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
+              if (
+                lastLapTime != null &&
+                lastLapTime > opts.minLapTimeSeconds &&
+                fuelUsed > opts.minFuelUsedPerLap
+              ) {
+                const lapSample: LapSample = {
+                  lapNumber: lapCompleted,
+                  fuelUsed,
+                  lapTime: lastLapTime,
+                };
+                lapsRef.current = [...lapsRef.current, lapSample];
+              }
 
-            if (avgLapTimeSeconds > 0) {
-              const lapsPossible = fuelLevel / fuelPerLapForEst;
-              const secondsOfFuel = lapsPossible * avgLapTimeSeconds;
+              lapStartFuelRef.current = fuelLevel;
+              lastLapCompletedRef.current = lapCompleted;
+            }
+          }
 
-              const safetySeconds = opts.safetyExtraLaps * avgLapTimeSeconds;
-              const targetSeconds = timeRemain + safetySeconds;
+          const laps = lapsRef.current;
 
-              const extraSecondsNeeded = targetSeconds - secondsOfFuel;
+          const takeLastN = (n: number): number | null => {
+            if (laps.length === 0) return null;
+            const slice = laps.slice(-n);
+            const total = slice.reduce((acc, l) => acc + l.fuelUsed, 0);
+            return total / slice.length;
+          };
 
-              if (extraSecondsNeeded <= 0) {
-                estRefuel = 0;
+          const fuelLast = laps.length ? laps[laps.length - 1].fuelUsed : null;
+          const fuelAvg =
+            laps.length > 0
+              ? laps.reduce((acc, l) => acc + l.fuelUsed, 0) / laps.length
+              : null;
+          const fuelAvg2 = takeLastN(2);
+          const fuelAvg5 = takeLastN(5);
+          const fuelAvg10 = takeLastN(10);
+
+          const fuelPerLapForEst = fuelAvg5 ?? fuelAvg ?? null;
+          let estLaps: number | null = null;
+          let estRefuel: number | null = null;
+          let fuelTimeStr = "--:--";
+
+          if (laps.length >= 2 && fuelPerLapForEst && fuelPerLapForEst > 0) {
+            estLaps = fuelLevel / fuelPerLapForEst;
+
+            const lapsRemain = sessionLapsRemainEx ?? 0;
+            const timeRemain = sessionTimeRemain ?? 0;
+
+            if (lapsRemain > 0 && lapsRemain < 1000) {
+              const lapsWithSafety = lapsRemain + opts.safetyExtraLaps;
+              const fuelNeededTotal = lapsWithSafety * fuelPerLapForEst;
+              const fuelToAdd = fuelNeededTotal - fuelLevel;
+              estRefuel = fuelToAdd > 0 ? fuelToAdd : 0;
+            } else if (timeRemain > 0) {
+              const avgLapTimeSeconds =
+                laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
+
+              if (avgLapTimeSeconds > 0) {
+                const lapsPossible = fuelLevel / fuelPerLapForEst;
+                const secondsOfFuel = lapsPossible * avgLapTimeSeconds;
+
+                const safetySeconds = opts.safetyExtraLaps * avgLapTimeSeconds;
+                const targetSeconds = timeRemain + safetySeconds;
+
+                const extraSecondsNeeded = targetSeconds - secondsOfFuel;
+
+                if (extraSecondsNeeded <= 0) {
+                  estRefuel = 0;
+                } else {
+                  const extraLapsNeeded =
+                    extraSecondsNeeded / avgLapTimeSeconds;
+                  estRefuel = extraLapsNeeded * fuelPerLapForEst;
+                }
               } else {
-                const extraLapsNeeded = extraSecondsNeeded / avgLapTimeSeconds;
-                estRefuel = extraLapsNeeded * fuelPerLapForEst;
+                estRefuel = 0;
               }
             } else {
               estRefuel = 0;
             }
-          } else {
-            estRefuel = 0;
-          }
 
-          const avgLapTimeSeconds =
-            laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
+            const avgLapTimeSeconds =
+              laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
 
-          if (avgLapTimeSeconds > 0 && fuelPerLapForEst > 0) {
-            const lapsPossible = fuelLevel / fuelPerLapForEst;
-            const estSeconds = lapsPossible * avgLapTimeSeconds;
-            const mm = Math.floor(estSeconds / 60)
-              .toString()
-              .padStart(2, "0");
-            const ss = Math.floor(estSeconds % 60)
-              .toString()
-              .padStart(2, "0");
-            fuelTimeStr = `${mm}:${ss}`;
-          }
-        }
-
-        const lapHistoryLast5 = laps.slice(-5);
-        const lapHistoryLast30 = laps.slice(-30);
-
-        let earliestPitLap: number | null = null;
-        let totalStops: number | null = null;
-        let stintLaps: number[] = [];
-
-        const lapNumberSafe = lap ?? null;
-        const lapsRemainForRace = sessionLapsRemainEx ?? 0;
-        const timeRemainForRace = sessionTimeRemain ?? 0;
-
-        if (
-          lapNumberSafe !== null &&
-          lapsRemainForRace > 0 &&
-          lapsRemainForRace < 1000 &&
-          fuelPerLapForEst &&
-          fuelPerLapForEst > 0 &&
-          fuelCapacity &&
-          fuelCapacity > 0
-        ) {
-          const maxStintLaps = fuelCapacity / fuelPerLapForEst;
-          const raceLapsTotal = lapNumberSafe + lapsRemainForRace;
-
-          if (maxStintLaps > 0 && raceLapsTotal > 0) {
-            totalStops = Math.max(
-              0,
-              Math.ceil(raceLapsTotal / maxStintLaps) - 1,
-            );
-
-            const approxStint = raceLapsTotal / (totalStops + 1);
-            stintLaps = Array.from({ length: totalStops }, (_, i) =>
-              Math.round(approxStint * (i + 1)),
-            );
-          }
-
-          if (estLaps && estLaps > 0) {
-            const lapsPossibleFromNow = estLaps;
-            const lapsRemain2 = lapsRemainForRace;
-
-            if (lapsRemain2 > lapsPossibleFromNow) {
-              const lapsThatMustBeCoveredAfterStop =
-                lapsRemain2 - lapsPossibleFromNow;
-
-              if (lapsThatMustBeCoveredAfterStop <= maxStintLaps) {
-                earliestPitLap =
-                  lapNumberSafe + Math.floor(lapsPossibleFromNow);
-              } else {
-                const extraLapsNeeded =
-                  lapsThatMustBeCoveredAfterStop - maxStintLaps;
-                earliestPitLap =
-                  lapNumberSafe +
-                  Math.floor(lapsPossibleFromNow + extraLapsNeeded);
-              }
-            } else {
-              earliestPitLap = null;
+            if (avgLapTimeSeconds > 0 && fuelPerLapForEst > 0) {
+              const lapsPossible = fuelLevel / fuelPerLapForEst;
+              const estSeconds = lapsPossible * avgLapTimeSeconds;
+              const mm = Math.floor(estSeconds / 60)
+                .toString()
+                .padStart(2, "0");
+              const ss = Math.floor(estSeconds % 60)
+                .toString()
+                .padStart(2, "0");
+              fuelTimeStr = `${mm}:${ss}`;
             }
           }
-        } else if (
-          timeRemainForRace > 0 &&
-          fuelPerLapForEst &&
-          fuelPerLapForEst > 0 &&
-          fuelCapacity &&
-          fuelCapacity > 0 &&
-          laps.length >= 2
-        ) {
-          const avgLapTimeSeconds =
-            laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
 
-          if (avgLapTimeSeconds > 0) {
-            const timeDone = (lapNumberSafe ?? 0) * avgLapTimeSeconds;
-            const raceTimeTotal = timeDone + timeRemainForRace;
+          const lapHistoryLast5 = laps.slice(-5);
+          const lapHistoryLast30 = laps.slice(-30);
 
-            const stintTimeMax =
-              (fuelCapacity / fuelPerLapForEst) * avgLapTimeSeconds;
+          let earliestPitLap: number | null = null;
+          let totalStops: number | null = null;
+          let stintLaps: number[] = [];
 
-            if (stintTimeMax > 0 && raceTimeTotal > 0) {
+          const lapNumberSafe = lap ?? null;
+          const lapsRemainForRace = sessionLapsRemainEx ?? 0;
+          const timeRemainForRace = sessionTimeRemain ?? 0;
+
+          if (
+            lapNumberSafe !== null &&
+            lapsRemainForRace > 0 &&
+            lapsRemainForRace < 1000 &&
+            fuelPerLapForEst &&
+            fuelPerLapForEst > 0 &&
+            fuelCapacity &&
+            fuelCapacity > 0
+          ) {
+            const maxStintLaps = fuelCapacity / fuelPerLapForEst;
+            const raceLapsTotal = lapNumberSafe + lapsRemainForRace;
+
+            if (maxStintLaps > 0 && raceLapsTotal > 0) {
               totalStops = Math.max(
                 0,
-                Math.ceil(raceTimeTotal / stintTimeMax) - 1,
+                Math.ceil(raceLapsTotal / maxStintLaps) - 1,
               );
 
-              const approxStintTime = raceTimeTotal / (totalStops + 1);
-              stintLaps = Array.from({ length: totalStops }, (_, i) => {
-                const targetTime = approxStintTime * (i + 1);
-                const targetLap = targetTime / avgLapTimeSeconds;
-                return Math.round(targetLap);
-              });
+              const approxStint = raceLapsTotal / (totalStops + 1);
+              stintLaps = Array.from({ length: totalStops }, (_, i) =>
+                Math.round(approxStint * (i + 1)),
+              );
             }
 
-            if (estLaps && estLaps > 0 && stintTimeMax > 0) {
-              const secondsOfFuelNow = estLaps * avgLapTimeSeconds;
-              const secondsShort = timeRemainForRace - secondsOfFuelNow;
+            if (estLaps && estLaps > 0) {
+              const lapsPossibleFromNow = estLaps;
+              const lapsRemain2 = lapsRemainForRace;
 
-              if (secondsShort <= 0) {
-                earliestPitLap = null;
-              } else {
-                const fullTankSeconds =
-                  (fuelCapacity / fuelPerLapForEst) * avgLapTimeSeconds;
-                const extraSecondsFromFull = fullTankSeconds - secondsOfFuelNow;
+              if (lapsRemain2 > lapsPossibleFromNow) {
+                const lapsThatMustBeCoveredAfterStop =
+                  lapsRemain2 - lapsPossibleFromNow;
 
-                if (extraSecondsFromFull > 0) {
-                  const lapsToDelay = secondsShort / extraSecondsFromFull;
-                  const baseLap = lapNumberSafe ?? 0;
-                  earliestPitLap = Math.round(baseLap + lapsToDelay);
+                if (lapsThatMustBeCoveredAfterStop <= maxStintLaps) {
+                  earliestPitLap =
+                    lapNumberSafe + Math.floor(lapsPossibleFromNow);
                 } else {
-                  earliestPitLap = lapNumberSafe ?? null;
+                  const extraLapsNeeded =
+                    lapsThatMustBeCoveredAfterStop - maxStintLaps;
+                  earliestPitLap =
+                    lapNumberSafe +
+                    Math.floor(lapsPossibleFromNow + extraLapsNeeded);
                 }
+              } else {
+                earliestPitLap = null;
               }
             }
+          } else if (
+            timeRemainForRace > 0 &&
+            fuelPerLapForEst &&
+            fuelPerLapForEst > 0 &&
+            fuelCapacity &&
+            fuelCapacity > 0 &&
+            laps.length >= 2
+          ) {
+            const avgLapTimeSeconds =
+              laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
 
-            // FALLOUT PARA SESIONES SOLO POR TIEMPO:
-            // si después de todo lo anterior earliestPitLap sigue null,
-            // aproximamos una vuelta de parada usando "vueltas virtuales".
-            if (earliestPitLap == null) {
-              const raceLapsTotal = raceTimeTotal / avgLapTimeSeconds; // vueltas virtuales
+            if (avgLapTimeSeconds > 0) {
+              const timeDone = (lapNumberSafe ?? 0) * avgLapTimeSeconds;
+              const raceTimeTotal = timeDone + timeRemainForRace;
 
-              if (raceLapsTotal > 0 && fuelPerLapForEst > 0) {
-                const maxStintLaps = fuelCapacity / fuelPerLapForEst;
-                if (maxStintLaps > 0) {
-                  const totalStopsTime = Math.max(
-                    0,
-                    Math.ceil(raceLapsTotal / maxStintLaps) - 1,
-                  );
+              const stintTimeMax =
+                (fuelCapacity / fuelPerLapForEst) * avgLapTimeSeconds;
 
-                  if (totalStopsTime > 0) {
-                    const approxStintLaps =
-                      raceLapsTotal / (totalStopsTime + 1);
-                    earliestPitLap = Math.round(approxStintLaps);
+              if (stintTimeMax > 0 && raceTimeTotal > 0) {
+                totalStops = Math.max(
+                  0,
+                  Math.ceil(raceTimeTotal / stintTimeMax) - 1,
+                );
+
+                const approxStintTime = raceTimeTotal / (totalStops + 1);
+                stintLaps = Array.from({ length: totalStops }, (_, i) => {
+                  const targetTime = approxStintTime * (i + 1);
+                  const targetLap = targetTime / avgLapTimeSeconds;
+                  return Math.round(targetLap);
+                });
+              }
+
+              if (estLaps && estLaps > 0 && stintTimeMax > 0) {
+                const secondsOfFuelNow = estLaps * avgLapTimeSeconds;
+                const secondsShort = timeRemainForRace - secondsOfFuelNow;
+
+                if (secondsShort <= 0) {
+                  earliestPitLap = null;
+                } else {
+                  const fullTankSeconds =
+                    (fuelCapacity / fuelPerLapForEst) * avgLapTimeSeconds;
+                  const extraSecondsFromFull =
+                    fullTankSeconds - secondsOfFuelNow;
+
+                  if (extraSecondsFromFull > 0) {
+                    const lapsToDelay = secondsShort / extraSecondsFromFull;
+                    const baseLap = lapNumberSafe ?? 0;
+                    earliestPitLap = Math.round(baseLap + lapsToDelay);
+                  } else {
+                    earliestPitLap = lapNumberSafe ?? null;
+                  }
+                }
+              }
+
+              // FALLOUT PARA SESIONES SOLO POR TIEMPO:
+              // si después de todo lo anterior earliestPitLap sigue null,
+              // aproximamos una vuelta de parada usando "vueltas virtuales".
+              if (earliestPitLap == null) {
+                const raceLapsTotal = raceTimeTotal / avgLapTimeSeconds; // vueltas virtuales
+
+                if (raceLapsTotal > 0 && fuelPerLapForEst > 0) {
+                  const maxStintLaps = fuelCapacity / fuelPerLapForEst;
+                  if (maxStintLaps > 0) {
+                    const totalStopsTime = Math.max(
+                      0,
+                      Math.ceil(raceLapsTotal / maxStintLaps) - 1,
+                    );
+
+                    if (totalStopsTime > 0) {
+                      const approxStintLaps =
+                        raceLapsTotal / (totalStopsTime + 1);
+                      earliestPitLap = Math.round(approxStintLaps);
+                    }
                   }
                 }
               }
             }
           }
+
+          const relativeAhead = relative?.ahead ?? null;
+          const relativeBehind = relative?.behind ?? null;
+          const relativeMyPosition = relative?.myPosition ?? null;
+
+          const onTrackAhead = relativeOnTrack?.ahead ?? null;
+          const onTrackBehind = relativeOnTrack?.behind ?? null;
+
+          const standings: StandingsRow[] =
+            standingsRaw?.map((car) => ({
+              position: car.position,
+              carNumber: car.carNumber,
+              classId: car.classId,
+              driverName: car.driverName,
+              bestLapTime: car.bestLapSeconds,
+              stintLaps: car.stintLapCount,
+              lastPitTime: car.lastPitDurationSeconds,
+            })) ?? [];
+
+          const nextState: IfuelState = {
+            // todos los campos que ya construyes
+            fuel: fuelLevel,
+            fuelMax: fuelMax ?? null,
+            fuelCapacity,
+            lapNumber: lap ?? null,
+            lapTime: lastLapTime || null,
+            fuelLast,
+            fuelAvg,
+            fuelAvg2,
+            fuelAvg5,
+            fuelAvg10,
+            estLaps,
+            estRefuel,
+            fuelTime: fuelTimeStr,
+            sessionLapsRemainEx: sessionLapsRemainEx ?? null,
+            sessionTimeRemain: sessionTimeRemain ?? null,
+            airTemp: airTemp ?? null,
+            trackTemp: trackTemp ?? null,
+            earliestPitLap,
+            totalStops,
+            stintLaps,
+            lapHistoryLast5,
+            lapHistoryLast30,
+            relativeAhead,
+            relativeBehind,
+            relativeMyPosition,
+            myBestLapTime: bestLapTime ?? null,
+            onTrackAhead,
+            onTrackBehind,
+            classColorIndexById: classColorIndexById ?? undefined,
+            yellowWarning: yellowWarning ?? null,
+            pitClearAir: pitClearAir ?? null,
+            standings,
+          };
+
+          pendingStateRef.current = nextState;
+
+          if (rafIdRef.current === null) {
+            rafIdRef.current = window.requestAnimationFrame((ts) => {
+              rafIdRef.current = null;
+              const last = lastUpdateTimeRef.current;
+              const MIN_INTERVAL = 50;
+
+              if (ts - last >= MIN_INTERVAL && pendingStateRef.current) {
+                lastUpdateTimeRef.current = ts;
+                setState(pendingStateRef.current);
+              }
+            });
+          }
+        } catch (e) {
+          console.error("Error parseando mensaje iFuel:", e);
         }
+      };
+    }
 
-        const relativeAhead = relative?.ahead ?? null;
-        const relativeBehind = relative?.behind ?? null;
-        const relativeMyPosition = relative?.myPosition ?? null;
-
-        const onTrackAhead = relativeOnTrack?.ahead ?? null;
-        const onTrackBehind = relativeOnTrack?.behind ?? null;
-
-        const nextState: IfuelState = {
-          fuel: fuelLevel,
-          fuelMax: fuelMax ?? null,
-          fuelCapacity,
-          lapNumber: lap ?? null,
-          lapTime: lastLapTime || null,
-          fuelLast,
-          fuelAvg,
-          fuelAvg2,
-          fuelAvg5,
-          fuelAvg10,
-          estLaps,
-          estRefuel,
-          fuelTime: fuelTimeStr,
-          sessionLapsRemainEx: sessionLapsRemainEx ?? null,
-          sessionTimeRemain: sessionTimeRemain ?? null,
-
-          airTemp: airTemp ?? null,
-          trackTemp: trackTemp ?? null,
-
-          earliestPitLap,
-          totalStops,
-          stintLaps,
-          lapHistoryLast5,
-          lapHistoryLast30,
-
-          relativeAhead,
-          relativeBehind,
-          relativeMyPosition,
-          myBestLapTime: bestLapTime ?? null,
-
-          onTrackAhead,
-          onTrackBehind,
-          classColorIndexById: classColorIndexById ?? undefined,
-
-          yellowWarning: yellowWarning ?? null, // NUEVO
-          pitClearAir: pitClearAir ?? null, // NUEVO
-        };
-
-        pendingStateRef.current = nextState;
-
-        if (rafIdRef.current === null) {
-          rafIdRef.current = window.requestAnimationFrame((ts) => {
-            rafIdRef.current = null;
-            const last = lastUpdateTimeRef.current;
-            const MIN_INTERVAL = 50;
-
-            if (ts - last >= MIN_INTERVAL && pendingStateRef.current) {
-              lastUpdateTimeRef.current = ts;
-              setState(pendingStateRef.current);
-            }
-          });
-        }
-      } catch (e) {
-        console.error("Error parseando mensaje iFuel:", e);
-      }
-    };
+    connect();
 
     return () => {
+      closedByApp = true;
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
@@ -534,7 +573,6 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     };
   }, [url]);
 
-  // NUEVO: función para enviar mensajes arbitrarios al servidor
   const sendMessage = useCallback((msg: unknown) => {
     const s = socketRef.current;
     console.log(
@@ -581,9 +619,13 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   }, [state, isConnected, sendMessage]);
 
   useEffect(() => {
-    // Debug: exponer el último estado en window sin usar `any`
     (window as unknown as { ifuelState: IfuelState | null }).ifuelState = state;
   }, [state]);
 
-  return { state, isConnected, sendMessage };
+  const raceStandingsRows: StandingsRow[] = useMemo(
+    () => state?.standings ?? [],
+    [state?.standings],
+  );
+
+  return { state, isConnected, sendMessage, raceStandingsRows, serverStatus };
 }

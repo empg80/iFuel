@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { PitClearAirWidget } from "./PitClearAirWidget";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { PitClearAirData } from "../types/pit";
+import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
 
 const POS_KEY_PITCLEAR = "ifuel-pos-pitclear";
 
@@ -20,11 +20,11 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
   lapNumber,
   earliestPitLap,
 }) => {
-  const {
-    pitClearAir: pitClearVisible,
-    widgetsLocked,
-    pitClearScale,
-  } = useWidgetVisibility();
+  const overlayState = useOverlayState(); // NUEVO
+
+  const pitClearVisible = overlayState.pitClearAirVisible ?? true;
+  const widgetsLocked = overlayState.widgetsLocked ?? true;
+  const pitClearScale = overlayState.pitClearScale ?? 1;
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_PITCLEAR, { x: 300, y: 100 }),

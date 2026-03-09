@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RelativeWidget } from "./StandingBattleWidget";
-import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
+import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
 
 const POS_KEY_RELATIVE = "ifuel-pos-relative";
 
@@ -16,8 +17,14 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
   state,
   isConnected,
 }) => {
-  const { standingBattle, widgetsLocked, relativeScale } =
-    useWidgetVisibility();
+  const overlayState = useOverlayState(); // NUEVO
+
+  const standingBattleVisible = overlayState.standingBattleVisible ?? true;
+  const widgetsLocked = overlayState.widgetsLocked ?? true;
+  const relativeScale = overlayState.relativeScale ?? 1;
+
+  // const { standingBattle, widgetsLocked, relativeScale } =
+  //   useWidgetVisibility();
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_RELATIVE, { x: 500, y: 100 }),
@@ -67,7 +74,7 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
     [widgetsLocked, position.x, position.y],
   );
 
-  if (!standingBattle) return null;
+  if (!standingBattleVisible) return null;
 
   const ahead = state?.relativeAhead ?? null;
   const behind = state?.relativeBehind ?? null;

@@ -7,6 +7,7 @@ declare global {
     standingBattleVisible?: boolean;
     yellowVisible?: boolean;
     pitClearAirVisible?: boolean;
+    standingsVisible?: boolean;
     widgetsLocked?: boolean;
     fuelSettingsVisible?: boolean;
 
@@ -14,6 +15,9 @@ declare global {
     relativeScale?: number;
     pitClearScale?: number;
     yellowScale?: number;
+    standingsScale?: number;
+
+    layoutMode?: "free" | "pitboard";
   }
 
   interface IfuelOverlayAPI {
@@ -23,6 +27,6 @@ declare global {
   }
 
   interface Window {
-    ifuelOverlay?: IfuelOverlayAPI;
+    ifuelOverlay: IfuelOverlayAPI; // aquí mejor sin "?" dado tu preload
   }
 }

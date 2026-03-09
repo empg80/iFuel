@@ -6,11 +6,12 @@ import React, {
   useRef,
 } from "react";
 import { FuelWidget } from "./FuelWidget";
-import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
+// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
 import { loadWidgetPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
+import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
 
 const LS_KEY = "ifuel-settings-v1";
 const POS_KEY_FUEL = "ifuel-pos-fuel";
@@ -153,12 +154,19 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   isConnected,
   sendMessage,
 }) => {
-  const {
-    fuel: fuelVisible,
-    widgetsLocked,
-    fuelSettingsVisible,
-    fuelScale,
-  } = useWidgetVisibility();
+  const overlayState = useOverlayState(); // NUEVO
+
+  const fuelVisible = overlayState.fuelVisible ?? true;
+  const widgetsLocked = overlayState.widgetsLocked ?? true;
+  const fuelSettingsVisible = overlayState.fuelSettingsVisible ?? false;
+  const fuelScale = overlayState.fuelScale ?? 1;
+
+  // const {
+  //   fuel: fuelVisible,
+  //   widgetsLocked,
+  //   fuelSettingsVisible,
+  //   fuelScale,
+  // } = useWidgetVisibility();
 
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() =>
     loadJsonFromStorage(LS_KEY, DEFAULT_FUEL_OPTS),

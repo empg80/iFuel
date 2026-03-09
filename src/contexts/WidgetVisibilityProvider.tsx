@@ -22,6 +22,7 @@ export const WidgetVisibilityProvider: React.FC<{
           overlayState.standingBattleVisible ?? prev.standingBattle,
         yellow: overlayState.yellowVisible ?? prev.yellow,
         pitClearAir: overlayState.pitClearAirVisible ?? prev.pitClearAir,
+        standings: overlayState.standingsVisible ?? prev.standings, // ← NUEVO
         widgetsLocked: overlayState.widgetsLocked ?? prev.widgetsLocked,
         fuelSettingsVisible:
           overlayState.fuelSettingsVisible ?? prev.fuelSettingsVisible,
@@ -29,6 +30,8 @@ export const WidgetVisibilityProvider: React.FC<{
         relativeScale: overlayState.relativeScale ?? prev.relativeScale,
         pitClearScale: overlayState.pitClearScale ?? prev.pitClearScale,
         yellowScale: overlayState.yellowScale ?? prev.yellowScale,
+        standingsScale: overlayState.standingsScale ?? prev.standingsScale,
+        layoutMode: overlayState.layoutMode ?? prev.layoutMode,
       }));
     });
 
