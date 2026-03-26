@@ -4,7 +4,15 @@ iFuel is a fuel and strategy overlay for iRacing, designed to be lightweight, cl
 It consists of a telemetry server (WebSocket) and a desktop app built with React + Vite + Electron.
 
 <p align="center">
-  <img src="docs/ifuel-overlay-2026-03-04.jpg" alt="iFuel overlay during an iRacing race" width="900">
+  <img src="docs/overlay-main-hud.png" alt="iFuel overlay – free layout" width="900">
+</p>
+
+<p align="center">
+  <img src="docs/ifuel-overlay-2026-03-04.jpg" alt="iFuel overlay – pitboard layout" width="900">
+</p>
+
+<p align="center">
+  <img src="docs/broadcast_overlay.png" alt="iFuel overlay – broadcast layout" width="900">
 </p>
 
 > Note: this repository contains the client (overlay) and a minimal telemetry server in `iFuel-telemetry-node`.  
@@ -161,108 +169,120 @@ A small Node server in `iFuel-telemetry-node` reads iRacing telemetry using `irs
 cd iFuel-telemetry-node
 npm install    # first time only
 node telemetry-server.mjs
+```
+
 This starts a WebSocket server at:
 
-text
+```text
 ws://127.0.0.1:7071/ifuel
+```
+
 The server:
 
-Streams fuel, session, relative and yellow‑flag data to the overlay.
+- Streams fuel, session, relative and yellow‑flag data to the overlay.
+- Stores persistent class color mappings.
+- Receives pit‑window updates from the overlay and returns Pit Clear Air suggestions.
 
-Stores persistent class color mappings.
+---
 
-Receives pit‑window updates from the overlay and returns Pit Clear Air suggestions.
+## Requirements
 
-Requirements
-Node.js (LTS recommended).
+- Node.js (LTS recommended).
+- npm or yarn.
+- iRacing running on the same machine.
+- Telemetry server listening at `ws://127.0.0.1:7071/ifuel` (see section above).
 
-npm or yarn.
+---
 
-iRacing running on the same machine.
+## Installation & Running
 
-Telemetry server listening at ws://127.0.0.1:7071/ifuel (see section above).
-
-Installation & Running
 Clone the repository:
 
-bash
+```bash
 git clone https://github.com/empg80/iFuel.git
 cd iFuel
+```
+
 Install frontend dependencies:
 
-bash
+```bash
 npm install
 # or
 yarn install
+```
+
 Start the telemetry server:
 
-bash
+```bash
 cd iFuel-telemetry-node
 npm install      # if not done yet
 node telemetry-server.mjs
-In another terminal, start the overlay (from the iFuel folder):
+```
 
-bash
+In another terminal, start the overlay (from the `iFuel` folder):
+
+```bash
 npm run dev
 # or the Electron wrapper, if configured:
 npm run electron
-Make sure the telemetry server is running and sending data to ws://127.0.0.1:7071/ifuel.
+```
+
+Make sure the telemetry server is running and sending data to `ws://127.0.0.1:7071/ifuel`.  
 Otherwise, the overlay will display “Waiting for iRacing data…”.
 
-Basic Usage
-Launch the iFuel app.
+---
 
-Start iRacing and go on track.
+## Basic Usage
 
-Configure the settings panel in the fuel widget:
-
-Set Min lap time according to the track (e.g. 20–30 s for short ovals, 60–120 s for road courses).
-
-Adjust Min fuel / lap and Safety laps to your preference.
-
-Unlock widget movement, drag the widgets to your preferred positions, then lock them again once they are in place.
+- Launch the iFuel app.
+- Start iRacing and go on track.
+- Configure the settings panel in the fuel widget:
+  - Set Min lap time according to the track (e.g. 20–30 s for short ovals, 60–120 s for road courses).
+  - Adjust Min fuel / lap and Safety laps to your preference.
+- Unlock widget movement, drag the widgets to your preferred positions, then lock them again once they are in place.
 
 During the session, watch:
 
-Fuel widget for fuel/time/strategy.
+- Fuel widget for fuel/time/strategy.
+- Standing Battle / On‑Track Relative for class battles and traffic.
+- Yellow Flag widget for global status and incidents.
+- Pit Clear Air widget for suggested clean pit laps (once enough data is available).
 
-Standing Battle / On‑Track Relative for class battles and traffic.
+---
 
-Yellow Flag widget for global status and incidents.
+## Development
 
-Pit Clear Air widget for suggested clean pit laps (once enough data is available).
+Common scripts (from `iFuel`):
 
-Development
-Common scripts (from iFuel):
-
-bash
+```bash
 # Start dev server
 npm run dev
 
 # Lint / build
 npm run lint
 npm run build
+```
+
 Key files:
 
-src/useIfuelWebSocket.ts – telemetry reading, averages, strategy, Pit Clear Air wiring and throttling.
+- `src/useIfuelWebSocket.ts` – telemetry reading, averages, strategy, Pit Clear Air wiring and throttling.
+- `src/components/FuelWidget.tsx` – fuel overlay UI.
+- `src/components/FuelWidgetContainer.tsx` – settings, drag, lock and prop wiring.
+- `src/components/StandingBattleWidget.tsx` / container – multiclass relative and on‑track view.
+- `src/components/YellowFlagWidget.tsx` / container – global yellow / debris status.
+- `src/components/PitClearAirWidget.tsx` / container – pit clear air suggestions.
 
-src/components/FuelWidget.tsx – fuel overlay UI.
+---
 
-src/components/FuelWidgetContainer.tsx – settings, drag, lock and prop wiring.
+## Roadmap / Future ideas
 
-src/components/StandingBattleWidget.tsx / container – multiclass relative and on‑track view.
+- Support multiple settings profiles per car/track.
+- Export the telemetry hook as a small standalone library.
+- Better Electron integration (always‑on‑top, optional click‑through, etc.).
 
-src/components/YellowFlagWidget.tsx / container – global yellow / debris status.
+---
 
-src/components/PitClearAirWidget.tsx / container – pit clear air suggestions.
+## License
 
-Roadmap / Future ideas
-Support multiple settings profiles per car/track.
-
-Export the telemetry hook as a small standalone library.
-
-Better Electron integration (always‑on‑top, optional click‑through, etc.).
-
-License
-TBD.
+TBD.  
 For now, consider it for personal / non‑commercial use.
