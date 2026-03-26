@@ -1,54 +1,50 @@
+// App.tsx
 import React from "react";
-import { FuelWidgetContainer } from "./components/FuelWidgetContainer";
-import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContainer";
-import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
-import { PitClearAirWidgetContainer } from "./components/PitClearAirWidgetContainer";
-import { WidgetVisibilityProvider } from "./contexts/WidgetVisibilityProvider";
 import { useIfuelWebSocket } from "./useIfuelWebSocket";
-import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
+import { useOverlayState } from "./contexts/useOverlayState";
 import { useApplyPitBoardLayout } from "./contexts/useApplyPitBoardLayout";
+import { FreeLayout } from "./FreeLayout";
+import { PitboardLayout } from "./PitboardLayout";
 
 const App: React.FC = () => {
   const { state, isConnected, sendMessage, serverStatus } = useIfuelWebSocket(
-    "ws://localhost:7071/ifuel",
+    "ws://127.0.0.1:7071/ifuel",
   );
+
+  const { layoutMode } = useOverlayState();
+  const mode = layoutMode ?? "free";
 
   useApplyPitBoardLayout();
 
-  let label: string;
+  // Fallback mientras no haya estado de telemetría
+  if (!state) {
+    return (
+      <div style={{ color: "white", padding: 16 }}>
+        iFuel cargado – esperando datos de telemetría…
+        <br />
+        Estado servidor: {serverStatus}
+      </div>
+    );
+  }
 
-  if (serverStatus === "connected") {
-    // WS ok pero aún sin datos de sesión
-    label = state ? "SERVER ON" : "WAITING FOR SESSION";
-  } else if (serverStatus === "connecting") {
-    label = "SERVER CONNECTING";
-  } else {
-    label = "SERVER OFF";
+  if (mode === "pitboard") {
+    return (
+      <PitboardLayout
+        state={state}
+        isConnected={isConnected}
+        sendMessage={sendMessage}
+      />
+    );
   }
 
   return (
-    <WidgetVisibilityProvider>
-      <div className="app-root">
-        <div className={`server-status server-status--${serverStatus}`}>
-          {label}
-        </div>
-
-        <FuelWidgetContainer
-          state={state}
-          isConnected={isConnected}
-          sendMessage={sendMessage}
-        />
-        <RelativeWidgetContainer state={state} isConnected={isConnected} />
-        <YellowFlagWidgetContainer state={state} isConnected={isConnected} />
-        <RaceStandingsWidgetContainer wsUrl="ws://localhost:7071/ifuel" />
-        <PitClearAirWidgetContainer
-          pitClearAir={state?.pitClearAir}
-          isConnected={isConnected}
-          lapNumber={state?.lapNumber ?? null}
-          earliestPitLap={state?.earliestPitLap ?? null}
-        />
-      </div>
-    </WidgetVisibilityProvider>
+    <FreeLayout
+      state={state}
+      isConnected={isConnected}
+      sendMessage={sendMessage}
+      serverStatus={serverStatus}
+      layoutMode={mode}
+    />
   );
 };
 

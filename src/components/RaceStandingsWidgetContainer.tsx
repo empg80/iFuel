@@ -1,49 +1,45 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
-// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { RaceStandingsWidget } from "./RaceStandingsWidget";
-import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
+import { useOverlayState } from "../contexts/useOverlayState";
+import { loadWidgetPosition } from "../utils/position";
+import { saveJsonToStorage } from "../utils/storage";
 
 const POS_KEY_STANDINGS = "ifuel-pos-standings";
 
 type Props = {
   wsUrl: string;
+  variant?: "free" | "pitboard";
 };
 
-export const RaceStandingsWidgetContainer: React.FC<Props> = ({ wsUrl }) => {
+export const RaceStandingsWidgetContainer: React.FC<Props> = ({
+  wsUrl,
+  variant = "free",
+}) => {
   const { state, raceStandingsRows, isConnected } = useIfuelWebSocket(wsUrl);
 
-  const overlayState = useOverlayState(); // NUEVO
+  const overlayState = useOverlayState();
   const standingsVisible = overlayState.standingsVisible ?? true;
   const widgetsLocked = overlayState.widgetsLocked ?? true;
   const standingsScale = overlayState.standingsScale ?? 1;
 
-  // const {
-  //   standings: standingsVisible,
-  //   widgetsLocked,
-  //   standingsScale,
-  // } = useWidgetVisibility();
-
-  const [position, setPosition] = useState(() => {
-    const stored = localStorage.getItem(POS_KEY_STANDINGS);
-    if (stored) {
-      try {
-        return JSON.parse(stored) as { x: number; y: number };
-      } catch {
-        // fall through
-      }
-    }
-    return { x: 500, y: 120 };
-  });
+  const [position, setPosition] = useState(() =>
+    loadWidgetPosition(POS_KEY_STANDINGS, { x: 500, y: 120 }),
+  );
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    localStorage.setItem(POS_KEY_STANDINGS, JSON.stringify(position));
-  }, [position]);
+  const isPitboard = variant === "pitboard";
 
   useEffect(() => {
+    if (isPitboard) return;
+    saveJsonToStorage(POS_KEY_STANDINGS, position);
+  }, [position, isPitboard]);
+
+  useEffect(() => {
+    if (isPitboard) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
       setPosition({
@@ -62,10 +58,11 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({ wsUrl }) => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [isPitboard]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isPitboard) return;
       if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
@@ -75,26 +72,41 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({ wsUrl }) => {
         y: e.clientY - position.y,
       };
     },
-    [widgetsLocked, position.x, position.y],
+    [isPitboard, widgetsLocked, position.x, position.y],
   );
 
-  // ocultar según visibilidad
   if (!standingsVisible) return null;
 
+  // antes usabas relativeAhead.carNum
   const myCarNumber =
-    state?.relativeAhead?.carNum != null
-      ? String(state.relativeAhead.carNum)
-      : "";
+    state?.cameraCarNumber != null ? String(state.cameraCarNumber) : "";
 
   const classColorIndexById = state?.classColorIndexById ?? {};
 
   return (
     <div
-      className="pitclear-widget-container"
-      style={{ left: position.x, top: position.y }}
+      className={
+        isPitboard
+          ? "standings-widget-container pitboard-full"
+          : "standings-widget-container"
+      }
+      style={
+        isPitboard
+          ? undefined
+          : {
+              left: position.x,
+              top: position.y,
+            }
+      }
       onMouseDown={handleMouseDown}
     >
-      <div style={{ transform: `scale(${standingsScale ?? 1})` }}>
+      <div
+        style={
+          isPitboard
+            ? undefined
+            : { transform: `scale(${standingsScale ?? 1})` }
+        }
+      >
         <RaceStandingsWidget
           rows={raceStandingsRows}
           myCarNumber={myCarNumber}
@@ -102,10 +114,10 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({ wsUrl }) => {
         />
 
         <div
-          className={`pitclear-widget-status ${
+          className={`standings-widget-status ${
             isConnected
-              ? "pitclear-widget-status--connected"
-              : "pitclear-widget-status--disconnected"
+              ? "standings-widget-status--connected"
+              : "standings-widget-status--disconnected"
           }`}
         >
           STANDINGS {isConnected ? "ON" : "OFF"}

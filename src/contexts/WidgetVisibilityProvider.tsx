@@ -12,7 +12,7 @@ export const WidgetVisibilityProvider: React.FC<{
 
   useEffect(() => {
     const api = window.ifuelOverlay;
-    if (!api) return;
+    if (!api?.onOverlayStateChanged) return;
 
     const unsubscribe = api.onOverlayStateChanged((overlayState) => {
       setState((prev) => ({

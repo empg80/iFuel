@@ -8,7 +8,66 @@ let mainWindow = null;
 let telemetryModule = null;
 let telemetryServerRunning = false;
 
+// NUEVO: a nivel global, no dentro de createWindow
+let replayWindow = null;
+
 const isDev = !app.isPackaged; // dev vs producción [web:17]
+
+function createReplayWindow() {
+  if (replayWindow) return;
+
+  replayWindow = new BrowserWindow({
+    width: 1920,
+    height: 1080,
+    frame: false,
+    transparent: true,
+    backgroundColor: "#00000000",
+    alwaysOnTop: false,
+    resizable: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+      devTools: isDev,
+      preload: path.join(__dirname, "preload.cjs"),
+    },
+  });
+
+  const startUrl = process.env.ELECTRON_START_URL;
+
+  if (startUrl) {
+    replayWindow.loadURL(startUrl + "#/replay");
+  } else {
+    replayWindow.loadFile(
+      path.join(__dirname, "../dist/index.html"),
+      { hash: "replay" }
+    );
+  }
+
+  replayWindow.on("closed", () => {
+    replayWindow = null;
+  });
+}
+
+function setReplayVisible(visible) {
+  overlayState.replayVisible = visible;
+  saveOverlayState();
+
+  if (visible) {
+    if (!replayWindow) {
+      createReplayWindow();
+    } else {
+      replayWindow.show();
+    }
+  } else if (replayWindow) {
+    replayWindow.hide();
+  }
+
+  sendOverlayState();
+}
+
+
 
 const overlayStatePath = path.join(app.getPath("userData"), "overlay-state.json");
 
@@ -23,6 +82,7 @@ function validateOverlayState(candidate) {
     "standingsVisible",
     "widgetsLocked",
     "fuelSettingsVisible",
+    "replayVisible",
   ];
   const numberKeys = [
     "fuelScale",
@@ -38,10 +98,17 @@ function validateOverlayState(candidate) {
   for (const key of numberKeys) {
     if (typeof candidate[key] !== "number") return false;
   }
-  if (!["free", "pitboard"].includes(candidate.layoutMode)) return false;
+
+  if (
+    candidate.layoutMode &&
+    !["free", "pitboard", "replay"].includes(candidate.layoutMode)
+  ) {
+    return false;
+  }
 
   return true;
 }
+
 
 function loadOverlayState() {
   try {
@@ -70,7 +137,6 @@ function saveOverlayState() {
   }
 }
 
-// estado global del overlay
 let overlayState =
   loadOverlayState() || {
     fuelVisible: true,
@@ -80,8 +146,8 @@ let overlayState =
     standingsVisible: true,
     widgetsLocked: true,
     fuelSettingsVisible: false,
+    replayVisible: false, // ventana de broadcast apagada por defecto
 
-    // escalas
     fuelScale: 1,
     relativeScale: 1,
     pitClearScale: 1,
@@ -93,10 +159,12 @@ let overlayState =
 async function startTelemetryServerInElectron() {
   if (telemetryServerRunning) return;
   try {
+    const baseDir = isDev
+      ? path.join(__dirname, "..")                  // proyecto local
+      : path.join(__dirname, "..", "..");           // resources/ en la app instalada
+
     const serverPath = path.join(
-      __dirname,
-      "..",
-      "..",
+      baseDir,
       "iFuel-telemetry-node",
       "telemetry-server.mjs",
     );
@@ -135,21 +203,24 @@ ipcMain.handle("overlay:update-partial", (_event, partial) => {
     throw new Error("Invalid overlay update");
   }
 
-  const allowedKeys = new Set([
-    "fuelVisible",
-    "standingBattleVisible",
-    "yellowVisible",
-    "pitClearAirVisible",
-    "standingsVisible",
-    "widgetsLocked",
-    "fuelSettingsVisible",
-    "fuelScale",
-    "relativeScale",
-    "pitClearScale",
-    "yellowScale",
-    "standingsScale",
-    "layoutMode",
-  ]);
+const allowedKeys = new Set([
+  "fuelVisible",
+  "standingBattleVisible",
+  "yellowVisible",
+  "pitClearAirVisible",
+  "standingsVisible",
+  "widgetsLocked",
+  "fuelSettingsVisible",
+  "fuelScale",
+  "relativeScale",
+  "pitClearScale",
+  "yellowScale",
+  "standingsScale",
+  "layoutMode",
+  "replayVisible",
+]);
+
+
 
   for (const key of Object.keys(partial)) {
     if (!allowedKeys.has(key)) continue;
@@ -191,9 +262,18 @@ function createMenu() {
           checked: overlayState.layoutMode === "pitboard",
           click: () => {
             overlayState.layoutMode = "pitboard";
-            overlayState.widgetsLocked = true; // forzar bloqueo
+            overlayState.widgetsLocked = true;
             saveOverlayState();
             sendOverlayState();
+          },
+        },
+        {
+          label: "Replay / Broadcast", 
+          type: "radio",
+          checked: overlayState.layoutMode === "replay",
+          click: () => {
+            overlayState.layoutMode = "replay";
+            setReplayVisible(true);       // abre/enseña la ventana
           },
         },
       ],
@@ -561,7 +641,7 @@ function createWindow() {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
-      devTools: isDev, // DevTools sólo en desarrollo [web:17][web:19]
+      devTools: isDev, // DevTools sólo en desarrollo
       preload: path.join(__dirname, "preload.cjs"),
     },
   });
@@ -583,6 +663,11 @@ function createWindow() {
   mainWindow.webContents.on("did-finish-load", () => {
     sendOverlayState();
   });
+
+  // ABRIR DEVTOOLS AUTOMÁTICAMENTE EN DESARROLLO
+// if (isDev && mainWindow) {
+//   mainWindow.webContents.openDevTools({ mode: "detach" });
+// }
 
   // cinturón extra: si alguien consigue abrir DevTools en producción, cerrarlos
   if (!isDev) {

@@ -2,12 +2,15 @@
 import { useEffect, useState } from "react";
 
 export function useOverlayState() {
-  const [overlayState, setOverlayState] = useState<IfuelOverlayState>({});
+  const [overlayState, setOverlayState] = useState<IfuelOverlayState>({
+    layoutMode: "free",
+  });
 
   useEffect(() => {
-    if (!window.ifuelOverlay) return;
+    const overlay = window.ifuelOverlay;
+    if (!overlay?.onOverlayStateChanged) return;
 
-    const unsubscribe = window.ifuelOverlay.onOverlayStateChanged((state) => {
+    const unsubscribe = overlay.onOverlayStateChanged((state) => {
       setOverlayState(state);
     });
 

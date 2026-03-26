@@ -6,12 +6,11 @@ import React, {
   useRef,
 } from "react";
 import { FuelWidget } from "./FuelWidget";
-// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
 import { loadWidgetPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
-import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
+import { useOverlayState } from "../contexts/useOverlayState";
 
 const LS_KEY = "ifuel-settings-v1";
 const POS_KEY_FUEL = "ifuel-pos-fuel";
@@ -22,85 +21,6 @@ const DEFAULT_FUEL_OPTS: FuelOpts = {
   safetyExtraLaps: 1,
   avgMode: "5",
 };
-
-const FuelSettingsPanel = React.memo(function FuelSettingsPanel({
-  fuelOpts,
-  onChange,
-}: {
-  fuelOpts: FuelOpts;
-  onChange: (next: FuelOpts) => void;
-}) {
-  const update = useCallback(
-    (patch: Partial<FuelOpts>) => onChange({ ...fuelOpts, ...patch }),
-    [fuelOpts, onChange],
-  );
-
-  return (
-    <div className="fuel-settings">
-      <div className="fuel-settings__title">iFuel settings</div>
-
-      <label className="fuel-settings__field">
-        Min lap time (s)
-        <input
-          type="number"
-          value={fuelOpts.minLapTimeSeconds}
-          onChange={(e) =>
-            update({ minLapTimeSeconds: Number(e.target.value) || 0 })
-          }
-          className="fuel-settings__input"
-        />
-      </label>
-
-      <label className="fuel-settings__field">
-        Min fuel / lap
-        <input
-          type="number"
-          step="0.1"
-          value={fuelOpts.minFuelUsedPerLap}
-          onChange={(e) =>
-            update({ minFuelUsedPerLap: Number(e.target.value) || 0 })
-          }
-          className="fuel-settings__input"
-        />
-      </label>
-
-      <label className="fuel-settings__field">
-        Safety laps
-        <input
-          type="number"
-          value={fuelOpts.safetyExtraLaps}
-          onChange={(e) =>
-            update({ safetyExtraLaps: Number(e.target.value) || 0 })
-          }
-          className="fuel-settings__input"
-        />
-      </label>
-
-      <div className="fuel-settings__avg">
-        Avg laps:
-        <div className="fuel-settings__avg-buttons">
-          {["2", "5", "10"].map((mode) => {
-            const selected = fuelOpts.avgMode === mode;
-            return (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => update({ avgMode: mode as FuelOpts["avgMode"] })}
-                className={
-                  selected
-                    ? "fuel-settings__avg-button fuel-settings__avg-button--active"
-                    : "fuel-settings__avg-button"
-                }
-              >
-                {mode}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-});
 
 const emptyState: IfuelState = {
   fuel: 0,
@@ -143,30 +63,35 @@ const emptyState: IfuelState = {
   pitClearAir: null,
 };
 
+const FuelSettingsPanel = React.memo(function FuelSettingsPanel({
+  fuelOpts: _fuelOpts,
+  onChange: _onChange,
+}: {
+  fuelOpts: FuelOpts;
+  onChange: (next: FuelOpts) => void;
+}) {
+  return null;
+});
+
 type FuelWidgetContainerProps = {
   state: IfuelState | null;
   isConnected: boolean;
   sendMessage: (msg: unknown) => void;
+  variant?: "free" | "pitboard";
 };
 
 export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   state,
   isConnected,
   sendMessage,
+  variant = "free",
 }) => {
-  const overlayState = useOverlayState(); // NUEVO
+  const overlayState = useOverlayState();
 
   const fuelVisible = overlayState.fuelVisible ?? true;
   const widgetsLocked = overlayState.widgetsLocked ?? true;
   const fuelSettingsVisible = overlayState.fuelSettingsVisible ?? false;
   const fuelScale = overlayState.fuelScale ?? 1;
-
-  // const {
-  //   fuel: fuelVisible,
-  //   widgetsLocked,
-  //   fuelSettingsVisible,
-  //   fuelScale,
-  // } = useWidgetVisibility();
 
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() =>
     loadJsonFromStorage(LS_KEY, DEFAULT_FUEL_OPTS),
@@ -179,22 +104,26 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  // NUEVO: recordamos la última ventana enviada
   const lastSentPitStrategyRef = useRef<{
     start: number;
     end: number;
     delta: number;
   } | null>(null);
 
+  const isPitboard = variant === "pitboard";
+
   useEffect(() => {
     saveJsonToStorage(LS_KEY, fuelOpts);
   }, [fuelOpts]);
 
   useEffect(() => {
+    if (isPitboard) return;
     saveJsonToStorage(POS_KEY_FUEL, position);
-  }, [position]);
+  }, [position, isPitboard]);
 
   useEffect(() => {
+    if (isPitboard) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
       setPosition({
@@ -215,10 +144,11 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [isPitboard]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isPitboard) return;
       if (widgetsLocked) return;
 
       const target = e.target as HTMLElement;
@@ -230,15 +160,10 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
         y: e.clientY - position.y,
       };
     },
-    [widgetsLocked, position.x, position.y],
+    [isPitboard, widgetsLocked, position.x, position.y],
   );
 
-  const handleSettingsChange = useCallback((next: FuelOpts) => {
-    setFuelOpts(next);
-  }, []);
-
   const hasState = state != null;
-
   const {
     fuel,
     fuelMax,
@@ -269,22 +194,16 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   const MIN_VALID_LAPS_FOR_PIT_CLEAR = 5;
   const validLapsCount = state?.lapHistoryLast30.length ?? 0;
 
-  // si quieres seguir mandando pit strategy desde aquí:
   useEffect(() => {
     if (!earliestPitLap || !estLaps) return;
-
-    // aún no hay suficiente histórico de fuel → no activamos Pit Clear Air
     if (validLapsCount < MIN_VALID_LAPS_FOR_PIT_CLEAR) return;
 
-    // Duración típica de stint: usa el primer stint calculado si existe
     const firstStint = stintLaps?.[0] ?? null;
-    const stintLength = firstStint && firstStint > 0 ? firstStint : estLaps; // fallback
+    const stintLength = firstStint && firstStint > 0 ? firstStint : estLaps;
 
-    // ancho base: 20 % del stint, acotado
     const baseHalfWidth = Math.round(stintLength * 0.2);
-
-    const MIN_HALF_WIDTH = 2; // al menos ±2 vueltas
-    const MAX_HALF_WIDTH = 8; // no más de ±8 vueltas
+    const MIN_HALF_WIDTH = 2;
+    const MAX_HALF_WIDTH = 8;
 
     const halfWidth = Math.min(
       MAX_HALF_WIDTH,
@@ -309,7 +228,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
       prev.end === next.end &&
       prev.delta === next.delta
     ) {
-      return; // misma ventana, no enviar
+      return;
     }
 
     lastSentPitStrategyRef.current = next;
@@ -368,12 +287,20 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
 
   return (
     <div
-      className="fuel-widget-container"
-      style={{
-        left: position.x,
-        top: position.y,
-        transform: `scale(${fuelScale ?? 1})`,
-      }}
+      className={
+        isPitboard
+          ? "fuel-widget-container pitboard-full"
+          : "fuel-widget-container"
+      }
+      style={
+        isPitboard
+          ? undefined
+          : {
+              left: position.x,
+              top: position.y,
+              transform: `scale(${fuelScale ?? 1})`,
+            }
+      }
       onMouseDown={handleMouseDown}
     >
       {!hasState ? (
@@ -417,10 +344,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
       </div>
 
       {fuelSettingsVisible && (
-        <FuelSettingsPanel
-          fuelOpts={fuelOpts}
-          onChange={handleSettingsChange}
-        />
+        <FuelSettingsPanel fuelOpts={fuelOpts} onChange={setFuelOpts} />
       )}
     </div>
   );

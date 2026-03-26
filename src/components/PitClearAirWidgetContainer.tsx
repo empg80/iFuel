@@ -3,7 +3,7 @@ import { PitClearAirWidget } from "./PitClearAirWidget";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { PitClearAirData } from "../types/pit";
-import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
+import { useOverlayState } from "../contexts/useOverlayState";
 
 const POS_KEY_PITCLEAR = "ifuel-pos-pitclear";
 
@@ -12,6 +12,7 @@ type Props = {
   isConnected: boolean;
   lapNumber: number | null | undefined;
   earliestPitLap: number | null | undefined;
+  variant?: "free" | "pitboard";
 };
 
 export const PitClearAirWidgetContainer: React.FC<Props> = ({
@@ -19,8 +20,9 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
   isConnected,
   lapNumber,
   earliestPitLap,
+  variant = "free",
 }) => {
-  const overlayState = useOverlayState(); // NUEVO
+  const overlayState = useOverlayState();
 
   const pitClearVisible = overlayState.pitClearAirVisible ?? true;
   const widgetsLocked = overlayState.widgetsLocked ?? true;
@@ -33,11 +35,16 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    saveJsonToStorage(POS_KEY_PITCLEAR, position);
-  }, [position]);
+  const isPitboard = variant === "pitboard";
 
   useEffect(() => {
+    if (isPitboard) return;
+    saveJsonToStorage(POS_KEY_PITCLEAR, position);
+  }, [position, isPitboard]);
+
+  useEffect(() => {
+    if (isPitboard) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
       setPosition({
@@ -56,10 +63,11 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [isPitboard]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isPitboard) return;
       if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
@@ -69,13 +77,11 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
         y: e.clientY - position.y,
       };
     },
-    [widgetsLocked, position.x, position.y],
+    [isPitboard, widgetsLocked, position.x, position.y],
   );
 
-  // respetar toggle de visibilidad
   if (!pitClearVisible) return null;
 
-  // Derivar ventana local a partir de earliestPitLap (igual que en Fuel)
   let pitWindowStartLap: number | null = null;
   let pitWindowEndLap: number | null = null;
 
@@ -87,12 +93,20 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
 
   return (
     <div
-      className="pitclear-widget-container"
-      style={{
-        left: position.x,
-        top: position.y,
-        transform: `scale(${pitClearScale ?? 1})`,
-      }}
+      className={
+        isPitboard
+          ? "pitclear-widget-container pitboard-full"
+          : "pitclear-widget-container"
+      }
+      style={
+        isPitboard
+          ? undefined
+          : {
+              left: position.x,
+              top: position.y,
+              transform: `scale(${pitClearScale ?? 1})`,
+            }
+      }
       onMouseDown={handleMouseDown}
     >
       <PitClearAirWidget

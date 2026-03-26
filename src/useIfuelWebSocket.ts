@@ -26,7 +26,6 @@ type OnTrackCar = {
   classPosition?: number | null;
 } | null;
 
-// NUEVO
 type YellowWarning = {
   active: boolean;
   distanceMeters: number | null;
@@ -54,7 +53,22 @@ type StandingsRowPayload = {
   bestLapSeconds: number | null;
   stintLapCount: number;
   lastPitDurationSeconds: number | null;
+  gapToLeaderSeconds: number | null;
+  lapsDown: number;
+  pitStops: number;
+  inPit: boolean;
+  carModel?: string;
 };
+
+type CameraDriverPayload = {
+  carIdx: number;
+  carNumber: string;
+  classId: number;
+  position: number;
+  driverName: string;
+  carModel: string;
+  bestLapSeconds: number | null;
+} | null;
 
 type RawMessage = {
   fuelLevel: number;
@@ -75,10 +89,18 @@ type RawMessage = {
   };
   classColorIndexById?: Record<number, number>;
 
-  // NUEVO
   yellowWarning?: YellowWarning;
-  pitClearAir?: PitClearAir; // NUEVO
+  pitClearAir?: PitClearAir;
   standings?: StandingsRowPayload[];
+  cameraCarNumber?: string | null;
+  cameraDriver?: CameraDriverPayload;
+
+  // datos para TrackInfoWidget
+  trackName?: string;
+  trackLength?: string;
+  windSpeed?: number | null;
+  windDirection?: string | null;
+  rainChance?: number | null;
 };
 
 type LapSample = {
@@ -123,10 +145,18 @@ export type IfuelState = {
   onTrackBehind?: OnTrackCar | null;
   classColorIndexById?: Record<number, number>;
 
-  // NUEVO
   yellowWarning?: YellowWarning;
-  pitClearAir?: PitClearAir; // NUEVO
+  pitClearAir?: PitClearAir;
   standings?: StandingsRow[];
+  cameraCarNumber?: string | null;
+  cameraDriver?: CameraDriverPayload | null;
+
+  // Track info
+  trackName?: string;
+  trackLength?: string;
+  windSpeed?: number | null;
+  windDirection?: string | null;
+  rainChance?: number | null;
 };
 
 export type IfuelOptions = {
@@ -176,19 +206,11 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
       socketRef.current = socket;
 
       socket.onopen = () => {
-        console.log("[iFuel] WS open");
         setIsConnected(true);
         setServerStatus("connected");
       };
 
-      socket.onclose = (event) => {
-        console.log(
-          "[iFuel] WS closed",
-          event.code,
-          event.reason,
-          "readyState:",
-          socket?.readyState,
-        );
+      socket.onclose = () => {
         setIsConnected(false);
         setServerStatus("disconnected");
         socketRef.current = null;
@@ -196,7 +218,6 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
         if (!closedByApp) {
           setTimeout(() => {
             if (!socketRef.current) {
-              console.log("[iFuel] Reintentando conexión WS...");
               connect();
             }
           }, 2000);
@@ -228,7 +249,19 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             yellowWarning,
             pitClearAir,
             standings: standingsRaw,
+            cameraCarNumber: rawCameraCarNumber,
+            cameraDriver,
+            trackName,
+            trackLength,
+            windSpeed,
+            windDirection,
+            rainChance,
           } = msg;
+
+          const cameraCarNumber =
+            typeof rawCameraCarNumber === "string" && rawCameraCarNumber !== ""
+              ? rawCameraCarNumber
+              : null;
 
           const opts = optsRef.current;
 
@@ -495,12 +528,16 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               classId: car.classId,
               driverName: car.driverName,
               bestLapTime: car.bestLapSeconds,
-              stintLaps: car.stintLapCount,
-              lastPitTime: car.lastPitDurationSeconds,
+              gapToLeader: car.gapToLeaderSeconds ?? null,
+              lapsDown: car.lapsDown ?? 0,
+              stintLapCount: car.stintLapCount,
+              lastPitDurationSeconds: car.lastPitDurationSeconds,
+              pitStops: car.pitStops ?? 0,
+              inPit: !!car.inPit,
+              carModel: car.carModel ?? "",
             })) ?? [];
 
           const nextState: IfuelState = {
-            // todos los campos que ya construyes
             fuel: fuelLevel,
             fuelMax: fuelMax ?? null,
             fuelCapacity,
@@ -533,6 +570,14 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             yellowWarning: yellowWarning ?? null,
             pitClearAir: pitClearAir ?? null,
             standings,
+            cameraCarNumber,
+            cameraDriver: cameraDriver ?? null,
+            // Track info
+            trackName: trackName ?? "",
+            trackLength: trackLength ?? "",
+            windSpeed: windSpeed ?? null,
+            windDirection: windDirection ?? null,
+            rainChance: rainChance ?? null,
           };
 
           pendingStateRef.current = nextState;
@@ -575,13 +620,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
   const sendMessage = useCallback((msg: unknown) => {
     const s = socketRef.current;
-    console.log(
-      "[iFuel] sendMessage called",
-      "readyState:",
-      s?.readyState,
-      "msg:",
-      msg,
-    );
+
     if (!s || s.readyState !== WebSocket.OPEN) return;
     try {
       s.send(JSON.stringify(msg));
@@ -602,14 +641,6 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     const pitWindowEndLap = centerLap + 5;
     const pitDeltaSeconds = 32;
 
-    console.log("[iFuel] Sending pit strategy", {
-      earliestPitLap,
-      estLaps,
-      pitWindowStartLap,
-      pitWindowEndLap,
-      pitDeltaSeconds,
-    });
-
     sendMessage({
       type: "updatePitStrategy",
       pitWindowStartLap,
@@ -617,10 +648,6 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
       pitDeltaSeconds,
     });
   }, [state, isConnected, sendMessage]);
-
-  useEffect(() => {
-    (window as unknown as { ifuelState: IfuelState | null }).ifuelState = state;
-  }, [state]);
 
   const raceStandingsRows: StandingsRow[] = useMemo(
     () => state?.standings ?? [],

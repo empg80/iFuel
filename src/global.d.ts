@@ -17,7 +17,8 @@ declare global {
     yellowScale?: number;
     standingsScale?: number;
 
-    layoutMode?: "free" | "pitboard";
+    layoutMode?: "free" | "pitboard" | "replay"; // añade "replay"
+    replayVisible?: boolean; // opcional, para saber si la ventana está abierta
   }
 
   interface IfuelOverlayAPI {
@@ -27,6 +28,6 @@ declare global {
   }
 
   interface Window {
-    ifuelOverlay: IfuelOverlayAPI; // aquí mejor sin "?" dado tu preload
+    ifuelOverlay: IfuelOverlayAPI;
   }
 }

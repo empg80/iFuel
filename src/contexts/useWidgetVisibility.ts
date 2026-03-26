@@ -6,7 +6,8 @@ import {
 } from "./WidgetVisibilityContext";
 
 export function useWidgetVisibility(): VisibilityState {
-  const state = useContext(WidgetVisibilityContext) as VisibilityState | undefined;
-  const safeState = state ?? defaultVisibilityState;
-  return safeState;
+  return (
+    (useContext(WidgetVisibilityContext) as VisibilityState | undefined) ??
+    defaultVisibilityState
+  );
 }

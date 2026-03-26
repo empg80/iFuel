@@ -8,7 +8,7 @@ It consists of a telemetry server (WebSocket) and a desktop app built with React
 </p>
 
 > Note: this repository contains the client (overlay) and a minimal telemetry server in `iFuel-telemetry-node`.  
-> The overlay expects a WebSocket server at `ws://localhost:7071/ifuel`.
+> The overlay expects a WebSocket server at `ws://127.0.0.1:7071/ifuel`.
 
 ---
 
@@ -135,7 +135,7 @@ The widget then shows:
 
 **Communication**
 
-- WebSocket to `ws://localhost:7071/ifuel`.
+- WebSocket to `ws://127.0.0.1:7071/ifuel`.
 
 ### Telemetry state
 
@@ -164,7 +164,7 @@ node telemetry-server.mjs
 This starts a WebSocket server at:
 
 text
-ws://localhost:7071/ifuel
+ws://127.0.0.1:7071/ifuel
 The server:
 
 Streams fuel, session, relative and yellow‑flag data to the overlay.
@@ -180,7 +180,7 @@ npm or yarn.
 
 iRacing running on the same machine.
 
-Telemetry server listening at ws://localhost:7071/ifuel (see section above).
+Telemetry server listening at ws://127.0.0.1:7071/ifuel (see section above).
 
 Installation & Running
 Clone the repository:
@@ -206,7 +206,7 @@ bash
 npm run dev
 # or the Electron wrapper, if configured:
 npm run electron
-Make sure the telemetry server is running and sending data to ws://localhost:7071/ifuel.
+Make sure the telemetry server is running and sending data to ws://127.0.0.1:7071/ifuel.
 Otherwise, the overlay will display “Waiting for iRacing data…”.
 
 Basic Usage

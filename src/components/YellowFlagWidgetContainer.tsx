@@ -1,29 +1,30 @@
+// YellowFlagWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { YellowFlagWidget } from "./YellowFlagWidget";
-// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
-import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
+import { useOverlayState } from "../contexts/useOverlayState";
+import type { YellowWarning } from "../types/yellow";
 
 const POS_KEY_YELLOW = "ifuel-pos-yellow";
 
 type Props = {
   state: IfuelState | null;
   isConnected: boolean;
+  variant?: "free" | "pitboard";
 };
 
 export const YellowFlagWidgetContainer: React.FC<Props> = ({
   state,
   isConnected,
+  variant = "free",
 }) => {
-  const overlayState = useOverlayState(); // NUEVO
+  const overlayState = useOverlayState();
 
   const yellowVisible = overlayState.yellowVisible ?? true;
   const widgetsLocked = overlayState.widgetsLocked ?? true;
   const yellowScale = overlayState.yellowScale ?? 1;
-
-  // const { yellow, widgetsLocked, yellowScale } = useWidgetVisibility();
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_YELLOW, { x: 900, y: 100 }),
@@ -32,7 +33,11 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
+  const isPitboard = variant === "pitboard";
+
   useEffect(() => {
+    if (isPitboard) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
       setPosition({
@@ -53,14 +58,16 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [isPitboard]);
 
   useEffect(() => {
+    if (isPitboard) return;
     saveJsonToStorage(POS_KEY_YELLOW, position);
-  }, [position]);
+  }, [position, isPitboard]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isPitboard) return;
       if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
@@ -71,23 +78,43 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
         y: e.clientY - position.y,
       };
     },
-    [widgetsLocked, position.x, position.y],
+    [isPitboard, widgetsLocked, position.x, position.y],
   );
 
   if (!yellowVisible) return null;
 
-  const warning = state?.yellowWarning ?? null;
+  const warning = (state?.yellowWarning ?? null) as YellowWarning | null;
   const classColorIndexById = state?.classColorIndexById;
   const hasState = !!state;
 
+  const isActiveYellow = !!warning && warning.active;
+  const isDebris = isActiveYellow && warning?.type === "debris";
+
+  const pitboardFlagClass =
+    !isPitboard || !isActiveYellow
+      ? ""
+      : isDebris
+        ? "pitboard-flagbar--debris"
+        : "pitboard-flagbar--yellow";
+
   return (
     <div
-      className="yellow-widget-container"
-      style={{
-        left: position.x,
-        top: position.y,
-        transform: `scale(${yellowScale ?? 1})`,
-      }}
+      className={
+        isPitboard
+          ? ["yellow-widget-container", "pitboard-full", pitboardFlagClass]
+              .filter(Boolean)
+              .join(" ")
+          : "yellow-widget-container"
+      }
+      style={
+        isPitboard
+          ? undefined
+          : {
+              left: position.x,
+              top: position.y,
+              transform: `scale(${yellowScale ?? 1})`,
+            }
+      }
       onMouseDown={handleMouseDown}
     >
       <div

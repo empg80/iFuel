@@ -1,30 +1,29 @@
+// RelativeWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RelativeWidget } from "./StandingBattleWidget";
-// import { useWidgetVisibility } from "../contexts/useWidgetVisibility";
 import { loadWidgetPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
-import { useOverlayState } from "../contexts/useOverlayState"; // NUEVO
+import { useOverlayState } from "../contexts/useOverlayState";
 
 const POS_KEY_RELATIVE = "ifuel-pos-relative";
 
 type Props = {
   state: IfuelState | null;
   isConnected: boolean;
+  variant?: "free" | "pitboard";
 };
 
 export const RelativeWidgetContainer: React.FC<Props> = ({
   state,
   isConnected,
+  variant = "free",
 }) => {
-  const overlayState = useOverlayState(); // NUEVO
+  const overlayState = useOverlayState();
 
   const standingBattleVisible = overlayState.standingBattleVisible ?? true;
   const widgetsLocked = overlayState.widgetsLocked ?? true;
   const relativeScale = overlayState.relativeScale ?? 1;
-
-  // const { standingBattle, widgetsLocked, relativeScale } =
-  //   useWidgetVisibility();
 
   const [position, setPosition] = useState(() =>
     loadWidgetPosition(POS_KEY_RELATIVE, { x: 500, y: 100 }),
@@ -33,11 +32,16 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    saveJsonToStorage(POS_KEY_RELATIVE, position);
-  }, [position]);
+  const isPitboard = variant === "pitboard";
 
   useEffect(() => {
+    if (isPitboard) return;
+    saveJsonToStorage(POS_KEY_RELATIVE, position);
+  }, [position, isPitboard]);
+
+  useEffect(() => {
+    if (isPitboard) return;
+
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
       setPosition({
@@ -58,20 +62,22 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [isPitboard]);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isPitboard) return;
       if (widgetsLocked) return;
       const target = e.target as HTMLElement;
       if (target.closest("button") || target.closest("input")) return;
+
       draggingRef.current = true;
       dragOffsetRef.current = {
         x: e.clientX - position.x,
         y: e.clientY - position.y,
       };
     },
-    [widgetsLocked, position.x, position.y],
+    [isPitboard, widgetsLocked, position.x, position.y],
   );
 
   if (!standingBattleVisible) return null;
@@ -92,12 +98,20 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
 
   return (
     <div
-      className="relative-widget-container"
-      style={{
-        left: position.x,
-        top: position.y,
-        transform: `scale(${relativeScale ?? 1})`,
-      }}
+      className={
+        isPitboard
+          ? "relative-widget-container pitboard-full"
+          : "relative-widget-container"
+      }
+      style={
+        isPitboard
+          ? undefined
+          : {
+              left: position.x,
+              top: position.y,
+              transform: `scale(${relativeScale ?? 1})`,
+            }
+      }
       onMouseDown={handleMouseDown}
     >
       <div

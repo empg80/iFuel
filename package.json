@@ -13,9 +13,11 @@
     "dist": "npm run electron:build && electron-builder"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "irsdk-node": "^4.4.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -39,28 +41,37 @@
     "vite": "^7.3.1",
     "wait-on": "^9.0.4"
   },
-  "build": {
-    "appId": "com.ifuel.overlay",
-    "productName": "iFuel",
-    "directories": {
-      "output": "dist/electron"
-    },
-    "files": [
-      "dist/**",
-      "electron/**",
-      "package.json"
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "public/icon.ico",
-      "signAndEditExecutable": false
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "deleteAppDataOnUninstall": false
-    },
-    "publish": null
-  }
+"build": {
+  "appId": "com.ifuel.overlay",
+  "productName": "iFuel",
+  "directories": {
+    "output": "dist/electron"
+  },
+  "files": [
+    "dist/**",
+    "electron/**",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "iFuel-telemetry-node",
+      "to": "iFuel-telemetry-node",
+      "filter": [
+        "**/*"
+      ]
+    }
+  ],
+  "win": {
+    "target": "nsis",
+    "icon": "build/icon.ico",
+    "signAndEditExecutable": false
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
+  },
+  "publish": null
+}
 }

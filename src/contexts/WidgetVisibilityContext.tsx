@@ -1,20 +1,22 @@
-import { createContext } from "react";
+// WidgetVisibilityContext.tsx
+import React from "react";
+
+export type LayoutMode = "free" | "pitboard" | "replay";
 
 export type VisibilityState = {
   fuel: boolean;
   standingBattle: boolean;
   yellow: boolean;
   pitClearAir: boolean;
-  standings: boolean; // ← NUEVO
+  standings: boolean;
   widgetsLocked: boolean;
   fuelSettingsVisible: boolean;
-
   fuelScale: number;
   relativeScale: number;
   pitClearScale: number;
   yellowScale: number;
   standingsScale: number;
-  layoutMode: "free" | "pitboard";
+  layoutMode: LayoutMode;
 };
 
 export const defaultVisibilityState: VisibilityState = {
@@ -22,10 +24,9 @@ export const defaultVisibilityState: VisibilityState = {
   standingBattle: true,
   yellow: true,
   pitClearAir: true,
-  standings: true, // ← NUEVO (o false si prefieres)
+  standings: true,
   widgetsLocked: true,
   fuelSettingsVisible: false,
-
   fuelScale: 1,
   relativeScale: 1,
   pitClearScale: 1,
@@ -34,6 +35,6 @@ export const defaultVisibilityState: VisibilityState = {
   layoutMode: "free",
 };
 
-export const WidgetVisibilityContext = createContext<VisibilityState>(
+export const WidgetVisibilityContext = React.createContext<VisibilityState>(
   defaultVisibilityState,
 );

@@ -1,5 +1,5 @@
 export function formatGap(seconds: number | null | undefined): string {
-  if (!seconds || !Number.isFinite(seconds)) return "--";
+  if (seconds == null || !Number.isFinite(seconds)) return "--";
   const sign = seconds >= 0 ? "" : "-";
   const abs = Math.abs(seconds);
   const ss = Math.floor(abs).toString().padStart(2, "0");
@@ -9,7 +9,9 @@ export function formatGap(seconds: number | null | undefined): string {
   return `${sign}${ss}.${dcm}`;
 }
 
-export function formatLapTimeSeconds(seconds: number | null | undefined): string {
+export function formatLapTimeSeconds(
+  seconds: number | null | undefined,
+): string {
   if (!seconds || seconds <= 0) return "--:--.---";
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
@@ -20,7 +22,7 @@ export function formatLapTimeSeconds(seconds: number | null | undefined): string
 }
 
 export function formatDelta(delta: number | null | undefined): string {
-  if (!delta || !Number.isFinite(delta)) return "";
+  if (delta == null || !Number.isFinite(delta)) return "";
   const sign = delta > 0 ? "+" : "";
   const abs = delta;
   const dcm = Math.round(Math.abs(abs) * 1000)
@@ -28,4 +30,3 @@ export function formatDelta(delta: number | null | undefined): string {
     .padStart(3, "0");
   return `${sign}0.${dcm}`;
 }
-
