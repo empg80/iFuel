@@ -79,6 +79,11 @@ type RawMessage = {
   sessionTimeRemain?: number;
   sessionLapsRemainEx?: number;
   fuelMax?: number;
+  sessionKey?: string;
+  onPitRoad?: boolean;
+  isInGarage?: boolean;
+  lapDistPct?: number | null;
+  sessionFlags?: number;
   airTemp?: number;
   trackTemp?: number;
 
@@ -163,12 +168,22 @@ export type IfuelOptions = {
   minLapTimeSeconds?: number;
   minFuelUsedPerLap?: number;
   safetyExtraLaps?: number;
+  /** Excluye de la media las vueltas con bandera amarilla/cautela (por defecto, sí). */
+  excludeYellowLaps?: boolean;
 };
+
+// Banderas amarillas/cautela de irsdk_Flags: yellow, yellowWaving, caution, cautionWaving
+const YELLOW_FLAG_MASK = 0x00000008 | 0x00000100 | 0x00004000 | 0x00008000;
+// Solo se mide una vuelta si se empezó a seguir cerca de la línea de meta (<= 3 % de vuelta)
+const LAP_START_TOLERANCE_PCT = 0.03;
+// Si el combustible sube más de esto durante una vuelta, hubo repostaje: vuelta descartada
+const REFUEL_DETECT_LTR = 0.05;
 
 const DEFAULT_OPTS: Required<IfuelOptions> = {
   minLapTimeSeconds: 1,
   minFuelUsedPerLap: 0.0,
   safetyExtraLaps: 1,
+  excludeYellowLaps: true,
 };
 
 export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
@@ -191,6 +206,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   const lapsRef = useRef<LapSample[]>([]);
 
   const maxFuelSeenRef = useRef<number>(0);
+  const lapDirtyRef = useRef<boolean>(false); // la vuelta en curso no es válida para la media
+  const sessionKeyRef = useRef<string | null>(null);
 
   const lastUpdateTimeRef = useRef<number>(0);
   const pendingStateRef = useRef<IfuelState | null>(null);
@@ -199,6 +216,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   useEffect(() => {
     let closedByApp = false;
     let socket: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
     function connect() {
       setServerStatus("connecting");
@@ -216,8 +234,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
         socketRef.current = null;
 
         if (!closedByApp) {
-          setTimeout(() => {
-            if (!socketRef.current) {
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            if (!closedByApp && !socketRef.current) {
               connect();
             }
           }, 2000);
@@ -239,6 +258,11 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             lastLapTime,
             bestLapTime,
             fuelMax,
+            sessionKey,
+            onPitRoad,
+            isInGarage,
+            lapDistPct,
+            sessionFlags,
             sessionLapsRemainEx,
             sessionTimeRemain,
             airTemp,
@@ -265,39 +289,74 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
           const opts = optsRef.current;
 
+          // Nueva sesión (otro coche/pista/sesión): el historial anterior ya no vale
+          if (sessionKey !== undefined && sessionKey !== sessionKeyRef.current) {
+            sessionKeyRef.current = sessionKey;
+            lapsRef.current = [];
+            lastLapCompletedRef.current = null;
+            lapStartFuelRef.current = null;
+            lapDirtyRef.current = false;
+            maxFuelSeenRef.current = 0;
+          }
+
           if (fuelLevel > maxFuelSeenRef.current) {
             maxFuelSeenRef.current = fuelLevel;
           }
           const fuelCapacity =
             fuelMax && fuelMax > 0 ? fuelMax : maxFuelSeenRef.current || null;
 
+          // Una vuelta solo es válida para la media si no hubo pit, garaje, repostaje
+          // ni (opcionalmente) bandera amarilla, y se midió desde la línea de meta.
+          const yellowNow =
+            opts.excludeYellowLaps && ((sessionFlags ?? 0) & YELLOW_FLAG_MASK) !== 0;
+          const dirtyNow = !!onPitRoad || !!isInGarage || yellowNow;
           const prevLapCompleted = lastLapCompletedRef.current;
 
-          if (prevLapCompleted === null) {
+          if (prevLapCompleted === null || lapCompleted < prevLapCompleted) {
+            // Primer mensaje, o el contador de vueltas se ha reiniciado (reset, remolque, sesión nueva).
+            // Si entramos a mitad de vuelta no medimos esa vuelta parcial: esperamos a la meta.
             lastLapCompletedRef.current = lapCompleted;
-            lapStartFuelRef.current = fuelLevel;
+            lapStartFuelRef.current =
+              typeof lapDistPct === "number" &&
+              lapDistPct >= 0 &&
+              lapDistPct <= LAP_START_TOLERANCE_PCT
+                ? fuelLevel
+                : null;
+            lapDirtyRef.current = dirtyNow;
           } else {
             if (
-              lapCompleted > prevLapCompleted &&
-              lapStartFuelRef.current !== null
+              dirtyNow ||
+              (lapStartFuelRef.current !== null &&
+                fuelLevel > lapStartFuelRef.current + REFUEL_DETECT_LTR)
             ) {
-              const fuelUsed = lapStartFuelRef.current - fuelLevel;
+              lapDirtyRef.current = true;
+            }
 
+            if (lapCompleted > prevLapCompleted) {
               if (
-                lastLapTime != null &&
-                lastLapTime > opts.minLapTimeSeconds &&
-                fuelUsed > opts.minFuelUsedPerLap
+                lapStartFuelRef.current !== null &&
+                !lapDirtyRef.current &&
+                lapCompleted === prevLapCompleted + 1
               ) {
-                const lapSample: LapSample = {
-                  lapNumber: lapCompleted,
-                  fuelUsed,
-                  lapTime: lastLapTime,
-                };
-                lapsRef.current = [...lapsRef.current, lapSample];
+                const fuelUsed = lapStartFuelRef.current - fuelLevel;
+
+                if (
+                  lastLapTime != null &&
+                  lastLapTime > opts.minLapTimeSeconds &&
+                  fuelUsed > opts.minFuelUsedPerLap
+                ) {
+                  const lapSample: LapSample = {
+                    lapNumber: lapCompleted,
+                    fuelUsed,
+                    lapTime: lastLapTime,
+                  };
+                  lapsRef.current = [...lapsRef.current, lapSample];
+                }
               }
 
               lapStartFuelRef.current = fuelLevel;
               lastLapCompletedRef.current = lapCompleted;
+              lapDirtyRef.current = dirtyNow;
             }
           }
 
@@ -604,13 +663,18 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
     return () => {
       closedByApp = true;
+      if (reconnectTimer !== null) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
       if (
         socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
+        (socketRef.current.readyState === WebSocket.OPEN ||
+          socketRef.current.readyState === WebSocket.CONNECTING)
       ) {
         socketRef.current.close();
       }
@@ -629,25 +693,25 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     }
   }, []);
 
+  // Se deriva un valor primitivo: el efecto solo se dispara cuando cambia la vuelta central
+  // de la ventana de pit (antes se enviaba un mensaje por cada actualización de estado).
+  const earliestPitLap = state?.earliestPitLap ?? null;
+  const hasFuelEstimate = !!(state?.estLaps && state.estLaps > 0);
+  const pitCenterLap =
+    earliestPitLap != null && earliestPitLap > 0 && hasFuelEstimate
+      ? Math.round(earliestPitLap)
+      : null;
+
   useEffect(() => {
-    if (!state || !isConnected) return;
-
-    const { earliestPitLap, estLaps } = state;
-    if (earliestPitLap == null || earliestPitLap <= 0) return;
-    if (!estLaps || estLaps <= 0) return;
-
-    const centerLap = Math.round(earliestPitLap);
-    const pitWindowStartLap = Math.max(1, centerLap - 5);
-    const pitWindowEndLap = centerLap + 5;
-    const pitDeltaSeconds = 32;
+    if (!isConnected || pitCenterLap === null) return;
 
     sendMessage({
       type: "updatePitStrategy",
-      pitWindowStartLap,
-      pitWindowEndLap,
-      pitDeltaSeconds,
+      pitWindowStartLap: Math.max(1, pitCenterLap - 5),
+      pitWindowEndLap: pitCenterLap + 5,
+      pitDeltaSeconds: 32,
     });
-  }, [state, isConnected, sendMessage]);
+  }, [pitCenterLap, isConnected, sendMessage]);
 
   const raceStandingsRows: StandingsRow[] = useMemo(
     () => state?.standings ?? [],
