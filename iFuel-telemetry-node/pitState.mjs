@@ -18,6 +18,11 @@ function getOrCreatePitState(carIdx) {
       lastKnownLapCompleted: 0,
 
       pitStops: 0,
+
+      // Primera observación del coche: si ya estaba en pit road, su primera salida
+      // (p. ej. salir del box al empezar la sesión) no cuenta como parada.
+      observed: false,
+      startedInPit: false,
     };
     pitAndStintStateByCarIdx.set(carIdx, state);
   }
@@ -38,6 +43,11 @@ function updatePitAndStintState({
     const lapCompleted = carIdxLapCompleted[carIdx] ?? 0;
     const state = getOrCreatePitState(carIdx);
 
+    if (!state.observed) {
+      state.observed = true;
+      state.startedInPit = onPitRoad;
+    }
+
     // Inicializar inicio de stint con la primera vuelta completada razonable
     if (state.stintStartLapCompleted == null && lapCompleted > 0) {
       state.stintStartLapCompleted = lapCompleted;
@@ -49,20 +59,39 @@ function updatePitAndStintState({
       state.pitEntrySessionTime = sessionTime;
     }
 
-    // Salida de pitlane -> calcular duración y contar parada
+    // Salida de pitlane -> calcular duración, contar parada y reiniciar el stint
     if (state.inPitLane && !onPitRoad) {
       state.inPitLane = false;
-      if (state.pitEntrySessionTime != null) {
-        state.lastPitDurationSeconds = Math.max(
-          0,
-          sessionTime - state.pitEntrySessionTime,
-        );
+      if (state.startedInPit) {
+        // Salida inicial del box: no es una parada
+        state.startedInPit = false;
+      } else {
+        if (state.pitEntrySessionTime != null) {
+          state.lastPitDurationSeconds = Math.max(
+            0,
+            sessionTime - state.pitEntrySessionTime,
+          );
+        }
+        state.pitStops += 1;
       }
-      state.pitStops += 1;
+      // Nuevo stint: antes no se reiniciaba nunca y "stint laps" acababa siendo el total de vueltas
+      state.stintStartLapCompleted = Math.max(0, lapCompleted);
     }
 
     state.lastKnownLapCompleted = lapCompleted;
   }
 }
 
-export { pitAndStintStateByCarIdx, getOrCreatePitState, updatePitAndStintState };
+/**
+ * Borra el estado de todos los coches (cambio de sesión o reconexión con el sim).
+ */
+function resetPitAndStintState() {
+  pitAndStintStateByCarIdx.clear();
+}
+
+export {
+  pitAndStintStateByCarIdx,
+  getOrCreatePitState,
+  updatePitAndStintState,
+  resetPitAndStintState,
+};

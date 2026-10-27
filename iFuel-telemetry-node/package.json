@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-  "dump": "node dump-telemetry.mjs",
-  "telemetry": "node telemetry-server.mjs"
-},
+    "telemetry": "node telemetry-server.mjs"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -13,5 +12,6 @@
   "dependencies": {
     "irsdk-node": "^4.4.0",
     "ws": "^8.19.0"
-  }
+  },
+  "private": true
 }

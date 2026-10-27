@@ -5,9 +5,9 @@ import fs from "fs";
 import path from "path";
 
 import {
-  pitAndStintStateByCarIdx,
   getOrCreatePitState,
   updatePitAndStintState,
+  resetPitAndStintState,
 } from "./pitState.mjs";
 
 const TIMEOUT = Math.floor((1 / 60) * 1000);
@@ -15,7 +15,11 @@ const BROADCAST_INTERVAL = 250; // ms
 const WS_PORT = 7071;
 const WS_PATH = "/ifuel";
 const WS_HOST = "127.0.0.1"; 
-const CLASS_MAP_FILE = path.join(process.cwd(), "classColorMap.json");
+const MAX_MESSAGE_BYTES = 16 * 1024; // 16 KB
+const SIM_CLOSED_CHECK_MS = 5000; // sin datos durante este tiempo -> comprobar si iRacing sigue abierto
+// Ruta del mapa de clases: startTelemetryServer({ dataDir }) la mueve a una carpeta
+// escribible (userData en Electron). Por defecto, el directorio de trabajo.
+let classMapFile = path.join(process.cwd(), "classColorMap.json");
 
 // mapa global por sesión: classId -> índice 0..5
 let classColorIndexById = {};
@@ -28,10 +32,11 @@ let pitStrategyParams = {
   pitDeltaSeconds: 32, // tiempo total de pit estimado
 };
 
-// Cargar si existe
+// Cargar si existe (se invoca desde startTelemetryServer, cuando ya se conoce dataDir)
+function loadClassMapFromDisk() {
 try {
-  if (fs.existsSync(CLASS_MAP_FILE)) {
-    const raw = fs.readFileSync(CLASS_MAP_FILE, "utf8");
+  if (fs.existsSync(classMapFile)) {
+    const raw = fs.readFileSync(classMapFile, "utf8");
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === "object" && parsed.map && parsed.nextIndex != null) {
       classColorIndexById = parsed.map;
@@ -42,11 +47,17 @@ try {
 } catch (e) {
   console.error("Error cargando classColorMap:", e);
 }
+}
+
+function loadClassMapFromDisk_init(dataDir) {
+  if (dataDir) classMapFile = path.join(dataDir, "classColorMap.json");
+  loadClassMapFromDisk();
+}
 
 function saveClassMapToDisk() {
   try {
     fs.writeFileSync(
-      CLASS_MAP_FILE,
+      classMapFile,
       JSON.stringify(
         { map: classColorIndexById, nextIndex: nextClassIndex },
         null,
@@ -181,14 +192,47 @@ function computePitClearAirSuggestion({
 }
 
 
-function startTelemetryLoop(sdk, wss) {
-  
-  setInterval(() => {
+function startTelemetryLoop(sdk, wss, { onSimClosed } = {}) {
+  resetPitAndStintState();
+
+  let lastSessionKey = null;
+  let sessionCache = { version: -1, data: null };
+  let noDataSince = null;
+  let checkingSim = false;
+  let lastErrorLogAt = 0;
+
+  const timer = setInterval(() => {
+   try {
     const hasData = sdk.waitForData(TIMEOUT);
-    if (!hasData) return;
+    if (!hasData) {
+      // Sin datos: si dura, comprobar si iRacing se ha cerrado para reconectar
+      const now = Date.now();
+      if (noDataSince === null) noDataSince = now;
+      if (now - noDataSince > SIM_CLOSED_CHECK_MS && !checkingSim) {
+        checkingSim = true;
+        IRacingSDK.IsSimRunning()
+          .then((running) => {
+            if (!running && onSimClosed) onSimClosed();
+          })
+          .catch(() => {})
+          .finally(() => {
+            checkingSim = false;
+            noDataSince = Date.now();
+          });
+      }
+      return;
+    }
+    noDataSince = null;
 
     const telemetry = sdk.getTelemetry();
-    const session = sdk.getSessionData();
+
+    // El YAML de sesion solo cambia cuando sube su version: no lo re-parseamos en cada tick
+    const sessionVersion = sdk.getSessionVersionNum();
+    if (!sessionCache.data || sessionVersion !== sessionCache.version) {
+      const fresh = sdk.getSessionData();
+      if (fresh) sessionCache = { version: sessionVersion, data: fresh };
+    }
+    const session = sessionCache.data;
 
     // -------- WeekendInfo / Weather para TrackInfoWidget --------
 const weekend = session?.WeekendInfo ?? {};
@@ -234,16 +278,34 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
     const sessionTimeRemain = telemetry.SessionTimeRemain?.value?.[0] ?? 0;
     const sessionLapsRemainEx =
       telemetry.SessionLapsRemainEx?.value?.[0] ?? 0;
-    const fuelMax = telemetry.FuelMaxLtr?.value?.[0] ?? 0;
 
     const airTemp = telemetry.AirTemp?.value?.[0] ?? null;
     const trackTemp =
       (telemetry.TrackTempCrew ?? telemetry.TrackTemp)?.value?.[0] ?? null;
 
     const driverInfo = session?.DriverInfo ?? {};
+
+    // Capacidad utilizable del deposito: FuelMaxLtr NO es una variable de telemetria del SDK.
+    // Sale de DriverInfo: capacidad del coche x porcentaje maximo de llenado permitido.
+    const fuelMax = (() => {
+      const tankLtr = driverInfo.DriverCarFuelMaxLtr;
+      if (!Number.isFinite(tankLtr) || tankLtr <= 0) return 0;
+      const pct = driverInfo.DriverCarMaxFuelPct;
+      return Number.isFinite(pct) && pct > 0 && pct <= 1 ? tankLtr * pct : tankLtr;
+    })();
+
+    // Identificador de sesion: al cambiar se reinicia el estado de pit/stint (y el del cliente)
+    const sessionKey = `${weekend.SubSessionID ?? 0}:${telemetry.SessionNum?.value?.[0] ?? 0}`;
+    if (sessionKey !== lastSessionKey) {
+      if (lastSessionKey !== null) resetPitAndStintState();
+      lastSessionKey = sessionKey;
+    }
+
+// Indice del coche del jugador: DriverInfo si el YAML esta disponible; si no, la variable PlayerCarIdx
 let driverIdx =
   driverInfo.DriverCarIdx ??
   driverInfo.PlayerCarIdx ??
+  telemetry.PlayerCarIdx?.value?.[0] ??
   -1;
 
 // Telemetry por coche (defínelos antes del fallback)
@@ -290,11 +352,6 @@ let yellowWarning = null;
 let pitClearAir = { suggestedLap: null, options: [] };
 let standings = [];
 
-// Fallback: si el YAML está roto y driverIdx sigue en -1 pero sí hay coches,
-// usamos 0 (primer coche) para poder calcular relative/standings.
-if (driverIdx < 0 && carIdxLapDistPct.length > 0) {
-  driverIdx = 0;
-}
 
 // mapa CarIdx -> número de coche (puede ser vacío si DriverInfo viene roto)
 const drivers = driverInfo.Drivers ?? [];
@@ -901,6 +958,9 @@ standings.sort((a, b) => a.position - b.position);
       ? (carIdxBestLapTime[driverIdx] || null)
       : null;
 
+    // Sin clientes conectados no merece la pena serializar ni enviar nada
+    if (wss.clients.size === 0) return;
+
     const payload = JSON.stringify({
   fuelLevel,
   lap,
@@ -910,6 +970,11 @@ standings.sort((a, b) => a.position - b.position);
   sessionTimeRemain,
   sessionLapsRemainEx,
   fuelMax,
+  sessionKey,
+  onPitRoad: !!telemetry.OnPitRoad?.value?.[0],
+  isInGarage: !!telemetry.IsInGarage?.value?.[0],
+  lapDistPct: telemetry.LapDistPct?.value?.[0] ?? null,
+  sessionFlags,
   airTemp,
   trackTemp,
   relative,
@@ -936,17 +1001,31 @@ standings.sort((a, b) => a.position - b.position);
         client.send(payload);
       }
     });
+   } catch (err) {
+     // Una excepcion en un tick no debe tumbar el proceso (en Electron corre en el proceso principal)
+     const now = Date.now();
+     if (now - lastErrorLogAt > 5000) {
+       lastErrorLogAt = now;
+       console.error("[iFuel] Error en el ciclo de telemetría (se ignora este tick):", err);
+     }
+   }
   }, BROADCAST_INTERVAL);
+
+  return timer;
 }
 
 // telemetry-server.mjs (solo la parte de abajo)
 
-async function connectToIRacingWithRetry() {
-  while (true) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function connectToIRacingWithRetry(control) {
+  while (!control.stopped) {
     try {
       if (await IRacingSDK.IsSimRunning()) {
         const sdk = new IRacingSDK({ autoEnableTelemetry: true });
-        sdk.startSDK();
+        if (!sdk.startSDK()) {
+          console.warn("[iFuel] startSDK() devolvió false; se continúa igualmente");
+        }
         console.log("[iFuel] Conectado a iRacing");
         return sdk;
       } else {
@@ -955,34 +1034,41 @@ async function connectToIRacingWithRetry() {
     } catch (err) {
       console.error("[iFuel] Error comprobando iRacing:", err);
     }
-    await new Promise((r) => setTimeout(r, 5000)); // reintenta cada 5s
+    await sleep(5000); // reintenta cada 5s
   }
+  return null;
 }
-
-const MAX_MESSAGE_BYTES = 16 * 1024; // 16 KB
 
 async function startTelemetryServer(options = {}) {
   const host = options.host || WS_HOST;
   const port = options.port || WS_PORT;
   const pathWs = options.path || WS_PATH;
 
+  loadClassMapFromDisk_init(options.dataDir);
+
   const wss = new WebSocketServer({
     host,
     port,
     path: pathWs,
+    maxPayload: MAX_MESSAGE_BYTES, // rechaza mensajes grandes antes de bufferizarlos
+    // Rechazo en el propio handshake (HTTP 403) para orígenes no permitidos.
+    // Sin Origin (clientes no-navegador en localhost) se admite, como antes.
+    verifyClient: ({ origin }) => !origin || allowedOrigins.has(origin),
   });
+
+  // Estado de conexion con iRacing, para poder parar/reiniciar el servidor de forma limpia
+  const control = { stopped: false, sdk: null, timer: null, finishLoop: null };
+
+  // El origen de desarrollo (Vite) solo se admite si no se indica lo contrario
+  const allowedOrigins = new Set(["file://", "app://ifuel"]);
+  if (options.dev !== false) allowedOrigins.add("http://localhost:5173");
 
   wss.on("connection", (ws, request) => {
     console.log("[iFuel] Nuevo cliente conectado a iFuel WS");
 
     const origin = request.headers.origin;
 
-if (
-  origin &&
-  origin !== "file://" &&
-  origin !== "app://ifuel" &&
-  origin !== "http://localhost:5173"
-) {
+if (origin && !allowedOrigins.has(origin)) {
   console.warn("[iFuel] Origin no permitido en WS:", origin);
   ws.close(1008, "Origin not allowed");
   return;
@@ -1078,18 +1164,67 @@ if (
 
   wss.on("error", (err) => {
     console.error("Error en WebSocketServer:", err);
+    if (err && err.code === "EADDRINUSE") {
+      // El puerto ya esta ocupado (otra instancia): no tiene sentido seguir leyendo del sim
+      control.stopped = true;
+      if (control.finishLoop) control.finishLoop();
+    }
   });
 
-  // bucle de reconexión a iRacing:
-  while (true) {
-    const sdk = await connectToIRacingWithRetry();
-    try {
-      startTelemetryLoop(sdk, wss);
-      break;
-    } catch (err) {
-      console.error("[iFuel] Error en telemetry loop:", err);
+  // Bucle de conexion con iRacing: conecta, procesa ticks y, si el sim se cierra, vuelve a esperar
+  const runConnectionLoop = async () => {
+    while (!control.stopped) {
+      const sdk = await connectToIRacingWithRetry(control);
+      if (!sdk) break;
+      control.sdk = sdk;
+
+      await new Promise((resolve) => {
+        control.finishLoop = resolve;
+        try {
+          control.timer = startTelemetryLoop(sdk, wss, {
+            onSimClosed: () => {
+              console.log("[iFuel] iRacing se ha cerrado; esperando para reconectar...");
+              resolve();
+            },
+          });
+        } catch (err) {
+          console.error("[iFuel] Error arrancando el telemetry loop:", err);
+          resolve();
+        }
+      });
+
+      if (control.timer) clearInterval(control.timer);
+      control.timer = null;
+      control.finishLoop = null;
+      try {
+        sdk.stopSDK();
+      } catch {
+        /* ignorar */
+      }
+      control.sdk = null;
+      if (!control.stopped) await sleep(1000);
     }
-  }
+  };
+
+  runConnectionLoop().catch((err) => {
+    console.error("[iFuel] Error en el bucle de conexión con iRacing:", err);
+  });
+
+  // Parada limpia: corta el bucle, libera el SDK y cierra el servidor WS
+  const stop = async () => {
+    control.stopped = true;
+    if (control.timer) clearInterval(control.timer);
+    if (control.finishLoop) control.finishLoop();
+    try {
+      if (control.sdk) control.sdk.stopSDK();
+    } catch {
+      /* ignorar */
+    }
+    for (const client of wss.clients) client.terminate();
+    await new Promise((resolve) => wss.close(() => resolve()));
+  };
+
+  return { stop };
 }
 
 export { startTelemetryServer };
