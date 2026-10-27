@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { StandingsRow } from "./types/standings";
+import { interpolateFuelAtLine } from "./utils/fuelInterpolation";
 
 type RelativeCar = {
   carNum: number | string | null;
@@ -82,6 +83,7 @@ type RawMessage = {
   sessionKey?: string;
   onPitRoad?: boolean;
   isInGarage?: boolean;
+  isReplayPlaying?: boolean;
   lapDistPct?: number | null;
   sessionFlags?: number;
   airTemp?: number;
@@ -178,7 +180,6 @@ const YELLOW_FLAG_MASK = 0x00000008 | 0x00000100 | 0x00004000 | 0x00008000;
 const LAP_START_TOLERANCE_PCT = 0.03;
 // Si el combustible sube más de esto durante una vuelta, hubo repostaje: vuelta descartada
 const REFUEL_DETECT_LTR = 0.05;
-
 const DEFAULT_OPTS: Required<IfuelOptions> = {
   minLapTimeSeconds: 1,
   minFuelUsedPerLap: 0.0,
@@ -208,6 +209,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   const maxFuelSeenRef = useRef<number>(0);
   const lapDirtyRef = useRef<boolean>(false); // la vuelta en curso no es válida para la media
   const sessionKeyRef = useRef<string | null>(null);
+  const prevFuelRef = useRef<number | null>(null); // lectura anterior, para interpolar en meta
+  const prevPctRef = useRef<number | null>(null);
 
   const lastUpdateTimeRef = useRef<number>(0);
   const pendingStateRef = useRef<IfuelState | null>(null);
@@ -261,6 +264,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             sessionKey,
             onPitRoad,
             isInGarage,
+            isReplayPlaying,
             lapDistPct,
             sessionFlags,
             sessionLapsRemainEx,
@@ -297,6 +301,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             lapStartFuelRef.current = null;
             lapDirtyRef.current = false;
             maxFuelSeenRef.current = 0;
+            prevFuelRef.current = null;
+            prevPctRef.current = null;
           }
 
           if (fuelLevel > maxFuelSeenRef.current) {
@@ -309,7 +315,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           // ni (opcionalmente) bandera amarilla, y se midió desde la línea de meta.
           const yellowNow =
             opts.excludeYellowLaps && ((sessionFlags ?? 0) & YELLOW_FLAG_MASK) !== 0;
-          const dirtyNow = !!onPitRoad || !!isInGarage || yellowNow;
+          // En un replay LapCompleted/FuelLevel reproducen otro momento: no sirven para medir
+          const dirtyNow = !!onPitRoad || !!isInGarage || !!isReplayPlaying || yellowNow;
           const prevLapCompleted = lastLapCompletedRef.current;
 
           if (prevLapCompleted === null || lapCompleted < prevLapCompleted) {
@@ -323,6 +330,11 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
                 ? fuelLevel
                 : null;
             lapDirtyRef.current = dirtyNow;
+          } else if (isReplayPlaying) {
+            // Durante un replay no se mide nada; al salir se empieza de cero en la siguiente meta
+            lapStartFuelRef.current = null;
+            lastLapCompletedRef.current = lapCompleted;
+            lapDirtyRef.current = true;
           } else {
             if (
               dirtyNow ||
@@ -333,12 +345,19 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             }
 
             if (lapCompleted > prevLapCompleted) {
+              const fuelAtLine = interpolateFuelAtLine(
+                prevFuelRef.current,
+                prevPctRef.current,
+                fuelLevel,
+                lapDistPct,
+              );
+
               if (
                 lapStartFuelRef.current !== null &&
                 !lapDirtyRef.current &&
                 lapCompleted === prevLapCompleted + 1
               ) {
-                const fuelUsed = lapStartFuelRef.current - fuelLevel;
+                const fuelUsed = lapStartFuelRef.current - fuelAtLine;
 
                 if (
                   lastLapTime != null &&
@@ -354,11 +373,14 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
                 }
               }
 
-              lapStartFuelRef.current = fuelLevel;
+              lapStartFuelRef.current = fuelAtLine;
               lastLapCompletedRef.current = lapCompleted;
               lapDirtyRef.current = dirtyNow;
             }
           }
+
+          prevFuelRef.current = fuelLevel;
+          prevPctRef.current = typeof lapDistPct === "number" ? lapDistPct : null;
 
           const laps = lapsRef.current;
 

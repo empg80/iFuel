@@ -8,6 +8,7 @@
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron .\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --test \"test/**/*.test.mjs\" && npm --prefix iFuel-telemetry-node test",
     "preview": "vite preview",
     "electron:build": "tsc -b && vite build",
     "dist": "npm run electron:build && electron-builder"
