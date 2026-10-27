@@ -281,6 +281,25 @@ function sendOverlayState() {
   mainWindow.webContents.send("overlay-state-changed", overlayState);
 }
 
+const SCALE_OPTIONS = [0.75, 1, 1.25, 1.5];
+
+// Submenú de tamaño (75–150 %) para una de las claves *Scale del estado del overlay
+function scaleMenu(label, key) {
+  return {
+    label,
+    submenu: SCALE_OPTIONS.map((value) => ({
+      label: `${Math.round(value * 100)}%`,
+      type: "radio",
+      checked: overlayState[key] === value,
+      click: () => {
+        overlayState[key] = value;
+        saveOverlayState();
+        sendOverlayState();
+      },
+    })),
+  };
+}
+
 function createMenu() {
   const template = [
     {
@@ -391,239 +410,19 @@ function createMenu() {
         { type: "separator" },
 
         // Escala Relative / Standing
-        {
-          label: "Standing / Relative size",
-          submenu: [
-            {
-              label: "75%",
-              type: "radio",
-              checked: overlayState.relativeScale === 0.75,
-              click: () => {
-                overlayState.relativeScale = 0.75;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "100%",
-              type: "radio",
-              checked: overlayState.relativeScale === 1,
-              click: () => {
-                overlayState.relativeScale = 1;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "125%",
-              type: "radio",
-              checked: overlayState.relativeScale === 1.25,
-              click: () => {
-                overlayState.relativeScale = 1.25;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "150%",
-              type: "radio",
-              checked: overlayState.relativeScale === 1.5,
-              click: () => {
-                overlayState.relativeScale = 1.5;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-          ],
-        },
+        scaleMenu("Standing / Relative size", "relativeScale"),
 
         // Escala Fuel
-        {
-          label: "Fuel size",
-          submenu: [
-            {
-              label: "75%",
-              type: "radio",
-              checked: overlayState.fuelScale === 0.75,
-              click: () => {
-                overlayState.fuelScale = 0.75;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "100%",
-              type: "radio",
-              checked: overlayState.fuelScale === 1,
-              click: () => {
-                overlayState.fuelScale = 1;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "125%",
-              type: "radio",
-              checked: overlayState.fuelScale === 1.25,
-              click: () => {
-                overlayState.fuelScale = 1.25;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "150%",
-              type: "radio",
-              checked: overlayState.fuelScale === 1.5,
-              click: () => {
-                overlayState.fuelScale = 1.5;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-          ],
-        },
+        scaleMenu("Fuel size", "fuelScale"),
 
         // Escala Yellow
-        {
-          label: "Yellow size",
-          submenu: [
-            {
-              label: "75%",
-              type: "radio",
-              checked: overlayState.yellowScale === 0.75,
-              click: () => {
-                overlayState.yellowScale = 0.75;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "100%",
-              type: "radio",
-              checked: overlayState.yellowScale === 1,
-              click: () => {
-                overlayState.yellowScale = 1;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "125%",
-              type: "radio",
-              checked: overlayState.yellowScale === 1.25,
-              click: () => {
-                overlayState.yellowScale = 1.25;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "150%",
-              type: "radio",
-              checked: overlayState.yellowScale === 1.5,
-              click: () => {
-                overlayState.yellowScale = 1.5;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-          ],
-        },
+        scaleMenu("Yellow size", "yellowScale"),
 
         // Escala Standings
-        {
-          label: "Standings size",
-          submenu: [
-            {
-              label: "75%",
-              type: "radio",
-              checked: overlayState.standingsScale === 0.75,
-              click: () => {
-                overlayState.standingsScale = 0.75;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "100%",
-              type: "radio",
-              checked: overlayState.standingsScale === 1,
-              click: () => {
-                overlayState.standingsScale = 1;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "125%",
-              type: "radio",
-              checked: overlayState.standingsScale === 1.25,
-              click: () => {
-                overlayState.standingsScale = 1.25;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "150%",
-              type: "radio",
-              checked: overlayState.standingsScale === 1.5,
-              click: () => {
-                overlayState.standingsScale = 1.5;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-          ],
-        },
+        scaleMenu("Standings size", "standingsScale"),
 
         // Escala Pit Clear
-        {
-          label: "Pit Clear size",
-          submenu: [
-            {
-              label: "75%",
-              type: "radio",
-              checked: overlayState.pitClearScale === 0.75,
-              click: () => {
-                overlayState.pitClearScale = 0.75;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "100%",
-              type: "radio",
-              checked: overlayState.pitClearScale === 1,
-              click: () => {
-                overlayState.pitClearScale = 1;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "125%",
-              type: "radio",
-              checked: overlayState.pitClearScale === 1.25,
-              click: () => {
-                overlayState.pitClearScale = 1.25;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-            {
-              label: "150%",
-              type: "radio",
-              checked: overlayState.pitClearScale === 1.5,
-              click: () => {
-                overlayState.pitClearScale = 1.5;
-                saveOverlayState();
-                sendOverlayState();
-              },
-            },
-          ],
-        },
+        scaleMenu("Pit Clear size", "pitClearScale"),
 
         { type: "separator" },
         {
