@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "telemetry": "node telemetry-server.mjs"
+    "telemetry": "node telemetry-server.mjs",
+    "test": "node --test \"test/**/*.test.mjs\""
   },
   "keywords": [],
   "author": "",

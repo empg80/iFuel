@@ -1,9 +1,10 @@
 // telemetry-server.mjs
-import { IRacingSDK } from "irsdk-node";
 import { WebSocketServer } from "ws";
 import fs from "fs";
 import path from "path";
 
+import { pathToFileURL } from "node:url";
+import { createCarSpeedTracker } from "./carSpeed.mjs";
 import {
   getOrCreatePitState,
   updatePitAndStintState,
@@ -16,6 +17,42 @@ const WS_PORT = 7071;
 const WS_PATH = "/ifuel";
 const WS_HOST = "127.0.0.1"; 
 const MAX_MESSAGE_BYTES = 16 * 1024; // 16 KB
+
+// El SDK nativo (irsdk-node) solo se carga cuando hace falta: así el módulo se puede importar
+// y probar en cualquier sistema inyectando un SDK simulado (options.createSdk / isSimRunning).
+let irsdkModulePromise = null;
+function loadIRacingSDK() {
+  irsdkModulePromise ??= import("irsdk-node").then((m) => m.IRacingSDK ?? m.default?.IRacingSDK);
+  return irsdkModulePromise;
+}
+const defaultIsSimRunning = async () => (await loadIRacingSDK()).IsSimRunning();
+const defaultCreateSdk = async () => {
+  const IRacingSDK = await loadIRacingSDK();
+  return new IRacingSDK({ autoEnableTelemetry: true });
+};
+
+// Variables de telemetría que lee el servidor. irsdk-node >= 4.4 recomienda pedirlas por nombre
+// (getTelemetryVariable, con caché de índice) en vez de construir las ~430 con getTelemetry()
+// en cada tick. Debe coincidir con las lecturas `telemetry.<Nombre>` del bucle: lo comprueba test/variables.test.mjs,
+// que además verifica que cada nombre existe en el SDK (CarIdxSpeed no existía y fallaba en silencio).
+const TELEMETRY_VARS = [
+  "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition",
+  "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct", "CarIdxLastLapTime",
+  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
+  "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
+  "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
+  "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
+];
+
+function readTelemetry(sdk) {
+  if (typeof sdk.getTelemetryVariable !== "function") return sdk.getTelemetry();
+  const telemetry = {};
+  for (const name of TELEMETRY_VARS) {
+    const variable = sdk.getTelemetryVariable(name);
+    if (variable) telemetry[name] = variable;
+  }
+  return telemetry;
+}
 const SIM_CLOSED_CHECK_MS = 5000; // sin datos durante este tiempo -> comprobar si iRacing sigue abierto
 // Ruta del mapa de clases: startTelemetryServer({ dataDir }) la mueve a una carpeta
 // escribible (userData en Electron). Por defecto, el directorio de trabajo.
@@ -51,6 +88,10 @@ try {
 
 function loadClassMapFromDisk_init(dataDir) {
   if (dataDir) classMapFile = path.join(dataDir, "classColorMap.json");
+  // El estado vive a nivel de módulo: se parte de cero en cada arranque (p. ej. al reiniciar
+  // el servidor) y se carga desde el archivo, en lugar de arrastrar lo de una ejecución previa.
+  classColorIndexById = {};
+  nextClassIndex = 0;
   loadClassMapFromDisk();
 }
 
@@ -192,8 +233,13 @@ function computePitClearAirSuggestion({
 }
 
 
-function startTelemetryLoop(sdk, wss, { onSimClosed } = {}) {
+function startTelemetryLoop(
+  sdk,
+  wss,
+  { onSimClosed, isSimRunning = defaultIsSimRunning, simClosedCheckMs = SIM_CLOSED_CHECK_MS } = {},
+) {
   resetPitAndStintState();
+  const trackCarSpeeds = createCarSpeedTracker();
 
   let lastSessionKey = null;
   let sessionCache = { version: -1, data: null };
@@ -208,9 +254,9 @@ function startTelemetryLoop(sdk, wss, { onSimClosed } = {}) {
       // Sin datos: si dura, comprobar si iRacing se ha cerrado para reconectar
       const now = Date.now();
       if (noDataSince === null) noDataSince = now;
-      if (now - noDataSince > SIM_CLOSED_CHECK_MS && !checkingSim) {
+      if (now - noDataSince > simClosedCheckMs && !checkingSim) {
         checkingSim = true;
-        IRacingSDK.IsSimRunning()
+        Promise.resolve(isSimRunning())
           .then((running) => {
             if (!running && onSimClosed) onSimClosed();
           })
@@ -224,7 +270,7 @@ function startTelemetryLoop(sdk, wss, { onSimClosed } = {}) {
     }
     noDataSince = null;
 
-    const telemetry = sdk.getTelemetry();
+    const telemetry = readTelemetry(sdk);
 
     // El YAML de sesion solo cambia cuando sube su version: no lo re-parseamos en cada tick
     const sessionVersion = sdk.getSessionVersionNum();
@@ -297,7 +343,11 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
     // Identificador de sesion: al cambiar se reinicia el estado de pit/stint (y el del cliente)
     const sessionKey = `${weekend.SubSessionID ?? 0}:${telemetry.SessionNum?.value?.[0] ?? 0}`;
     if (sessionKey !== lastSessionKey) {
-      if (lastSessionKey !== null) resetPitAndStintState();
+      if (lastSessionKey !== null) {
+        resetPitAndStintState();
+        // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
+        if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
+      }
       lastSessionKey = sessionKey;
     }
 
@@ -321,7 +371,6 @@ const carIdxClassPosition = telemetry.CarIdxClassPosition?.value ?? [];
 
 // banderas / posición en pista
 const sessionFlags = telemetry.SessionFlags?.value?.[0] ?? 0;
-const carIdxSpeed = telemetry.CarIdxSpeed?.value ?? [];
 const carIdxTrackSurface = telemetry.CarIdxTrackSurface?.value ?? [];
 const carIdxOnPitRoad = telemetry.CarIdxOnPitRoad?.value ?? [];
 
@@ -345,6 +394,13 @@ if (typeof trackLengthStr === "string") {
   }
 }
 
+// Velocidad (m/s) de cada coche derivada del avance de LapDistPct; null = desconocida
+const carSpeeds = trackCarSpeeds({
+  sessionTime,
+  carIdxLapDistPct,
+  carIdxTrackSurface,
+  trackLengthMeters,
+});
 
 let relative = { myPosition: null, ahead: null, behind: null };
 let relativeOnTrack = { ahead: null, behind: null };
@@ -420,7 +476,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         const carNum = carIdxNumberMap[idx] ?? null;
         const globalDist = lapIdx + pct;
         const classId = carIdxClass[idx] ?? null;
-        const speed = carIdxSpeed[idx] ?? 0;
+        const speed = carSpeeds[idx] ?? null; // null = desconocida (no es "parado")
         const surface = carIdxTrackSurface[idx] ?? 0;
         const onPit = carIdxOnPitRoad[idx] ?? 0;
 
@@ -886,7 +942,7 @@ standings.sort((a, b) => a.position - b.position);
         (sessionFlags & IRACING_FLAG_DEBRIS) !== 0 && !anyYellow;
 
       if ((anyYellow || debrisOnly) && trackLengthMeters && trackLengthMeters > 0) {
-        const mySpeed = carIdxSpeed[driverIdx] ?? 0;
+        const mySpeed = telemetry.Speed?.value?.[0] ?? carSpeeds[driverIdx] ?? 0;
 
         const INCIDENT_MIN_METERS_AHEAD = 50;
         let bestIncident = null;
@@ -973,6 +1029,7 @@ standings.sort((a, b) => a.position - b.position);
   sessionKey,
   onPitRoad: !!telemetry.OnPitRoad?.value?.[0],
   isInGarage: !!telemetry.IsInGarage?.value?.[0],
+  isReplayPlaying: !!telemetry.IsReplayPlaying?.value?.[0],
   lapDistPct: telemetry.LapDistPct?.value?.[0] ?? null,
   sessionFlags,
   airTemp,
@@ -1021,8 +1078,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function connectToIRacingWithRetry(control) {
   while (!control.stopped) {
     try {
-      if (await IRacingSDK.IsSimRunning()) {
-        const sdk = new IRacingSDK({ autoEnableTelemetry: true });
+      if (await control.isSimRunning()) {
+        const sdk = await control.createSdk();
         if (!sdk.startSDK()) {
           console.warn("[iFuel] startSDK() devolvió false; se continúa igualmente");
         }
@@ -1057,7 +1114,15 @@ async function startTelemetryServer(options = {}) {
   });
 
   // Estado de conexion con iRacing, para poder parar/reiniciar el servidor de forma limpia
-  const control = { stopped: false, sdk: null, timer: null, finishLoop: null };
+  const control = {
+    stopped: false,
+    sdk: null,
+    timer: null,
+    finishLoop: null,
+    isSimRunning: options.isSimRunning || defaultIsSimRunning,
+    createSdk: options.createSdk || defaultCreateSdk,
+    simClosedCheckMs: options.simClosedCheckMs ?? SIM_CLOSED_CHECK_MS,
+  };
 
   // El origen de desarrollo (Vite) solo se admite si no se indica lo contrario
   const allowedOrigins = new Set(["file://", "app://ifuel"]);
@@ -1182,6 +1247,8 @@ if (origin && !allowedOrigins.has(origin)) {
         control.finishLoop = resolve;
         try {
           control.timer = startTelemetryLoop(sdk, wss, {
+            isSimRunning: control.isSimRunning,
+            simClosedCheckMs: control.simClosedCheckMs,
             onSimClosed: () => {
               console.log("[iFuel] iRacing se ha cerrado; esperando para reconectar...");
               resolve();
@@ -1227,13 +1294,22 @@ if (origin && !allowedOrigins.has(origin)) {
   return { stop };
 }
 
-export { startTelemetryServer };
+export { startTelemetryServer, TELEMETRY_VARS };
 
-
-// Si quisieras seguir pudiendo arrancarlo a mano con `node telemetry-server.mjs`,
-// puedes dejar esto opcionalmente:
-// if (import.meta.url === `file://${process.argv[1]}`) {
-//   startTelemetryServer().catch((err) => {
-//     console.error("Error en telemetry-server:", err);
-//   });
-// }
+// Arranque manual: `npm run telemetry` (node telemetry-server.mjs). Electron lo importa y
+// lo arranca él mismo, así que esto solo se ejecuta si el archivo es el punto de entrada.
+// (pathToFileURL: la comparación con import.meta.url también funciona con rutas de Windows)
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  startTelemetryServer()
+    .then((server) => {
+      const shutdown = () => {
+        server.stop().finally(() => process.exit(0));
+      };
+      process.on("SIGINT", shutdown);
+      process.on("SIGTERM", shutdown);
+    })
+    .catch((err) => {
+      console.error("Error en telemetry-server:", err);
+      process.exit(1);
+    });
+}
