@@ -3,6 +3,7 @@ import { WebSocketServer } from "ws";
 import fs from "fs";
 import path from "path";
 
+import http from "node:http";
 import { pathToFileURL } from "node:url";
 import { createCarSpeedTracker } from "./carSpeed.mjs";
 import {
@@ -25,7 +26,25 @@ function loadIRacingSDK() {
   irsdkModulePromise ??= import("irsdk-node").then((m) => m.IRacingSDK ?? m.default?.IRacingSDK);
   return irsdkModulePromise;
 }
-const defaultIsSimRunning = async () => (await loadIRacingSDK()).IsSimRunning();
+// Mismo sondeo que IRacingSDK.IsSimRunning() (servicio HTTP local de iRacing), pero silencioso y con
+// timeout: la versión de la librería imprime un error de red completo cada vez que el sim está cerrado.
+const SIM_STATUS_URL = "http://127.0.0.1:32034/get_sim_status?object=simStatus";
+function probeSimRunning({ url = SIM_STATUS_URL, timeoutMs = 1500 } = {}) {
+  return new Promise((resolve) => {
+    const req = http.get(url, { timeout: timeoutMs }, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => resolve(data.includes("running:1")));
+      res.on("error", () => resolve(false));
+    });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve(false);
+    });
+    req.on("error", () => resolve(false));
+  });
+}
+const defaultIsSimRunning = () => probeSimRunning();
 const defaultCreateSdk = async () => {
   const IRacingSDK = await loadIRacingSDK();
   return new IRacingSDK({ autoEnableTelemetry: true });
@@ -1083,10 +1102,12 @@ async function connectToIRacingWithRetry(control) {
         if (!sdk.startSDK()) {
           console.warn("[iFuel] startSDK() devolvió false; se continúa igualmente");
         }
+        control.waitingLogged = false;
         console.log("[iFuel] Conectado a iRacing");
         return sdk;
-      } else {
-        console.log("[iFuel] iRacing no está en ejecución, reintentando...");
+      } else if (!control.waitingLogged) {
+        control.waitingLogged = true; // un solo aviso hasta que el sim se abra de nuevo
+        console.log("[iFuel] iRacing no está en ejecución; esperando...");
       }
     } catch (err) {
       console.error("[iFuel] Error comprobando iRacing:", err);
@@ -1294,7 +1315,7 @@ if (origin && !allowedOrigins.has(origin)) {
   return { stop };
 }
 
-export { startTelemetryServer, TELEMETRY_VARS };
+export { startTelemetryServer, probeSimRunning, TELEMETRY_VARS };
 
 // Arranque manual: `npm run telemetry` (node telemetry-server.mjs). Electron lo importa y
 // lo arranca él mismo, así que esto solo se ejecuta si el archivo es el punto de entrada.
