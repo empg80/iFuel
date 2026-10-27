@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useIfuelWebSocket } from "../useIfuelWebSocket";
+import type { IfuelState } from "../useIfuelWebSocket";
+import type { StandingsRow } from "../types/standings";
 import { RaceStandingsWidget } from "./RaceStandingsWidget";
 import { useOverlayState } from "../contexts/useOverlayState";
 import { loadWidgetPosition } from "../utils/position";
@@ -7,16 +8,20 @@ import { saveJsonToStorage } from "../utils/storage";
 
 const POS_KEY_STANDINGS = "ifuel-pos-standings";
 
+// Recibe los datos del hook de App (una sola conexión WebSocket y un solo cálculo para toda la ventana)
 type Props = {
-  wsUrl: string;
+  state: IfuelState | null;
+  raceStandingsRows: StandingsRow[];
+  isConnected: boolean;
   variant?: "free" | "pitboard";
 };
 
 export const RaceStandingsWidgetContainer: React.FC<Props> = ({
-  wsUrl,
+  state,
+  raceStandingsRows,
+  isConnected,
   variant = "free",
 }) => {
-  const { state, raceStandingsRows, isConnected } = useIfuelWebSocket(wsUrl);
 
   const overlayState = useOverlayState();
   const standingsVisible = overlayState.standingsVisible ?? true;

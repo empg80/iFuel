@@ -7,9 +7,8 @@ import { FreeLayout } from "./FreeLayout";
 import { PitboardLayout } from "./PitboardLayout";
 
 const App: React.FC = () => {
-  const { state, isConnected, sendMessage, serverStatus } = useIfuelWebSocket(
-    "ws://127.0.0.1:7071/ifuel",
-  );
+  const { state, isConnected, sendMessage, serverStatus, raceStandingsRows } =
+    useIfuelWebSocket("ws://127.0.0.1:7071/ifuel");
 
   const { layoutMode } = useOverlayState();
   const mode = layoutMode ?? "free";
@@ -31,6 +30,7 @@ const App: React.FC = () => {
     return (
       <PitboardLayout
         state={state}
+        raceStandingsRows={raceStandingsRows}
         isConnected={isConnected}
         sendMessage={sendMessage}
       />
@@ -40,6 +40,7 @@ const App: React.FC = () => {
   return (
     <FreeLayout
       state={state}
+      raceStandingsRows={raceStandingsRows}
       isConnected={isConnected}
       sendMessage={sendMessage}
       serverStatus={serverStatus}

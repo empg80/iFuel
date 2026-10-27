@@ -1,6 +1,7 @@
 // src/FreeLayout.tsx
 import React from "react";
 import type { IfuelState } from "./useIfuelWebSocket";
+import type { StandingsRow } from "./types/standings";
 import { FuelWidgetContainer } from "./components/FuelWidgetContainer";
 import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContainer";
 import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
@@ -11,6 +12,7 @@ type ServerStatus = "connected" | "connecting" | "disconnected";
 
 type FreeLayoutProps = {
   state: IfuelState | null;
+  raceStandingsRows: StandingsRow[];
   isConnected: boolean;
   sendMessage: (msg: unknown) => void;
   serverStatus: ServerStatus;
@@ -19,6 +21,7 @@ type FreeLayoutProps = {
 
 export const FreeLayout: React.FC<FreeLayoutProps> = ({
   state,
+  raceStandingsRows,
   isConnected,
   sendMessage,
   serverStatus,
@@ -49,7 +52,11 @@ export const FreeLayout: React.FC<FreeLayoutProps> = ({
       <YellowFlagWidgetContainer state={state} isConnected={isConnected} />
 
       {layoutMode !== "replay" && (
-        <RaceStandingsWidgetContainer wsUrl="ws://127.0.0.1:7071/ifuel" />
+        <RaceStandingsWidgetContainer
+          state={state}
+          raceStandingsRows={raceStandingsRows}
+          isConnected={isConnected}
+        />
       )}
 
       <PitClearAirWidgetContainer

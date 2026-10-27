@@ -1,6 +1,7 @@
 // src/PitboardLayout.tsx
 import React from "react";
 import type { IfuelState } from "./useIfuelWebSocket";
+import type { StandingsRow } from "./types/standings";
 import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
 import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
 import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContainer";
@@ -9,12 +10,14 @@ import { FuelWidgetContainer } from "./components/FuelWidgetContainer";
 
 type PitboardLayoutProps = {
   state: IfuelState | null;
+  raceStandingsRows: StandingsRow[];
   isConnected: boolean;
   sendMessage: (msg: unknown) => void;
 };
 
 export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
   state,
+  raceStandingsRows,
   isConnected,
   sendMessage,
 }) => (
@@ -29,7 +32,9 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
     <div className="pitboard-standings pitboard-widget">
       <RaceStandingsWidgetContainer
         variant="pitboard"
-        wsUrl="ws://127.0.0.1:7071/ifuel"
+        state={state}
+        raceStandingsRows={raceStandingsRows}
+        isConnected={isConnected}
       />
     </div>
     <div className="pitboard-relative pitboard-widget">
