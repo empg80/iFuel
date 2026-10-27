@@ -67,7 +67,8 @@ Compact fuel widget with dark UI and monospace typography.
 
 **Performance‑oriented**
 
-- UI update throttling (~20 Hz).
+- The telemetry server broadcasts ~4 times per second (every 250 ms); the UI is throttled to that rate.
+- One WebSocket connection and one fuel/strategy calculation per window.
 - Uses `React.memo`, `useMemo`, and `useCallback` to reduce re‑renders.
 - Fuel/strategy calculations kept outside the render tree where possible.
 
@@ -153,7 +154,8 @@ The widget then shows:
 - Accumulates lap history (`LapSample`).
 - Computes fuel averages, refuel estimates, strategy and chart data.
 - Computes earliest pit lap and passes pit‑window info to the server for Pit Clear Air.
-- Applies state throttling so React doesn’t re‑render at every telemetry tick.
+- Validates laps for the fuel average (ignores pit/garage laps, refuelling, yellow flags, replays and the partial lap when joining mid‑lap) and interpolates fuel at the finish line.
+- Resets lap history on a new session; applies state throttling so React doesn’t re‑render at every telemetry tick.
 
 Widget containers:
 
@@ -168,8 +170,10 @@ A small Node server in `iFuel-telemetry-node` reads iRacing telemetry using `irs
 ```bash
 cd iFuel-telemetry-node
 npm install    # first time only
-node telemetry-server.mjs
+npm run telemetry    # same as: node telemetry-server.mjs
 ```
+
+When you run the Electron app, it starts this server for you (in‑process), so you only need the manual command for development or for using the telemetry on its own.
 
 This starts a WebSocket server at:
 
@@ -216,15 +220,13 @@ Start the telemetry server:
 ```bash
 cd iFuel-telemetry-node
 npm install      # if not done yet
-node telemetry-server.mjs
+npm run telemetry
 ```
 
 In another terminal, start the overlay (from the `iFuel` folder):
 
 ```bash
-npm run dev
-# or the Electron wrapper, if configured:
-npm run electron
+npm run dev      # Vite + Electron (starts the telemetry server itself)
 ```
 
 Make sure the telemetry server is running and sending data to `ws://127.0.0.1:7071/ifuel`.  
@@ -258,10 +260,13 @@ Common scripts (from `iFuel`):
 # Start dev server
 npm run dev
 
-# Lint / build
+# Lint / type‑check + build / tests
 npm run lint
 npm run build
+npm test          # client helpers + telemetry server (node:test, no iRacing needed)
 ```
+
+Tests use a simulated iRacing SDK, so they run on any OS. `ANALYZE=1 npm run build` also writes `stats.html` (bundle report).
 
 Key files:
 
