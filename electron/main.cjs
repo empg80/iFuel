@@ -7,11 +7,22 @@ const { pathToFileURL } = require("url");
 let mainWindow = null;
 let telemetryModule = null;
 let telemetryServerRunning = false;
+let telemetryHandle = null; // { stop } devuelto por startTelemetryServer
 
 // NUEVO: a nivel global, no dentro de createWindow
 let replayWindow = null;
 
 const isDev = !app.isPackaged; // dev vs producción [web:17]
+
+// Endurece un BrowserWindow: sin ventanas nuevas y sin navegar fuera de la propia app
+function hardenWebContents(win) {
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  win.webContents.on("will-navigate", (event, url) => {
+    const startUrl = process.env.ELECTRON_START_URL;
+    const allowed = startUrl ? url.startsWith(startUrl) : url.startsWith("file://");
+    if (!allowed) event.preventDefault();
+  });
+}
 
 function createReplayWindow() {
   if (replayWindow) return;
@@ -30,9 +41,12 @@ function createReplayWindow() {
       sandbox: true,
       webSecurity: true,
       devTools: isDev,
+      backgroundThrottling: false,
       preload: path.join(__dirname, "preload.cjs"),
     },
   });
+
+  hardenWebContents(replayWindow);
 
   const startUrl = process.env.ELECTRON_START_URL;
 
@@ -71,6 +85,24 @@ function setReplayVisible(visible) {
 
 const overlayStatePath = path.join(app.getPath("userData"), "overlay-state.json");
 
+const DEFAULT_OVERLAY_STATE = {
+  fuelVisible: true,
+  standingBattleVisible: true,
+  yellowVisible: true,
+  pitClearAirVisible: true,
+  standingsVisible: true,
+  widgetsLocked: true,
+  fuelSettingsVisible: false,
+  replayVisible: false, // ventana de broadcast apagada por defecto
+
+  fuelScale: 1,
+  relativeScale: 1,
+  pitClearScale: 1,
+  yellowScale: 1,
+  standingsScale: 1,
+  layoutMode: "free",
+};
+
 function validateOverlayState(candidate) {
   if (typeof candidate !== "object" || candidate === null) return false;
 
@@ -96,7 +128,10 @@ function validateOverlayState(candidate) {
     if (typeof candidate[key] !== "boolean") return false;
   }
   for (const key of numberKeys) {
-    if (typeof candidate[key] !== "number") return false;
+    const v = candidate[key];
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0.5 || v > 3) {
+      return false;
+    }
   }
 
   if (
@@ -114,8 +149,11 @@ function loadOverlayState() {
   try {
     const raw = fs.readFileSync(overlayStatePath, { encoding: "utf8" });
     const parsed = JSON.parse(raw);
-    if (!validateOverlayState(parsed)) throw new Error("Invalid overlay state");
-    return parsed;
+    // Se completa con los valores por defecto: un JSON guardado por una versión
+    // anterior (sin claves nuevas) ya no resetea todos los ajustes.
+    const merged = { ...DEFAULT_OVERLAY_STATE, ...parsed };
+    if (!validateOverlayState(merged)) throw new Error("Invalid overlay state");
+    return merged;
   } catch {
     return null;
   }
@@ -137,24 +175,7 @@ function saveOverlayState() {
   }
 }
 
-let overlayState =
-  loadOverlayState() || {
-    fuelVisible: true,
-    standingBattleVisible: true,
-    yellowVisible: true,
-    pitClearAirVisible: true,
-    standingsVisible: true,
-    widgetsLocked: true,
-    fuelSettingsVisible: false,
-    replayVisible: false, // ventana de broadcast apagada por defecto
-
-    fuelScale: 1,
-    relativeScale: 1,
-    pitClearScale: 1,
-    yellowScale: 1,
-    standingsScale: 1,
-    layoutMode: "free",
-  };
+let overlayState = loadOverlayState() || { ...DEFAULT_OVERLAY_STATE };
 
 async function startTelemetryServerInElectron() {
   if (telemetryServerRunning) return;
@@ -173,9 +194,11 @@ async function startTelemetryServerInElectron() {
     telemetryModule = await import(serverUrl);
 
     if (typeof telemetryModule.startTelemetryServer === "function") {
-      telemetryModule.startTelemetryServer({
+      telemetryHandle = await telemetryModule.startTelemetryServer({
         host: "127.0.0.1",
         port: 7071,
+        dataDir: app.getPath("userData"), // donde se guarda classColorMap.json
+        dev: isDev, // en producción no se admite el origen de Vite
       });
       telemetryServerRunning = true;
       console.log("[iFuel] Telemetry server arrancado en 127.0.0.1:7071");
@@ -190,6 +213,19 @@ async function startTelemetryServerInElectron() {
       err,
     );
     telemetryServerRunning = false;
+  }
+}
+
+async function stopTelemetryServerInElectron() {
+  const handle = telemetryHandle;
+  telemetryHandle = null;
+  telemetryServerRunning = false;
+  if (handle && typeof handle.stop === "function") {
+    try {
+      await handle.stop();
+    } catch (err) {
+      console.error("Error parando telemetry-server:", err);
+    }
   }
 }
 
@@ -222,14 +258,18 @@ const allowedKeys = new Set([
 
 
 
+  // Se valida una copia: antes se modificaba el estado y, si la validación fallaba,
+  // el valor inválido se quedaba en memoria.
+  const next = { ...overlayState };
   for (const key of Object.keys(partial)) {
     if (!allowedKeys.has(key)) continue;
-    overlayState[key] = partial[key];
+    next[key] = partial[key];
   }
 
-  if (!validateOverlayState(overlayState)) {
+  if (!validateOverlayState(next)) {
     throw new Error("Invalid overlay state after update");
   }
+  overlayState = next;
 
   saveOverlayState();
   sendOverlayState();
@@ -613,8 +653,7 @@ function createMenu() {
         {
           label: "Restart telemetry server",
           click: async () => {
-            telemetryServerRunning = false;
-            // idealmente también exponer un stopTelemetryServer en el módulo
+            await stopTelemetryServerInElectron();
             await startTelemetryServerInElectron();
           },
         },
@@ -635,17 +674,19 @@ function createWindow() {
     backgroundColor: "#202020",
     alwaysOnTop: false,
     resizable: true,
-    icon: path.join(__dirname, "..", "..", "build", "icon.ico"),
+    icon: isDev ? path.join(__dirname, "..", "build", "icon.ico") : undefined,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
       devTools: isDev, // DevTools sólo en desarrollo
+      backgroundThrottling: false,
       preload: path.join(__dirname, "preload.cjs"),
     },
   });
 
+  hardenWebContents(mainWindow);
   createMenu();
 
   const startUrl = process.env.ELECTRON_START_URL;
@@ -677,9 +718,26 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(async () => {
-  await startTelemetryServerInElectron();
-  createWindow();
+// Una sola instancia: una segunda intentaría abrir el mismo puerto 7071
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  app.whenReady().then(async () => {
+    await startTelemetryServerInElectron();
+    createWindow();
+  });
+}
+
+app.on("before-quit", () => {
+  stopTelemetryServerInElectron();
 });
 
 app.on("window-all-closed", () => {
