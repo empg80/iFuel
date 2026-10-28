@@ -15,7 +15,7 @@ export type RefuelPlan = {
   mode: "laps" | "time" | "unknown";
 };
 
-const isFiniteLaps = (n: number | null): n is number => n != null && n > 0 && n < 1000;
+const isFiniteLaps = (n: number | null | undefined): n is number => n != null && n > 0 && n < 1000;
 
 export function planRefuel(i: RefuelInput): RefuelPlan {
   if (!(i.fuelPerLap > 0)) return { lapsToFinish: null, toAdd: 0, mode: "unknown" };
