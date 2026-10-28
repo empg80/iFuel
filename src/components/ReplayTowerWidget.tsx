@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 
 import type { StandingsRow } from "../types/standings";
 import type { IfuelState } from "../useIfuelWebSocket";
+import { formatLeaderGap, formatSessionRemaining } from "../utils/relativeFormat";
 
 type YellowWarning = {
   active: boolean;
@@ -41,10 +42,7 @@ function formatShortName(fullName: string): string {
 }
 
 function formatGapCombined(car: StandingsRow): string {
-  if (car.lapsDown > 0) return `L${car.lapsDown}`;
-  if (car.gapToLeader == null) return "--";
-  if (car.gapToLeader <= 0.001) return "LEAD";
-  return `+${car.gapToLeader.toFixed(3)}`;
+  return formatLeaderGap(car.gapToLeader, car.lapsDown);
 }
 
 export const ReplayTowerWidget: React.FC<Props> = ({
@@ -77,42 +75,23 @@ export const ReplayTowerWidget: React.FC<Props> = ({
 
   function getFlagStatus() {
     if (isRaceFinished()) return "replay-nascar-flag--checkered";
-    if (isWhiteFlagLap()) return "replay-nascar-flag--white";
     if (yellowWarning?.active) return "replay-nascar-flag--yellow";
+    if (isWhiteFlagLap()) return "replay-nascar-flag--white";
     return "replay-nascar-flag--green";
   }
 
   const flagClass = getFlagStatus();
 
-  const sessionLabel = useMemo(() => {
-    if (lapsRemain != null && lapsRemain > 0 && lapsRemain < 1000) {
-      return `-${lapsRemain} LAPS`;
-    }
-    if (timeRemain != null && timeRemain > 0) {
-      const mm = Math.floor(timeRemain / 60)
-        .toString()
-        .padStart(2, "0");
-      const ss = Math.floor(timeRemain % 60)
-        .toString()
-        .padStart(2, "0");
-      return `${mm}:${ss} REM`;
-    }
-    return "-- / -- LAPS";
-  }, [lapsRemain, timeRemain]);
+  const sessionLabel = useMemo(
+    () => formatSessionRemaining(lapsRemain, timeRemain) ?? "-- / -- LAPS",
+    [lapsRemain, timeRemain],
+  );
 
-  const CLASS_PALETTE = [
-    "#1c92ff",
-    "#ff7a1c",
-    "#9b59ff",
-    "#2ecc71",
-    "#f1c40f",
-    "#e74c3c",
-  ];
-
+  // Mismos colores de clase que el overlay (variables --class-0..5 del tema)
   const getClassColor = (classId: number): string => {
     const idx = state.classColorIndexById?.[classId];
-    if (idx == null) return "#777";
-    return CLASS_PALETTE[idx % CLASS_PALETTE.length];
+    if (idx == null) return "var(--ov-text-3, #777)";
+    return `var(--class-${((idx % 6) + 6) % 6}, #777)`;
   };
 
   const rowStyle = (classId: number): CSSProperties => ({

@@ -9,7 +9,8 @@
    Todo cuelga de .app-root--free: PitBoard y Replay no cambian.
    ========================================================================== */
 
-.app-root--free {
+.app-root--free,
+.replay-root {
   /* superficie */
   --ov-panel: rgba(13, 16, 22, 0.78);
   --ov-panel-solid: #0d1016;

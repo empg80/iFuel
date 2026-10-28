@@ -1,5 +1,6 @@
 // telemetry-server.mjs
 import { relativeGapSeconds } from "./relativeGap.mjs";
+import { computeStandingsGaps } from "./standingsGaps.mjs";
 import { WebSocketServer } from "ws";
 import fs from "fs";
 import path from "path";
@@ -864,15 +865,19 @@ for (let idx = 0; idx < carIdxPosition.length; idx++) {
 // ordenar de más adelantado a más atrasado por progreso total
 carsForStandings.sort((a, b) => b.totalProgress - a.totalProgress);
 
-let leaderTotalProgress = null;
-let leaderIdx = -1;
-if (carsForStandings.length > 0) {
-  leaderTotalProgress = carsForStandings[0].totalProgress;
-  leaderIdx = carsForStandings[0].idx;
-}
+// Huecos respecto al líder (P1 oficial) con el tiempo de vuelta del LÍDER, no el del jugador
+const leaderEntry = carsForStandings.find((c) => c.pos === 1) ?? carsForStandings[0];
+const leaderLapTime = leaderEntry
+  ? (carIdxLastLapTime[leaderEntry.idx] > 0 ? carIdxLastLapTime[leaderEntry.idx]
+    : carIdxBestLapTime[leaderEntry.idx] > 0 ? carIdxBestLapTime[leaderEntry.idx] : baseLapTime)
+  : baseLapTime;
+const standingsGaps = computeStandingsGaps(
+  carsForStandings.map((c) => ({ idx: c.idx, pos: c.pos, lap: carIdxLap[c.idx] ?? 0, pct: carIdxLapDistPct[c.idx] ?? 0 })),
+  leaderLapTime,
+);
 
 for (const entry of carsForStandings) {
-  const { idx, pos, totalProgress } = entry;
+  const { idx, pos } = entry;
 
   const carNum = carIdxNumberMap[idx] ?? "";
   const classId = carIdxClass[idx] ?? 0;
@@ -882,31 +887,9 @@ for (const entry of carsForStandings) {
   const driverName = driver?.UserName ?? String(carNum || `#${idx}`);
   const carModel = driver?.CarPath ?? ""; 
 
-  // lapsDown: diferencia de vueltas completas respecto al líder
-  let lapsDown = 0;
-  if (leaderTotalProgress != null) {
-    const diffLapsFloat = leaderTotalProgress - totalProgress;
-    if (diffLapsFloat > 0) {
-      lapsDown = Math.floor(diffLapsFloat + 1e-6);
-    }
-  }
-
-  // gap en tiempo dentro de la misma vuelta (simple, usando baseLapTime)
-  let gapToLeaderSeconds = null;
-  if (leaderIdx === idx) {
-    gapToLeaderSeconds = 0;
-  } else if (
-    leaderIdx !== -1 &&
-    leaderTotalProgress != null &&
-    baseLapTime > 0
-  ) {
-    const leaderPct = carIdxLapDistPct[leaderIdx] ?? 0;
-    const myPct = carIdxLapDistPct[idx] ?? 0;
-    let diffPct = leaderPct - myPct;
-    if (diffPct > 0.5) diffPct -= 1;
-    if (diffPct < -0.5) diffPct += 1;
-    gapToLeaderSeconds = diffPct * baseLapTime;
-  }
+  const gapInfo = standingsGaps.get(idx) ?? { lapsDown: 0, gapSeconds: null };
+  const lapsDown = gapInfo.lapsDown;
+  const gapToLeaderSeconds = gapInfo.gapSeconds;
 
   // Stint y última parada desde el estado persistente
   const pitState = getOrCreatePitState(idx);

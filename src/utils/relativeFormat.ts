@@ -30,3 +30,38 @@ export function formatDelta(delta: number | null | undefined): string {
   const dcm = (totalMs % 1000).toString().padStart(3, "0");
   return `${sign}${whole}.${dcm}`;
 }
+
+// Hueco al líder para la torre: "LEAD", "L2" (vueltas), "+12.345" o "+1:05.4" a partir de 60 s
+export function formatLeaderGap(
+  gapSeconds: number | null | undefined,
+  lapsDown: number,
+): string {
+  if (lapsDown > 0) return `L${lapsDown}`;
+  if (gapSeconds == null || !Number.isFinite(gapSeconds)) return "--";
+  if (gapSeconds <= 0.0005) return "LEAD";
+  if (gapSeconds >= 60) {
+    const totalTenths = Math.round(gapSeconds * 10);
+    const m = Math.floor(totalTenths / 600);
+    const s = (totalTenths % 600) / 10;
+    return `+${m}:${s.toFixed(1).padStart(4, "0")}`;
+  }
+  return `+${gapSeconds.toFixed(3)}`;
+}
+
+// Tiempo restante de sesión: "-12 LAPS", "1:05:09" o "12:30"; null si no hay dato
+export function formatSessionRemaining(
+  lapsRemain: number | null | undefined,
+  timeRemain: number | null | undefined,
+): string | null {
+  if (lapsRemain != null && lapsRemain > 0 && lapsRemain < 1000) {
+    return lapsRemain === 1 ? "LAST LAP" : `-${lapsRemain} LAPS`;
+  }
+  if (timeRemain != null && timeRemain > 0 && timeRemain < 86400) {
+    const t = Math.floor(timeRemain);
+    const h = Math.floor(t / 3600);
+    const mm = Math.floor((t % 3600) / 60).toString().padStart(2, "0");
+    const ss = (t % 60).toString().padStart(2, "0");
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
+  return null;
+}

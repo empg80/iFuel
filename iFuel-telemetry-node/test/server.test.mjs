@@ -211,3 +211,18 @@ test("relative en pista: sin CarIdxEstTime se mantiene el calculo por porcentaje
     assert.ok(Math.abs(m.relativeOnTrack.ahead.gapSeconds - 4.55) < 0.2, `gap=${m.relativeOnTrack.ahead.gapSeconds}`);
   } finally { await s.close(); }
 });
+
+test("standings: hueco al lider con el tiempo de vuelta del LIDER y sin huecos negativos", async () => {
+  // P1 = coche 0 en 0.55 (ultima vuelta 89 s); coche 2 (jugador) a 0.05; coche 1 a 0.25; coche 3 esta por delante del P1 en pista
+  const s = await boot({ carSpeed: [0, 0, 0, 0] });
+  try {
+    const m = await s.waitFor((x) => Array.isArray(x.standings) && x.standings.length >= 4, 5000);
+    assert.ok(m);
+    const byNum = Object.fromEntries(m.standings.map((r) => [r.carNumber, r]));
+    assert.equal(byNum["10"].gapToLeaderSeconds, 0);
+    assert.ok(Math.abs(byNum["12"].gapToLeaderSeconds - 0.05 * 89) < 0.01, `gap=${byNum["12"].gapToLeaderSeconds}`);
+    assert.ok(Math.abs(byNum["11"].gapToLeaderSeconds - 0.25 * 89) < 0.01);
+    assert.equal(byNum["13"].gapToLeaderSeconds, null);
+    assert.equal(byNum["12"].lapsDown, 0);
+  } finally { await s.close(); }
+});

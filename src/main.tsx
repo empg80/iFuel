@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./App.css";
 import "./styles/overlay-theme.css";
+import "./styles/replay-theme.css";
 import { WidgetVisibilityProvider } from "./contexts/WidgetVisibilityProvider";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { ReplayOverlayApp } from "./components/ReplayOverlayApp";

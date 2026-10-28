@@ -1,0 +1,203 @@
+/* ==========================================================================
+   iFuel · tema de la vista replay (retransmisión). Mismo lenguaje que el overlay:
+   paneles planos y oscuros, color con significado, cifras tabulares, sin brillos.
+   Se carga después de App.css y solo actúa dentro de .replay-root.
+   Las variables (--ov-*, --class-*) vienen de overlay-theme.css.
+   ========================================================================== */
+
+.replay-root {
+  position: fixed;
+  inset: 0;
+  font-family: var(--ov-font);
+  color: var(--ov-text);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Torre de clasificación ---------- */
+.replay-root .replay-nascar-card {
+  width: 360px;
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-line);
+  border-radius: var(--ov-radius);
+  box-shadow: none;
+  font-family: var(--ov-font);
+  color: var(--ov-text);
+}
+
+.replay-root .replay-nascar-header { background: transparent; }
+
+/* la bandera pasa a ser una línea fina sin neón */
+.replay-root .replay-nascar-flag-bar,
+.replay-root .replay-nascar-footer-flag {
+  height: 4px;
+  padding: 0;
+  box-shadow: none;
+}
+.replay-root .replay-nascar-flag--green { background: var(--ov-ok); color: var(--ov-ok); }
+.replay-root .replay-nascar-flag--yellow { background: var(--ov-warn); color: var(--ov-warn); }
+.replay-root .replay-nascar-flag--white { background: #f2f4f8; color: #f2f4f8; }
+.replay-root .replay-nascar-flag--checkered { box-shadow: none; }
+
+.replay-root .replay-nascar-header-main {
+  margin: 0;
+  padding: 10px 14px 8px;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+}
+/* sin logo cargado no se reserva el hueco */
+.replay-root .replay-nascar-series-logo-slot:empty { display: none; }
+.replay-root .replay-nascar-series-info {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.replay-root .replay-nascar-series-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ov-text-3);
+}
+.replay-root .replay-nascar-session-meta {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ov-text);
+}
+
+.replay-root .replay-nascar-table-header {
+  background: transparent;
+  border-bottom: 1px solid var(--ov-line);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--ov-text-3);
+  padding: 4px 12px 6px;
+}
+
+.replay-root .replay-nascar-table-body {
+  background: transparent;
+  padding: 4px 0 6px;
+}
+
+.replay-root .replay-nascar-row {
+  margin: 1px 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 15px;
+}
+.replay-root .replay-nascar-row:nth-child(2n) { background: var(--ov-row); }
+
+/* barra de clase: fina, pegada al borde de la fila */
+.replay-root .replay-nascar-row::before {
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--class-color, var(--ov-text-3));
+}
+
+.replay-root .replay-nascar-row.is-divider {
+  border-bottom: 1px solid var(--ov-line-strong);
+  box-shadow: none;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 6px;
+}
+
+.replay-root .cell-pos { font-weight: 700; color: var(--ov-text-2); }
+.replay-root .cell-num { font-weight: 700; }
+.replay-root .cell-name { font-size: 16px; font-weight: 600; }
+.replay-root .cell-gap {
+  font-size: 14px;
+  color: var(--ov-text-2);
+  text-align: right;
+  padding-right: 4px;
+}
+
+/* el piloto en foco, en azul "yo" como en el overlay */
+.replay-root .replay-nascar-row.is-focus {
+  background: rgba(90, 169, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(90, 169, 255, 0.55);
+}
+.replay-root .replay-nascar-row.is-focus .cell-pos,
+.replay-root .replay-nascar-row.is-focus .cell-gap { color: var(--ov-text); }
+
+/* ---------- Piloto en foco ---------- */
+.replay-root .driver-focus {
+  min-width: 460px;
+  max-width: 520px;
+  margin-left: 0;
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-line);
+  border-radius: var(--ov-radius);
+  box-shadow: none;
+  font-family: var(--ov-font);
+  color: var(--ov-text);
+}
+.replay-root .driver-focus__header {
+  background: transparent;
+  text-align: left;
+  padding: 8px 16px 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ov-text-3);
+}
+.replay-root .driver-focus__glow { display: none; }
+
+.replay-root .driver-focus__pos-block {
+  background: rgba(90, 169, 255, 0.14);
+  border: 1px solid rgba(90, 169, 255, 0.5);
+  border-radius: 10px;
+  color: var(--ov-me);
+}
+.replay-root .driver-focus__pos-label { font-size: 10px; font-weight: 600; opacity: 0.9; }
+.replay-root .driver-focus__pos-value { font-weight: 700; color: var(--ov-text); }
+.replay-root .driver-focus__car-number { color: var(--ov-text-2); }
+.replay-root .driver-focus__driver-name { letter-spacing: 0.03em; }
+.replay-root .driver-focus__car-model { color: var(--ov-text-3); opacity: 1; }
+.replay-root .driver-focus__best-box {
+  background: var(--ov-row);
+  border: 1px solid var(--ov-line);
+  color: var(--ov-text);
+}
+.replay-root .driver-focus__best-label { color: var(--ov-text-3); }
+.replay-root .driver-focus__best-value { font-size: 14px; }
+
+/* ---------- Info de pista ---------- */
+.replay-root .replay-track-card {
+  width: 340px;
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-line);
+  border-radius: var(--ov-radius);
+  box-shadow: none;
+  backdrop-filter: none;
+  font-family: var(--ov-font);
+  color: var(--ov-text);
+}
+.replay-root .replay-track-header { background: transparent; padding: 12px 14px 8px; }
+.replay-root .replay-track-logo-slot:empty { display: none; }
+.replay-root .replay-track-title { max-width: none; flex: 1; min-width: 0; gap: 2px; }
+.replay-root .replay-track-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.replay-root .replay-track-length { font-size: 12px; color: var(--ov-text-3); }
+.replay-root .replay-track-body { background: transparent; border-top: 1px solid var(--ov-line); }
+.replay-root .replay-track-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--ov-text-3);
+}
+.replay-root .replay-track-value { font-size: 16px; font-weight: 600; color: var(--ov-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .replay-root .driver-focus { animation: none; }
+}
