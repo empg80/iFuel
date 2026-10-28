@@ -781,14 +781,27 @@ let betaTimer = null;
 let betaSnapshotsTaken = 0;
 let betaConnectedAt = null;
 let betaLastSnapshotAt = 0;
+let betaAutosaveTimer = null;
+const betaAutosaveMs = Number(process.env.IFUEL_BETA_AUTOSAVE_MS) || 3 * 60_000;
+const BETA_AUTOSAVE_NAME = "ifuel-beta-AUTOSAVE.zip";
 
 function startBetaSession() {
   if (!isBetaBuild || !telemetryHandle) return;
   startRecording();
+  console.log(`[iFuel] Informes beta en: ${betaReportsDir()}`);
   notify(
     `iFuel BETA ${app.getVersion()}: grabando la prueba`,
-    "Al cerrar iFuel (bandeja → Quit iFuel) se genera el informe en Documentos\\iFuel-beta",
+    `Al cerrar (bandeja → Quit iFuel) se genera el informe en ${betaReportsDir()}`,
   );
+  // Copia de seguridad: si la app se cierra a la fuerza (administrador de tareas, cuelgue) queda el último informe
+  betaAutosaveTimer = setInterval(() => {
+    try {
+      telemetryHandle?.flushRecording?.();
+      generateBetaReport({ name: BETA_AUTOSAVE_NAME });
+    } catch (err) {
+      console.error("[iFuel] Autoguardado del informe beta fallido:", err);
+    }
+  }, betaAutosaveMs);
   betaTimer = setInterval(() => {
     try {
       if (!telemetryHandle?.isSdkConnected?.()) return;
@@ -817,11 +830,12 @@ function openTestGuide() {
 }
 
 // Reúne logs, grabación, volcados y configuración en un .zip. Devuelve la ruta (o null si falla).
-function generateBetaReport({ reveal = false } = {}) {
+function generateBetaReport({ reveal = false, name = null } = {}) {
   try {
     const { zipPath, included } = betaReport.buildReport({
       userData: app.getPath("userData"),
       outDir: betaReportsDir(),
+      fileName: name,
       since: runStartedAt - 1000,
       summary: {
         app: `iFuel ${app.getVersion()}`,
@@ -948,21 +962,49 @@ app.on("before-quit", (event) => {
   if (quitting) return;
   quitting = true;
   event.preventDefault();
+  console.log("[iFuel] Cierre: iniciado");
   if (topmostTimer) clearInterval(topmostTimer);
   if (betaTimer) clearInterval(betaTimer);
+  if (betaAutosaveTimer) clearInterval(betaAutosaveTimer);
   if (isBetaBuild) {
     // volcado final con la sesión aún viva, antes de parar el servidor
     try {
       if (telemetryHandle?.isSdkConnected?.()) telemetryHandle.saveSnapshot(diagnosticsDir());
+      telemetryHandle?.flushRecording?.();
     } catch (err) {
       console.error("Volcado final del SDK fallido:", err);
     }
   }
-  stopTelemetryServerInElectron().finally(() => {
-    // el servidor ya cerró la grabación gzip: ahora sí, el informe
-    if (isBetaBuild) generateBetaReport({ reveal: true });
-    app.quit();
-  });
+  // Si parar el servidor se cuelga, no se queda la app sin cerrar ni sin informe
+  const STOP_TIMEOUT_MS = 8000;
+  let timedOut = false;
+  Promise.race([
+    stopTelemetryServerInElectron(),
+    new Promise((resolve) => setTimeout(() => { timedOut = true; resolve(); }, STOP_TIMEOUT_MS)),
+  ])
+    .catch((err) => console.error("[iFuel] Cierre: error parando el servidor:", err))
+    .finally(() => {
+      if (timedOut) console.error(`[iFuel] Cierre: el servidor no paró en ${STOP_TIMEOUT_MS} ms; se continúa`);
+      else console.log("[iFuel] Cierre: servidor parado");
+      if (isBetaBuild) {
+        // el servidor ya cerró la grabación gzip: ahora sí, el informe definitivo
+        const zip = generateBetaReport({ reveal: true });
+        if (zip) {
+          console.log(`[iFuel] Cierre: informe final ${zip}`);
+          try {
+            fs.rmSync(path.join(betaReportsDir(), BETA_AUTOSAVE_NAME), { force: true });
+          } catch {
+            /* ignorar */
+          }
+        } else {
+          // el final falló: que al menos se vea el último autoguardado
+          const auto = path.join(betaReportsDir(), BETA_AUTOSAVE_NAME);
+          if (fs.existsSync(auto)) shell.showItemInFolder(auto);
+        }
+      }
+      console.log("[iFuel] Cierre: terminado");
+      app.quit();
+    });
 });
 
 app.on("will-quit", () => {

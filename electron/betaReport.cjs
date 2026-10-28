@@ -125,7 +125,7 @@ Qué has visto raro o no te ha gustado (cifras, colores, tamaños, posición de 
 //   outDir    dónde dejar el zip
 //   since     epoch ms: solo se incluyen grabaciones/volcados de esta ejecución
 //   summary   objeto con datos de la ejecución (versión, SO, duración...)
-function buildReport({ userData, outDir, since = 0, summary = {}, now = new Date(), extraFiles = [] }) {
+function buildReport({ userData, outDir, since = 0, summary = {}, now = new Date(), extraFiles = [], fileName = null }) {
   const entries = [];
   const included = [];
   const add = (file, zipName) => {
@@ -153,8 +153,11 @@ function buildReport({ userData, outDir, since = 0, summary = {}, now = new Date
   entries.push({ name: "NOTAS.txt", data: Buffer.from(NOTES_TEMPLATE, "utf8"), date: now });
 
   fs.mkdirSync(outDir, { recursive: true });
-  const zipPath = path.join(outDir, `ifuel-beta-${stamp(now)}.zip`);
-  fs.writeFileSync(zipPath, createZip(entries));
+  const zipPath = path.join(outDir, fileName || `ifuel-beta-${stamp(now)}.zip`);
+  // escritura atómica: un cierre a mitad no deja un zip corrupto
+  const tmpPath = `${zipPath}.tmp`;
+  fs.writeFileSync(tmpPath, createZip(entries));
+  fs.renameSync(tmpPath, zipPath);
   return { zipPath, included };
 }
 

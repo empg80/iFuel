@@ -10,6 +10,7 @@ import Module from "node:module";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
+process.env.IFUEL_BETA_AUTOSAVE_MS = "300"; // autoguardado rapido para el test
 
 function loadMain({ version }) {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), "ifuel-ud-"));
@@ -63,6 +64,8 @@ async function runAndQuit(version) {
     require(ctx.mainPath);
     ctx.ready();
     await new Promise((r) => setTimeout(r, 1500));
+    const reportsDir = path.join(ctx.docs, "iFuel-beta");
+    ctx.autosaveBeforeQuit = fs.existsSync(path.join(reportsDir, "ifuel-beta-AUTOSAVE.zip"));
     const recorded = fs.existsSync(path.join(ctx.userData, "diagnostics")) &&
       fs.readdirSync(path.join(ctx.userData, "diagnostics")).some((f) => f.endsWith(".jsonl.gz"));
     ctx.handlers["before-quit"]({ preventDefault() {} });
@@ -84,6 +87,14 @@ test("beta: graba sola y al cerrar genera el informe .zip con grabacion y log", 
   assert.match(names, /resumen\.json/);
   assert.ok(ctx.calls.notifications.some((n) => /BETA/.test(n.title)), "avisa de que la prueba esta grabando");
   assert.equal(ctx.calls.quit, 1);
+  // copia de seguridad: existe mientras la app corre y desaparece al generar el informe final
+  assert.ok(ctx.autosaveBeforeQuit, "autoguardado presente durante la sesion");
+  assert.equal(fs.existsSync(path.join(ctx.docs, "iFuel-beta", "ifuel-beta-AUTOSAVE.zip")), false);
+  assert.equal(fs.readdirSync(path.join(ctx.docs, "iFuel-beta")).filter((f) => f.endsWith(".tmp")).length, 0);
+  const log = fs.readFileSync(path.join(ctx.userData, "logs", "ifuel.log"), "utf8");
+  assert.match(log, /Cierre: iniciado/);
+  assert.match(log, /Cierre: informe final/);
+  assert.match(log, /Cierre: terminado/);
 });
 
 test("version estable: no graba ni genera informe", async () => {

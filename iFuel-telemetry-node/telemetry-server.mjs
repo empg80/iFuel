@@ -98,6 +98,8 @@ function openRecorder(file) {
       bytes += line.length;
       gz.write(line);
     },
+    // vuelca lo escrito hasta ahora para que el .gz sea legible aunque la app no llegue a cerrarlo
+    flush: () => { try { gz.flush(); } catch { /* ignorar */ } },
     close: () => new Promise((resolve) => { out.on("finish", resolve); gz.end(); }),
   };
 }
@@ -1415,8 +1417,9 @@ if (origin && !allowedOrigins.has(origin)) {
   };
 
   const isSdkConnected = () => !!diag.sdk;
+  const flushRecording = () => { diag.recorder?.flush?.(); };
 
-  return { stop, startRecording, stopRecording, saveSnapshot, isSdkConnected };
+  return { stop, startRecording, stopRecording, saveSnapshot, isSdkConnected, flushRecording };
 }
 
 export { startTelemetryServer, probeSimRunning, TELEMETRY_VARS, SNAPSHOT_VARS };

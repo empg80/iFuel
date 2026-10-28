@@ -45,6 +45,11 @@ C. Al terminar
    - Bandeja > "Quit iFuel". Se genera el informe y se abre la carpeta con el archivo:
        Documentos\iFuel-beta\ifuel-beta-AAAAMMDD-HHMMSS.zip
    - (Si necesitas el informe sin cerrar: bandeja > BETA test > Generate report now.)
+   - Mientras iFuel corre, cada 3 minutos guarda una copia de seguridad en esa misma carpeta
+     (ifuel-beta-AUTOSAVE.zip). Si cierras iFuel a la fuerza o se cuelga, envía ese archivo.
+     Si el cierre normal va bien, esa copia se borra sola y queda solo el zip con fecha.
+   - La ruta exacta de la carpeta aparece en la notificación al arrancar y en la bandeja
+     (BETA test > Open reports folder). Si tienes Documentos en OneDrive, estará dentro de OneDrive.
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
@@ -64,4 +69,7 @@ SI ALGO FALLA
 -------------
   - Pantalla en blanco o el overlay no aparece: cierra iFuel y ábrelo desde una consola con
     iFuel.exe --windowed (ventana normal). Aun así, el informe incluye el log.
+  - No se abre ninguna carpeta al cerrar: abre la bandeja antes de cerrar (BETA test > Open reports folder)
+    o busca ifuel-beta-*.zip en Documentos\\iFuel-beta. Si no hay ninguno, envía %APPDATA%\\iFuel\\logs\\ifuel.log
+    (cuenta paso a paso qué pasó al cerrar).
   - El zip no se genera: copia a mano la carpeta %APPDATA%\ifuel (logs y diagnostics) y envíala.
