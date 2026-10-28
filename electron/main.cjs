@@ -1,18 +1,77 @@
 // electron/main.cjs
-const { app, BrowserWindow, Menu, ipcMain } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  ipcMain,
+  Tray,
+  Notification,
+  globalShortcut,
+  screen,
+  shell,
+  nativeImage,
+} = require("electron");
 const fs = require("fs");
 const path = require("path");
+const util = require("util");
 const { pathToFileURL } = require("url");
+const overlayWindow = require("./overlayWindow.cjs");
+
+// Salida de emergencia: `iFuel.exe --windowed` (o IFUEL_WINDOWED=1) arranca como ventana normal
+const forceWindowed =
+  process.argv.includes("--windowed") || process.env.IFUEL_WINDOWED === "1";
 
 let mainWindow = null;
 let telemetryModule = null;
 let telemetryServerRunning = false;
-let telemetryHandle = null; // { stop } devuelto por startTelemetryServer
+let telemetryHandle = null; // { stop, startRecording, ... } devuelto por startTelemetryServer
+let tray = null;
+let windowIsOverlay = false; // la ventana principal se creó como overlay
+let recordingFile = null; // grabación de diagnóstico en curso
+let topmostTimer = null;
+let quitting = false;
 
 // NUEVO: a nivel global, no dentro de createWindow
 let replayWindow = null;
 
 const isDev = !app.isPackaged; // dev vs producción [web:17]
+
+// Log en archivo (userData/logs/ifuel.log): la app instalada no tiene consola visible
+function setupFileLogging() {
+  try {
+    const logPath = path.join(app.getPath("userData"), "logs", "ifuel.log");
+    fs.mkdirSync(path.dirname(logPath), { recursive: true });
+    try {
+      if (fs.statSync(logPath).size > 2 * 1024 * 1024) fs.renameSync(logPath, logPath + ".old");
+    } catch {
+      /* no existe todavía */
+    }
+    for (const level of ["log", "info", "warn", "error"]) {
+      const original = console[level].bind(console);
+      console[level] = (...args) => {
+        original(...args);
+        try {
+          const text = args
+            .map((a) => (a instanceof Error ? a.stack || a.message : typeof a === "string" ? a : util.inspect(a)))
+            .join(" ");
+          fs.appendFileSync(logPath, `${new Date().toISOString()} [${level}] ${text}\n`);
+        } catch {
+          /* el log nunca debe romper la app */
+        }
+      };
+    }
+    process.on("uncaughtException", (err) => console.error("uncaughtException:", err));
+    process.on("unhandledRejection", (err) => console.error("unhandledRejection:", err));
+    console.log(
+      `[iFuel] Inicio v${app.getVersion()} (${app.isPackaged ? "instalada" : "desarrollo"}), ` +
+        `Electron ${process.versions.electron}, ${process.platform} ${process.arch}, ` +
+        `modo ventana forzado: ${forceWindowed}`,
+    );
+  } catch {
+    /* sin log */
+  }
+}
+setupFileLogging();
 
 // Endurece un BrowserWindow: sin ventanas nuevas y sin navegar fuera de la propia app
 function hardenWebContents(win) {
@@ -101,6 +160,9 @@ const DEFAULT_OVERLAY_STATE = {
   yellowScale: 1,
   standingsScale: 1,
   layoutMode: "free",
+
+  overlayMode: true, // ventana transparente, siempre encima y click-through (solo layout "free")
+  overlayDisplayId: null, // monitor donde se dibuja el overlay (null = principal)
 };
 
 function validateOverlayState(candidate) {
@@ -115,6 +177,7 @@ function validateOverlayState(candidate) {
     "widgetsLocked",
     "fuelSettingsVisible",
     "replayVisible",
+    "overlayMode",
   ];
   const numberKeys = [
     "fuelScale",
@@ -132,6 +195,13 @@ function validateOverlayState(candidate) {
     if (typeof v !== "number" || !Number.isFinite(v) || v < 0.5 || v > 3) {
       return false;
     }
+  }
+
+  if (
+    candidate.overlayDisplayId != null &&
+    !Number.isInteger(candidate.overlayDisplayId)
+  ) {
+    return false;
   }
 
   if (
@@ -220,6 +290,7 @@ async function stopTelemetryServerInElectron() {
   const handle = telemetryHandle;
   telemetryHandle = null;
   telemetryServerRunning = false;
+  recordingFile = null;
   if (handle && typeof handle.stop === "function") {
     try {
       await handle.stop();
@@ -254,6 +325,8 @@ const allowedKeys = new Set([
   "standingsScale",
   "layoutMode",
   "replayVisible",
+  "overlayMode",
+  "overlayDisplayId",
 ]);
 
 
@@ -276,9 +349,33 @@ const allowedKeys = new Set([
   return overlayState;
 });
 
+// Ajusta la ventana al estado actual (overlay <-> ventana normal, monitor, click-through)
+// Devuelve true si tuvo que recrear la ventana.
+function syncWindowMode() {
+  if (!mainWindow) return false;
+  const wantOverlay = overlayWindow.shouldUseOverlay(overlayState, { forceWindowed });
+  if (wantOverlay !== windowIsOverlay) {
+    recreateMainWindow();
+    return true;
+  }
+  if (windowIsOverlay) {
+    const display = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
+    overlayWindow.applyOverlayBehavior(mainWindow, {
+      locked: overlayState.widgetsLocked,
+      bounds: display.bounds,
+    });
+  }
+  return false;
+}
+
 function sendOverlayState() {
   if (!mainWindow) return;
-  mainWindow.webContents.send("overlay-state-changed", overlayState);
+  if (syncWindowMode()) return; // la ventana nueva envía el estado al terminar de cargar
+  mainWindow.webContents.send("overlay-state-changed", {
+    ...overlayState,
+    overlayActive: windowIsOverlay,
+  });
+  refreshTray();
 }
 
 const SCALE_OPTIONS = [0.75, 1, 1.25, 1.5];
@@ -300,8 +397,9 @@ function scaleMenu(label, key) {
   };
 }
 
-function createMenu() {
-  const template = [
+function buildMenuTemplate() {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  return [
     {
       label: "Layout",
       submenu: [
@@ -392,7 +490,26 @@ function createMenu() {
         },
         { type: "separator" },
         {
-          label: "Lock widgets",
+          label: "Overlay over simulator (transparent, always on top)",
+          type: "checkbox",
+          checked: overlayState.overlayMode,
+          click: () => toggleOverlayMode(),
+        },
+        {
+          label: "Overlay display",
+          submenu: screen.getAllDisplays().map((d, i) => ({
+            label: `Display ${i + 1} (${d.bounds.width}x${d.bounds.height})${d.id === primaryDisplay.id ? " - primary" : ""}`,
+            type: "radio",
+            checked: (overlayState.overlayDisplayId ?? primaryDisplay.id) === d.id,
+            click: () => {
+              overlayState.overlayDisplayId = d.id;
+              saveOverlayState();
+              sendOverlayState();
+            },
+          })),
+        },
+        {
+          label: "Lock widgets (click-through)  Ctrl+Shift+L",
           type: "checkbox",
           checked: overlayState.widgetsLocked,
           click: (item) => {
@@ -458,61 +575,223 @@ function createMenu() {
         },
       ],
     },
+    {
+      label: "Diagnostics",
+      submenu: [
+        recordingFile
+          ? { label: "Stop recording session", click: () => stopRecording() }
+          : { label: "Start recording session", click: () => startRecording() },
+        { label: "Save SDK snapshot", click: () => saveSnapshot() },
+        { type: "separator" },
+        {
+          label: "Open data folder (logs, recordings)",
+          click: () => shell.openPath(app.getPath("userData")),
+        },
+      ],
+    },
   ];
+}
 
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+function createMenu() {
+  Menu.setApplicationMenu(Menu.buildFromTemplate(buildMenuTemplate()));
+}
+
+function recreateMainWindow() {
+  const old = mainWindow;
+  mainWindow = null; // así el 'closed' de la ventana vieja no cuenta como "última ventana cerrada"
+  createWindow();
+  if (old && !old.isDestroyed()) old.destroy();
+}
+
+function toggleLock() {
+  if (overlayState.layoutMode === "pitboard") return;
+  overlayState.widgetsLocked = !overlayState.widgetsLocked;
+  saveOverlayState();
+  sendOverlayState();
+}
+
+function toggleOverlayMode() {
+  overlayState.overlayMode = !overlayState.overlayMode;
+  saveOverlayState();
+  sendOverlayState();
+}
+
+function toggleVisible() {
+  if (!mainWindow) return;
+  if (mainWindow.isVisible()) mainWindow.hide();
+  else if (windowIsOverlay) mainWindow.showInactive();
+  else mainWindow.show();
+}
+
+// --- Bandeja del sistema: en modo overlay no hay barra de título ni menú, y en click-through
+// no se puede pulsar nada; la bandeja y los atajos son la forma de controlar la app.
+function trayIconPath() {
+  return isDev
+    ? path.join(__dirname, "..", "build", "icon.ico")
+    : path.join(process.resourcesPath, "icon.ico");
+}
+
+function buildTrayTemplate() {
+  return [
+    {
+      label: "Lock widgets (click-through)  Ctrl+Shift+L",
+      type: "checkbox",
+      checked: overlayState.widgetsLocked,
+      click: () => toggleLock(),
+    },
+    { label: "Show / hide overlay  Ctrl+Shift+H", click: () => toggleVisible() },
+    {
+      label: "Overlay over simulator",
+      type: "checkbox",
+      checked: overlayState.overlayMode,
+      click: () => toggleOverlayMode(),
+    },
+    { type: "separator" },
+    ...buildMenuTemplate().map((item) => ({ label: item.label, submenu: item.submenu })),
+    { type: "separator" },
+    { label: "Quit iFuel", click: () => app.quit() },
+  ];
+}
+
+function refreshTray() {
+  if (!tray) return;
+  try {
+    tray.setContextMenu(Menu.buildFromTemplate(buildTrayTemplate()));
+  } catch (err) {
+    console.error("No se pudo actualizar el menú de la bandeja:", err);
+  }
+}
+
+function createTray() {
+  if (tray) return;
+  try {
+    const image = nativeImage.createFromPath(trayIconPath());
+    if (image.isEmpty()) console.warn("[iFuel] Icono de bandeja no encontrado:", trayIconPath());
+    tray = new Tray(image);
+    tray.setToolTip("iFuel");
+    tray.on("double-click", () => toggleVisible());
+    refreshTray();
+  } catch (err) {
+    console.error("No se pudo crear el icono de la bandeja:", err);
+  }
+}
+
+function registerShortcuts() {
+  const bindings = [
+    ["CommandOrControl+Shift+L", toggleLock],
+    ["CommandOrControl+Shift+H", toggleVisible],
+  ];
+  for (const [accelerator, handler] of bindings) {
+    if (!globalShortcut.register(accelerator, handler)) {
+      console.warn(`[iFuel] No se pudo registrar el atajo ${accelerator} (¿lo usa otra aplicación?)`);
+    }
+  }
+}
+
+// --- Diagnóstico: grabación de la sesión y volcado de datos crudos del SDK
+const diagnosticsDir = () => path.join(app.getPath("userData"), "diagnostics");
+
+function notify(title, body) {
+  console.log(`[iFuel] ${title}: ${body}`);
+  try {
+    if (Notification.isSupported()) new Notification({ title, body }).show();
+  } catch {
+    /* sin notificaciones */
+  }
+}
+
+function startRecording() {
+  if (!telemetryHandle) return notify("iFuel", "El servidor de telemetría no está en marcha");
+  try {
+    recordingFile = telemetryHandle.startRecording(diagnosticsDir());
+    notify("iFuel: grabando sesión", path.basename(recordingFile));
+  } catch (err) {
+    console.error("No se pudo iniciar la grabación:", err);
+  }
+  createMenu();
+  refreshTray();
+}
+
+async function stopRecording() {
+  try {
+    const file = telemetryHandle ? await telemetryHandle.stopRecording() : null;
+    if (file) notify("iFuel: grabación guardada", file);
+  } catch (err) {
+    console.error("No se pudo cerrar la grabación:", err);
+  }
+  recordingFile = null;
+  createMenu();
+  refreshTray();
+}
+
+function saveSnapshot() {
+  if (!telemetryHandle) return notify("iFuel", "El servidor de telemetría no está en marcha");
+  try {
+    notify("iFuel: volcado del SDK guardado", telemetryHandle.saveSnapshot(diagnosticsDir()));
+  } catch (err) {
+    console.error("No se pudo guardar el volcado del SDK:", err);
+  }
 }
 
 function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    frame: true,
-    transparent: false,
-    backgroundColor: "#202020",
-    alwaysOnTop: false,
-    resizable: true,
-    icon: isDev ? path.join(__dirname, "..", "build", "icon.ico") : undefined,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      webSecurity: true,
-      devTools: isDev, // DevTools sólo en desarrollo
-      backgroundThrottling: false,
-      preload: path.join(__dirname, "preload.cjs"),
-    },
-  });
+  const overlay = overlayWindow.shouldUseOverlay(overlayState, { forceWindowed });
+  const display = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
 
-  hardenWebContents(mainWindow);
+  const win = new BrowserWindow(
+    overlayWindow.buildMainWindowOptions({
+      overlay,
+      bounds: display.bounds,
+      isDev,
+      preloadPath: path.join(__dirname, "preload.cjs"),
+      iconPath: isDev ? path.join(__dirname, "..", "build", "icon.ico") : undefined,
+    }),
+  );
+  mainWindow = win;
+  windowIsOverlay = overlay;
+
+  hardenWebContents(win);
   createMenu();
 
   const startUrl = process.env.ELECTRON_START_URL;
-
   if (startUrl) {
-    mainWindow.loadURL(startUrl);
+    win.loadURL(startUrl);
   } else {
-    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+    win.loadFile(path.join(__dirname, "../dist/index.html"));
   }
 
-  mainWindow.on("closed", () => {
-    mainWindow = null;
+  if (overlay) {
+    // Se muestra sin activarla (showInactive) para no sacar el foco al simulador.
+    let revealed = false;
+    const reveal = () => {
+      if (revealed || win.isDestroyed()) return;
+      revealed = true;
+      overlayWindow.applyOverlayBehavior(win, {
+        locked: overlayState.widgetsLocked,
+        bounds: display.bounds,
+      });
+      win.showInactive();
+    };
+    win.once("ready-to-show", reveal);
+    win.webContents.once("did-fail-load", reveal); // que no se quede invisible si la página falla
+    setTimeout(reveal, 5000);
+  }
+
+  win.on("closed", () => {
+    if (mainWindow === win) mainWindow = null;
   });
 
-  mainWindow.webContents.on("did-finish-load", () => {
+  win.webContents.on("did-finish-load", () => {
     sendOverlayState();
   });
 
-  // ABRIR DEVTOOLS AUTOMÁTICAMENTE EN DESARROLLO
-// if (isDev && mainWindow) {
-//   mainWindow.webContents.openDevTools({ mode: "detach" });
-// }
+  if (isDev && process.env.IFUEL_DEVTOOLS === "1") {
+    win.webContents.openDevTools({ mode: "detach" });
+  }
 
   // cinturón extra: si alguien consigue abrir DevTools en producción, cerrarlos
   if (!isDev) {
-    mainWindow.webContents.on("devtools-opened", () => {
-      mainWindow.webContents.closeDevTools();
+    win.webContents.on("devtools-opened", () => {
+      win.webContents.closeDevTools();
     });
   }
 }
@@ -523,7 +802,10 @@ if (!gotSingleInstanceLock) {
   app.quit();
 } else {
   app.on("second-instance", () => {
-    if (mainWindow) {
+    if (!mainWindow) return;
+    if (windowIsOverlay) {
+      mainWindow.showInactive();
+    } else {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
@@ -532,11 +814,35 @@ if (!gotSingleInstanceLock) {
   app.whenReady().then(async () => {
     await startTelemetryServerInElectron();
     createWindow();
+    createTray();
+    registerShortcuts();
+
+    // Reafirma "siempre encima" y reacomoda el overlay si cambian los monitores
+    topmostTimer = setInterval(() => {
+      if (windowIsOverlay) overlayWindow.keepOnTop(mainWindow);
+    }, 3000);
+    for (const event of ["display-added", "display-removed", "display-metrics-changed"]) {
+      screen.on(event, () => {
+        syncWindowMode();
+        createMenu();
+        refreshTray();
+      });
+    }
   });
 }
 
-app.on("before-quit", () => {
-  stopTelemetryServerInElectron();
+// Se espera a que el servidor cierre (y finalice la grabación gzip) antes de salir
+app.on("before-quit", (event) => {
+  if (quitting) return;
+  quitting = true;
+  event.preventDefault();
+  if (topmostTimer) clearInterval(topmostTimer);
+  stopTelemetryServerInElectron().finally(() => app.quit());
+});
+
+app.on("will-quit", () => {
+  globalShortcut.unregisterAll();
+  if (tray) tray.destroy();
 });
 
 app.on("window-all-closed", () => {
