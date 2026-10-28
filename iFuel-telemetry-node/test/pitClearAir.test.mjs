@@ -34,3 +34,17 @@ test("sin parámetros válidos no sugiere nada", () => {
   const r = f({ ...base, cars: [], pitWindowStartLap: 5, pitWindowEndLap: 5, pitDeltaSeconds: 0 });
   assert.equal(r.suggestedLap, null);
 });
+
+test("ignora coches fuera del mundo (pct -1) y coches en boxes", () => {
+  const cars = [car(0, 0.5), { ...car(1, 0.25), pct: -1 }, { ...car(2, 0.25), onPit: 1 }, car(3, 0.25)];
+  const r = f({ ...base, cars, pitWindowStartLap: 5, pitWindowEndLap: 5 });
+  assert.equal(r.options[0].trafficScore, 1); // solo el coche 3
+});
+
+test("indica el tráfico si entras ahora y el coche más pegado a tu salida", () => {
+  const cars = [car(0, 0.5), { ...car(3, 0.26), carNum: "27" }];
+  const r = f({ ...base, cars, pitWindowStartLap: 5, pitWindowEndLap: 6 });
+  assert.equal(r.nowScore, 1);
+  assert.equal(r.nowNearest.carNum, "27");
+  assert.ok(Math.abs(r.nowNearest.gapSeconds - 1) < 0.01, `gap=${r.nowNearest.gapSeconds}`);
+});

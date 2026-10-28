@@ -1,5 +1,6 @@
 import { planRefuel } from "./utils/refuelPlan";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import type { PitClearAirData } from "./types/pit";
 import type { StandingsRow } from "./types/standings";
 import { interpolateFuelAtLine } from "./utils/fuelInterpolation";
 
@@ -37,15 +38,7 @@ type YellowWarning = {
   classPosition: number | null;
 } | null;
 
-type PitClearAirOption = {
-  lap: number;
-  trafficScore: number;
-};
-
-type PitClearAir = {
-  suggestedLap: number | null;
-  options: PitClearAirOption[];
-} | null;
+type PitClearAir = PitClearAirData;
 
 type StandingsRowPayload = {
   position: number;

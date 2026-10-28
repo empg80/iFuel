@@ -1,5 +1,15 @@
 // PitClearAirWidget.tsx
-import type { PitClearAirData } from "../types/pit";
+import type { PitClearAirData, PitClearAirNearest } from "../types/pit";
+
+function describeNearest(n: PitClearAirNearest | undefined): string {
+  if (!n) return "";
+  const sign = n.gapSeconds >= 0 ? "+" : "-";
+  return ` · #${n.carNum ?? "?"} ${sign}${Math.abs(n.gapSeconds).toFixed(1)}s`;
+}
+
+function carsText(n: number): string {
+  return n === 0 ? "clear air" : `${n} ${n === 1 ? "car" : "cars"} ±3s`;
+}
 
 type PitClearAirWidgetProps = {
   data: PitClearAirData | undefined;
@@ -33,7 +43,7 @@ export const PitClearAirWidget = ({
     );
   }
 
-  const { suggestedLap, options } = data;
+  const { suggestedLap, options, nowScore, nowNearest, pitLossSeconds, pitLossMeasured } = data;
 
   const currentLap = lapNumber ?? 0;
   const diff = suggestedLap - currentLap;
@@ -88,7 +98,19 @@ export const PitClearAirWidget = ({
         )}
       </div>
 
-      <div className="pit-clear-air-widget__window">{windowLabel}</div>
+      {nowScore != null && (
+        <div className="pit-clear-air-widget__advice">
+          {diff <= 0
+            ? `Box now: ${carsText(nowScore)} at exit${describeNearest(nowNearest)}`
+            : `Box now: ${carsText(nowScore)} at exit${describeNearest(nowNearest)} → wait ${diff} lap${diff === 1 ? "" : "s"}`}
+        </div>
+      )}
+
+      <div className="pit-clear-air-widget__window">
+        {windowLabel}
+        {pitLossSeconds != null &&
+          ` · loss ${Math.round(pitLossSeconds)}s ${pitLossMeasured ? "(measured)" : "(est.)"}`}
+      </div>
 
       <div className="pit-clear-air-widget__options">
         {options.map((o) => (
@@ -101,7 +123,7 @@ export const PitClearAirWidget = ({
                 : "")
             }
           >
-            Lap {o.lap}: {o.trafficScore} {o.trafficScore === 1 ? "car" : "cars"} ±3s
+            Lap {o.lap}: {carsText(o.trafficScore)}{describeNearest(o.nearest)}
           </div>
         ))}
       </div>

@@ -15,6 +15,7 @@ import {
   resetPitAndStintState,
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
+import { createPitLossTracker } from "./pitLoss.mjs";
 
 const TIMEOUT = Math.floor((1 / 60) * 1000);
 const BROADCAST_INTERVAL = 250; // ms
@@ -203,6 +204,7 @@ function startTelemetryLoop(
   { onSimClosed, isSimRunning = defaultIsSimRunning, simClosedCheckMs = SIM_CLOSED_CHECK_MS, diag = {} } = {},
 ) {
   resetPitAndStintState();
+  const pitLossTracker = createPitLossTracker();
   const trackCarSpeeds = createCarSpeedTracker();
 
   let lastSessionKey = null;
@@ -311,6 +313,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
     if (sessionKey !== lastSessionKey) {
       if (lastSessionKey !== null) {
         resetPitAndStintState();
+        pitLossTracker.reset();
         // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
         if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
       }
@@ -372,7 +375,7 @@ const carSpeeds = trackCarSpeeds({
 let relative = { myPosition: null, ahead: null, behind: null };
 let relativeOnTrack = { ahead: null, behind: null };
 let yellowWarning = null;
-let pitClearAir = { suggestedLap: null, options: [] };
+let pitClearAir = { suggestedLap: null, options: [], nowScore: null, nowNearest: null, pitLossSeconds: null, pitLossMeasured: false };
 let standings = [];
 
 
@@ -878,6 +881,17 @@ standings.sort((a, b) => a.position - b.position);
       }
     }
 
+    // Pérdida de parada: la medida en tus propias paradas; mientras no haya ninguna, la estimada
+    const measuredPitLoss = pitLossTracker.update({
+      onPitRoad: !!carIdxOnPitRoad[driverIdx],
+      sessionTime,
+      lapDistPct: myPct,
+      baseLapTime,
+      // garaje, replay o coche fuera del mundo: CarIdxOnPitRoad no es fiable
+      inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
+    });
+    const pitLossSeconds = measuredPitLoss ?? pitStrategyParams.pitDeltaSeconds;
+
     if (
       pitStrategyParams.pitWindowStartLap != null &&
       pitStrategyParams.pitWindowEndLap != null &&
@@ -891,10 +905,12 @@ standings.sort((a, b) => a.position - b.position);
         baseLapTime,
         pitWindowStartLap: pitStrategyParams.pitWindowStartLap,
         pitWindowEndLap: pitStrategyParams.pitWindowEndLap,
-        pitDeltaSeconds: pitStrategyParams.pitDeltaSeconds,
+        pitDeltaSeconds: pitLossSeconds,
         lapsRemainForRace,
         maxStintLapsFromFull,
       });
+      pitClearAir.pitLossSeconds = pitLossSeconds;
+      pitClearAir.pitLossMeasured = measuredPitLoss != null;
 
     }
 

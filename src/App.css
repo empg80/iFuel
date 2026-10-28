@@ -1468,3 +1468,10 @@ body {
 .app-root--free .standings-widget-container {
   position: absolute;
 }
+
+/* Pit clear air: instrucción de la vuelta actual */
+.pit-clear-air-widget__advice {
+  margin: 4px 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
