@@ -12,6 +12,8 @@ declare global {
     /** La ventana principal es ahora mismo un overlay transparente sobre el juego (lo calcula main). */
     overlayActive?: boolean;
     fuelSettingsVisible?: boolean;
+    /** Nivel de detalle del widget de combustible en el overlay. */
+    fuelDetail?: "compact" | "full";
 
     fuelScale?: number;
     relativeScale?: number;

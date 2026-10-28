@@ -1,25 +1,15 @@
-type ClassColor = { bg: string; text: string };
+const CLASS_COLOR_COUNT = 6; // --class-0 ... --class-5 en styles/overlay-theme.css
 
-const CLASS_COLORS: ClassColor[] = [
-  { bg: "#4caf50", text: "#ffffff" },
-  { bg: "#2196f3", text: "#ffffff" },
-  { bg: "#ff9800", text: "#000000" },
-  { bg: "#9c27b0", text: "#ffffff" },
-  { bg: "#f44336", text: "#ffffff" },
-  { bg: "#607d8b", text: "#ffffff" },
-];
-
-function getClassColor(
+function getClassColorIndex(
   classId?: number | null,
   classColorIndexById?: Record<number, number>,
-): ClassColor {
-  if (classId == null) return { bg: "#444", text: "#fff" };
+): number | null {
+  if (classId == null) return null;
   const idxRaw =
     classColorIndexById && classColorIndexById[classId] != null
       ? classColorIndexById[classId]
       : 0;
-  const idx = idxRaw % CLASS_COLORS.length;
-  return CLASS_COLORS[idx] ?? { bg: "#444", text: "#fff" };
+  return idxRaw % CLASS_COLOR_COUNT;
 }
 
 export type ClassBadgeProps = {
@@ -37,13 +27,12 @@ export function ClassBadge({
 }: ClassBadgeProps) {
   if (classId == null || !classPosition || classPosition <= 0) return null;
 
-  const { bg, text } = getClassColor(classId, classColorIndexById);
+  const colorIndex = getClassColorIndex(classId, classColorIndexById);
   const sizeClass = small ? "class-badge--small" : "class-badge--normal";
 
   return (
     <div
-      className={`class-badge ${sizeClass}`}
-      style={{ backgroundColor: bg, color: text }}
+      className={`class-badge ${sizeClass} class-badge--${colorIndex ?? "none"}`}
     >
       {`P${classPosition}`}
     </div>

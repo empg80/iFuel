@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { FuelWidget } from "./FuelWidget";
+import { FuelWidgetOverlay } from "./FuelWidgetOverlay";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
 import { loadWidgetPosition } from "../utils/position";
@@ -92,6 +93,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   const widgetsLocked = overlayState.widgetsLocked ?? true;
   const fuelSettingsVisible = overlayState.fuelSettingsVisible ?? false;
   const fuelScale = overlayState.fuelScale ?? 1;
+  const fuelDetail = overlayState.fuelDetail === "full" ? "full" : "compact";
 
   const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() =>
     loadJsonFromStorage(LS_KEY, DEFAULT_FUEL_OPTS),
@@ -285,6 +287,31 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
 
   if (!fuelVisible) return null;
 
+  // Mismas props para las dos variantes: PitBoard conserva el widget clásico, el overlay usa el rediseñado
+  const fuelWidgetProps: React.ComponentProps<typeof FuelWidget> = {
+    fuel: fuel,
+    fuelTime: fuelTime,
+    estLaps: estLaps ?? 0,
+    fuelLast: fuelLast ?? 0,
+    fuelAvg: fuelAvgSelected,
+    estRefuel: estRefuel ?? 0,
+    fuelLevelRatio: fuelLevelRatio,
+    fuelAvg2: fuelAvg2 ?? 0,
+    fuelAvg5: fuelAvg5 ?? 0,
+    fuelAvg10: fuelAvg10 ?? 0,
+    lapNumber: displayedLap,
+    lapTime: lapTimeStr,
+    lapFuel: fuelLast ?? undefined,
+    earliestPitLap: earliestPitLap,
+    totalStops: totalStops,
+    stintLaps: stintLaps,
+    lapHistoryLast5: lapHistoryLast5,
+    lapHistoryLast30: lapHistoryLast30,
+    sessionLabel: sessionLabel,
+    airTemp: airTemp ?? null,
+    trackTemp: trackTemp ?? null,
+  };
+
   return (
     <div
       className={
@@ -308,29 +335,11 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
           <div className="label">Esperando datos de iRacing...</div>
         </div>
       ) : (
-        <FuelWidget
-          fuel={fuel}
-          fuelTime={fuelTime}
-          estLaps={estLaps ?? 0}
-          fuelLast={fuelLast ?? 0}
-          fuelAvg={fuelAvgSelected}
-          estRefuel={estRefuel ?? 0}
-          fuelLevelRatio={fuelLevelRatio}
-          fuelAvg2={fuelAvg2 ?? 0}
-          fuelAvg5={fuelAvg5 ?? 0}
-          fuelAvg10={fuelAvg10 ?? 0}
-          lapNumber={displayedLap}
-          lapTime={lapTimeStr}
-          lapFuel={fuelLast ?? undefined}
-          earliestPitLap={earliestPitLap}
-          totalStops={totalStops}
-          stintLaps={stintLaps}
-          lapHistoryLast5={lapHistoryLast5}
-          lapHistoryLast30={lapHistoryLast30}
-          sessionLabel={sessionLabel}
-          airTemp={airTemp ?? null}
-          trackTemp={trackTemp ?? null}
-        />
+        isPitboard ? (
+          <FuelWidget {...fuelWidgetProps} />
+        ) : (
+          <FuelWidgetOverlay {...fuelWidgetProps} detail={fuelDetail} />
+        )
       )}
 
       <div

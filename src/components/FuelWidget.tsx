@@ -10,7 +10,7 @@ import {
   formatTemperatureC,
 } from "../utils/format";
 
-type FuelWidgetProps = {
+export type FuelWidgetProps = {
   fuel: number;
   fuelTime: string;
   estLaps: number;

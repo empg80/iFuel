@@ -28,9 +28,7 @@ export const YellowFlagWidget = ({ warning, classColorIndexById }: Props) => {
       : "YELLOW FLAG"
     : "GREEN FLAG";
 
-  const statusLine = isActiveYellow
-    ? `Ahead: ${distanceStr} / ${timeStr}`
-    : "Track clear";
+  const flagState = !isActiveYellow ? "clear" : isDebris ? "debris" : "yellow";
 
   const iconBackground = !isActiveYellow
     ? "#00c853"
@@ -41,7 +39,7 @@ export const YellowFlagWidget = ({ warning, classColorIndexById }: Props) => {
   const iconText = isActiveYellow ? "⚑" : "✓";
 
   return (
-    <div className="fuel-widget yellow-flag-widget">
+    <div className="fuel-widget yellow-flag-widget" data-state={flagState}>
       <div
         className="yellow-flag-widget__icon"
         style={{ background: iconBackground }}
@@ -51,7 +49,18 @@ export const YellowFlagWidget = ({ warning, classColorIndexById }: Props) => {
 
       <div className="yellow-flag-widget__content">
         <div className="label">{title}</div>
-        <div className="value yellow-flag-widget__status">{statusLine}</div>
+        <div className="value yellow-flag-widget__status">
+          {isActiveYellow ? (
+            <>
+              <span className="yf-prefix">Ahead: </span>
+              <span className="yf-dist">{distanceStr}</span>
+              <span className="yf-sep"> / </span>
+              <span className="yf-time">{timeStr}</span>
+            </>
+          ) : (
+            "Track clear"
+          )}
+        </div>
 
         {isActiveYellow && w && (
           <div className="yellow-flag-widget__incident">

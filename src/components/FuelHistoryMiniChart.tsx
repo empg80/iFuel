@@ -13,8 +13,8 @@ export const FuelHistoryMiniChart = ({
   const width = 340;
   const height = 40;
 
-  const lineColor = "#6ee7a8";
-  const gridColor = "#333";
+  const lineColor = "var(--ov-ok, #6ee7a8)";
+  const gridColor = "var(--ov-grid, #333)";
 
   const { minFuel, range } = computeFuelStats(history);
   const stepX = width / Math.max(history.length - 1, 1);
@@ -31,7 +31,13 @@ export const FuelHistoryMiniChart = ({
       <div className="fuel-history-mini__title">
         FUEL (last {history.length} laps)
       </div>
-      <svg width={width} height={height}>
+      <svg
+        className="fuel-mini-svg"
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+      >
         {([0.25, 0.5, 0.75] as const).map((frac) => (
           <line
             key={frac}

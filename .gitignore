@@ -27,3 +27,4 @@ dist-ssr
 stats.html
 classColorMap.json
 dist/electron
+dist-preview/

@@ -1,0 +1,679 @@
+/* ==========================================================================
+   iFuel · tema del overlay (layout "free", encima del simulador)
+   Principios
+   - Poca atención: paneles oscuros y translúcidos, sin degradados ni sombras pesadas.
+   - Jerarquía: una o dos cifras grandes por widget; el resto, pequeño y apagado.
+   - Color con significado, nunca decorativo: verde = bien, ámbar = atención,
+     rojo = actúa ya, azul = tú. En calma el panel es neutro.
+   - Números tabulares: las cifras no "bailan" al actualizarse.
+   Todo cuelga de .app-root--free: PitBoard y Replay no cambian.
+   ========================================================================== */
+
+.app-root--free {
+  /* superficie */
+  --ov-panel: rgba(13, 16, 22, 0.78);
+  --ov-panel-solid: #0d1016;
+  --ov-line: rgba(255, 255, 255, 0.09);
+  --ov-line-strong: rgba(255, 255, 255, 0.16);
+  --ov-row: rgba(255, 255, 255, 0.035);
+  --ov-grid: rgba(255, 255, 255, 0.14);
+
+  /* texto */
+  --ov-text: #eef1f6;
+  --ov-text-2: #a4adbd; /* secundario */
+  --ov-text-3: #6f798b; /* etiquetas */
+
+  /* significado */
+  --ov-ok: #3ddc97;
+  --ov-warn: #ffb547;
+  --ov-crit: #ff5c5c;
+  --ov-me: #5aa9ff;
+
+  /* clases (multiclase): distinguibles entre sí y con daltonismo común */
+  --class-0: #4c9bff;
+  --class-1: #ff9f43;
+  --class-2: #3ddc97;
+  --class-3: #b084f5;
+  --class-4: #ff6b8b;
+  --class-5: #8fa3b8;
+
+  --ov-radius: 12px;
+  --ov-font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
+    "Helvetica Neue", Arial, sans-serif;
+
+  font-family: var(--ov-font);
+  color: var(--ov-text);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Panel base (sustituye al "cristal" con degradado) ---- */
+.app-root--free .fuel-widget,
+.app-root--free .widget {
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-line);
+  border-radius: var(--ov-radius);
+  box-shadow: none;
+  padding: 10px 14px 12px;
+  color: var(--ov-text);
+  font-family: var(--ov-font);
+}
+
+.app-root--free .fuel-widget .label {
+  color: var(--ov-text-3);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.app-root--free .fuel-widget .value {
+  color: var(--ov-text);
+  font-weight: 600;
+}
+
+.app-root--free .fuel-separator {
+  height: 1px;
+  background: var(--ov-line);
+  margin: 8px 0;
+}
+
+/* Etiquetas "FUEL ON / RELATIVE ON…": ruido en el overlay; solo se ve si falta conexión */
+.app-root--free .fuel-widget-status--connected,
+.app-root--free .relative-widget-status--connected,
+.app-root--free .yellow-widget-status--connected,
+.app-root--free .pitclear-widget-status--connected {
+  display: none;
+}
+.app-root--free .fuel-widget-status--disconnected,
+.app-root--free .relative-widget-status--disconnected,
+.app-root--free .yellow-widget-status--disconnected,
+.app-root--free .pitclear-widget-status--disconnected {
+  background: rgba(255, 92, 92, 0.16);
+  color: var(--ov-crit);
+  border: 1px solid rgba(255, 92, 92, 0.35);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* Estado del servidor: pequeño y apagado */
+.app-root--free .server-status {
+  top: 10px;
+  right: 10px;
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  background: var(--ov-panel);
+  border: 1px solid var(--ov-line);
+  color: var(--ov-text-3);
+}
+.app-root--free .server-status--connected {
+  background: var(--ov-panel);
+  color: var(--ov-text-3);
+}
+.app-root--free .server-status--connecting {
+  background: rgba(255, 181, 71, 0.16);
+  border-color: rgba(255, 181, 71, 0.4);
+  color: var(--ov-warn);
+}
+.app-root--free .server-status--disconnected {
+  background: rgba(255, 92, 92, 0.16);
+  border-color: rgba(255, 92, 92, 0.4);
+  color: var(--ov-crit);
+}
+
+/* ==========================================================================
+   COMBUSTIBLE
+   ========================================================================== */
+.app-root--free .fw {
+  min-width: 288px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* el nivel de alerta tiñe la cifra y la barra; en calma, todo neutro */
+  --fw-accent: var(--ov-ok);
+}
+.app-root--free .fw[data-level="warn"] {
+  --fw-accent: var(--ov-warn);
+  border-color: rgba(255, 181, 71, 0.45);
+}
+.app-root--free .fw[data-level="crit"] {
+  --fw-accent: var(--ov-crit);
+  border-color: rgba(255, 92, 92, 0.6);
+  background: rgba(40, 12, 14, 0.82);
+}
+
+.app-root--free .fw__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.app-root--free .fw__title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ov-text-3);
+}
+.app-root--free .fw__session {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ov-text-2);
+  letter-spacing: 0.04em;
+}
+
+.app-root--free .fw__hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+.app-root--free .fw__hero-block--right {
+  text-align: right;
+}
+.app-root--free .fw__big {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ov-text);
+}
+.app-root--free .fw__big small {
+  font-size: 16px;
+  font-weight: 600;
+  margin-left: 3px;
+  color: var(--ov-text-2);
+  letter-spacing: 0;
+}
+/* La cifra que importa para decidir (vueltas de combustible) lleva el color de alerta */
+.app-root--free .fw__big--laps {
+  color: var(--fw-accent);
+}
+.app-root--free .fw[data-level="ok"] .fw__big--laps {
+  color: var(--ov-text);
+}
+.app-root--free .fw__cap {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ov-text-3);
+}
+
+.app-root--free .fw__bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.app-root--free .fw__bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--fw-accent);
+  transition: width 0.4s ease, background-color 0.3s ease;
+}
+
+.app-root--free .fw__stats,
+.app-root--free .fw__grid {
+  display: grid;
+  gap: 10px;
+}
+.app-root--free .fw__stats,
+.app-root--free .fw__grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.app-root--free .fw__grid--4 {
+  grid-template-columns: repeat(4, auto);
+  justify-content: space-between;
+}
+.app-root--free .fw__stat--center {
+  text-align: center;
+}
+.app-root--free .fw__stat--right {
+  text-align: right;
+}
+.app-root--free .fw__stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ov-text-3);
+}
+.app-root--free .fw__stat-value {
+  margin-top: 1px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ov-text);
+  white-space: nowrap;
+}
+.app-root--free .fw__stat-value.is-good {
+  color: var(--ov-ok);
+}
+.app-root--free .fw__stat-value.is-bad {
+  color: var(--ov-crit);
+}
+.app-root--free .fw__stat-value.is-warn {
+  color: var(--ov-warn);
+}
+
+/* Modo completo: más datos, peso visual menor */
+.app-root--free .fw__more {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.app-root--free .fw__more .fw__stat-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ov-text-2);
+}
+.app-root--free .fw__more .fw__stat-value.is-good {
+  color: var(--ov-ok);
+}
+.app-root--free .fw__more .fw__stat-value.is-bad {
+  color: var(--ov-crit);
+}
+.app-root--free .fw__sep {
+  height: 1px;
+  background: var(--ov-line);
+}
+.app-root--free .fw__foot {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ov-text-3);
+  text-align: right;
+}
+
+.app-root--free .fuel-history-mini__title,
+.app-root--free .fuel-histogram-mini__title {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ov-text-3);
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.app-root--free .fuel-mini-svg {
+  display: block;
+  width: 100%;
+  height: 34px;
+}
+
+/* ==========================================================================
+   RELATIVE (delante / detrás)
+   ========================================================================== */
+.app-root--free .relative-widget {
+  min-width: 340px;
+  gap: 8px;
+  font-size: 12px;
+}
+.app-root--free .relative-cell .label {
+  margin-bottom: 3px;
+}
+.app-root--free .relative-cell--ahead .label,
+.app-root--free .relative-cell--ahead {
+  text-align: right;
+}
+.app-root--free .relative-car {
+  background: transparent;
+  padding: 0;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ov-text);
+  gap: 5px;
+}
+.app-root--free .relative-gap {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+/* Quien viene detrás es la amenaza (rojo); quien va delante, la presa (verde) */
+.app-root--free .relative-cell--behind .relative-gap {
+  color: var(--ov-crit);
+}
+.app-root--free .relative-cell--ahead .relative-gap {
+  color: var(--ov-ok);
+}
+.app-root--free .relative-pos {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ov-me);
+  text-align: center;
+}
+.app-root--free .relative-cell--you {
+  text-align: center;
+}
+
+.app-root--free .relative-bar {
+  height: 6px;
+  margin-top: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: visible;
+}
+.app-root--free .relative-bar__center {
+  width: 2px;
+  background: var(--ov-me);
+  top: -3px;
+  bottom: -3px;
+  border-radius: 2px;
+}
+.app-root--free .relative-bar__marker {
+  top: -2px;
+  width: 8px;
+  height: 10px;
+  border-radius: 3px;
+  box-shadow: none;
+}
+.app-root--free .relative-bar__marker--behind {
+  background: var(--ov-crit);
+}
+.app-root--free .relative-bar__marker--ahead {
+  background: var(--ov-ok);
+}
+
+.app-root--free .relative-delta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ov-text-2);
+}
+.app-root--free .relative-delta--good {
+  color: var(--ov-ok);
+}
+.app-root--free .relative-delta--bad {
+  color: var(--ov-crit);
+}
+.app-root--free .relative-times .label {
+  display: none; /* "LAST / BEST" repetido: el significado ya lo da la fila */
+}
+.app-root--free .relative-laptimes {
+  font-size: 11px;
+  color: var(--ov-text-2);
+}
+.app-root--free .relative-laptimes__best {
+  opacity: 0.6;
+}
+.app-root--free .relative-ontrack-grid {
+  margin-top: 0;
+  gap: 8px;
+}
+.app-root--free .relative-ontrack {
+  font-size: 11px;
+}
+.app-root--free .relative-ontrack__car {
+  background: transparent;
+  padding: 0;
+  min-width: 0;
+  font-weight: 700;
+}
+.app-root--free .relative-ontrack__text--lapped {
+  color: var(--ov-text-3);
+}
+.app-root--free .relative-ontrack__text--ahead-lap {
+  color: var(--ov-warn);
+}
+.app-root--free .relative-ontrack--empty {
+  color: var(--ov-text-3);
+}
+
+/* ==========================================================================
+   INSIGNIA DE CLASE (P1, P2…)
+   ========================================================================== */
+.app-root--free .class-badge,
+.app-root--free .class-badge {
+  font-weight: 700;
+  color: #0b0e13;
+  margin-left: 4px;
+}
+.app-root--free .class-badge--normal {
+  width: auto;
+  min-width: 24px;
+  padding: 0 5px;
+  height: 18px;
+  font-size: 11px;
+}
+.app-root--free .class-badge--small {
+  width: auto;
+  min-width: 20px;
+  padding: 0 4px;
+  height: 15px;
+  font-size: 9px;
+}
+.app-root--free .class-badge--0 { background: var(--class-0); }
+.app-root--free .class-badge--1 { background: var(--class-1); }
+.app-root--free .class-badge--2 { background: var(--class-2); }
+.app-root--free .class-badge--3 { background: var(--class-3); }
+.app-root--free .class-badge--4 { background: var(--class-4); }
+.app-root--free .class-badge--5 { background: var(--class-5); }
+.app-root--free .class-badge--none { background: #444; color: #fff; }
+
+/* ==========================================================================
+   BANDERA AMARILLA
+   ========================================================================== */
+.app-root--free .yellow-flag-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 270px;
+  padding: 9px 14px 9px 10px;
+  --yf-accent: var(--ov-ok);
+}
+.app-root--free .yellow-flag-widget[data-state="yellow"],
+.app-root--free .yellow-flag-widget[data-state="debris"] {
+  --yf-accent: #ffd23f;
+  background: rgba(46, 38, 6, 0.86);
+  border-color: rgba(255, 210, 63, 0.65);
+}
+.app-root--free .yellow-flag-widget__icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  /* el fondo lo pone el componente (verde / amarillo / rayas de escombros) */
+}
+.app-root--free .yellow-flag-widget__icon-text {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0b0e13;
+}
+.app-root--free .yellow-flag-widget .label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--yf-accent);
+}
+.app-root--free .yellow-flag-widget__status {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ov-text-2);
+}
+.app-root--free .yellow-flag-widget[data-state="yellow"] .yf-dist,
+.app-root--free .yellow-flag-widget[data-state="debris"] .yf-dist {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+.app-root--free .yellow-flag-widget[data-state="yellow"] .yf-time,
+.app-root--free .yellow-flag-widget[data-state="debris"] .yf-time {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffd23f;
+}
+.app-root--free .yf-prefix,
+.app-root--free .yf-sep {
+  color: var(--ov-text-3);
+  font-weight: 500;
+  font-size: 12px;
+}
+.app-root--free .yellow-flag-widget__incident {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ov-text-2);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ==========================================================================
+   PIT CLEAR AIR
+   ========================================================================== */
+.app-root--free .pit-clear-air-widget {
+  min-width: 250px;
+  --pc-accent: var(--ov-text-2);
+}
+.app-root--free .pit-clear-air-widget[data-level="soon"] {
+  --pc-accent: var(--ov-warn);
+  border-color: rgba(255, 181, 71, 0.45);
+}
+.app-root--free .pit-clear-air-widget[data-level="now"] {
+  --pc-accent: var(--ov-ok);
+  border-color: rgba(61, 220, 151, 0.65);
+  background: rgba(10, 36, 26, 0.84);
+}
+.app-root--free .pit-clear-air-widget__header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 4px;
+}
+.app-root--free .pit-clear-air-widget .fuel-main {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ov-text);
+}
+.app-root--free .pit-clear-air-widget__highlight {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #0b0e13;
+  background: var(--pc-accent);
+}
+.app-root--free .pit-clear-air-widget__title--now,
+.app-root--free .pit-clear-air-widget__title--soon {
+  color: var(--pc-accent);
+}
+.app-root--free .pit-clear-air-widget__window {
+  font-size: 11px;
+  color: var(--ov-text-3);
+  margin-bottom: 4px;
+}
+.app-root--free .pit-clear-air-widget__option {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ov-text-3);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.app-root--free .pit-clear-air-widget__option--selected {
+  color: var(--ov-text);
+  background: rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   STANDINGS
+   ========================================================================== */
+.app-root--free .race-standings-widget {
+  min-width: 400px;
+  padding: 10px 10px 8px;
+}
+.app-root--free .widget__header {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ov-text-3);
+  margin: 0 4px 6px;
+}
+.app-root--free .race-standings__table {
+  font-size: 12px;
+  line-height: 1.35;
+}
+.app-root--free .race-standings__row {
+  grid-template-columns: 26px 46px 1fr 78px 38px 46px;
+  padding: 3px 6px 3px 8px;
+  border-radius: 6px;
+  background: transparent;
+  border-left: 3px solid transparent;
+}
+.app-root--free .race-standings__row--header {
+  color: var(--ov-text-3);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  background: transparent;
+  border-left-color: transparent;
+}
+.app-root--free .race-standings__row--header span {
+  color: var(--ov-text-3);
+}
+/* la clase se lee en una barra lateral fina, no en toda la fila */
+.app-root--free .race-standings__row--class-0 { border-left-color: var(--class-0); background: transparent; }
+.app-root--free .race-standings__row--class-1 { border-left-color: var(--class-1); background: transparent; }
+.app-root--free .race-standings__row--class-2 { border-left-color: var(--class-2); background: transparent; }
+.app-root--free .race-standings__row--class-3 { border-left-color: var(--class-3); background: transparent; }
+.app-root--free .race-standings__row--class-4 { border-left-color: var(--class-4); background: transparent; }
+.app-root--free .race-standings__row--class-5 { border-left-color: var(--class-5); background: transparent; }
+.app-root--free .race-standings__row:not(.race-standings__row--header):nth-child(even) {
+  background: var(--ov-row);
+}
+.app-root--free .race-standings__row--me,
+.app-root--free .race-standings__row--me:nth-child(even) {
+  background: rgba(90, 169, 255, 0.18);
+  color: #fff;
+  font-weight: 700;
+}
+.app-root--free .race-standings__cell--pos {
+  font-weight: 700;
+  color: var(--ov-text);
+}
+.app-root--free .race-standings__cell--driver {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-root--free .race-standings__cell--best,
+.app-root--free .race-standings__cell--stint,
+.app-root--free .race-standings__cell--pit {
+  color: var(--ov-text-2);
+  text-align: right;
+}
+.app-root--free .race-standings__row--me .race-standings__cell--best,
+.app-root--free .race-standings__row--me .race-standings__cell--stint,
+.app-root--free .race-standings__row--me .race-standings__cell--pit {
+  color: #fff;
+}
+.app-root--free .race-standings__cell--car .class-badge {
+  margin: 0;
+  min-width: 0;
+  height: 16px;
+  padding: 0 5px;
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--ov-text);
+}
+
+/* ==========================================================================
+   MODO EDICIÓN (overlay desbloqueado)
+   ========================================================================== */
+.app-root--free .edit-mode-frame {
+  box-shadow: inset 0 0 0 2px rgba(255, 92, 92, 0.8);
+}
+.app-root--free .edit-mode-banner {
+  background: rgba(255, 92, 92, 0.92);
+  font-family: var(--ov-font);
+  font-weight: 600;
+}
+
+/* Accesibilidad: sin animaciones si el sistema lo pide */
+@media (prefers-reduced-motion: reduce) {
+  .app-root--free .fw__bar-fill {
+    transition: none;
+  }
+}

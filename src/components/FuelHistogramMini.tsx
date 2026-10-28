@@ -17,14 +17,20 @@ export const FuelHistogramMini = ({ history }: FuelHistogramMiniProps) => {
 
   const { minFuel, avgFuel, range, safeThreshold } = computeFuelStats(history);
 
-  const gridColor = "#333";
+  const gridColor = "var(--ov-grid, #333)";
 
   return (
     <div className="fuel-histogram-mini">
       <div className="fuel-histogram-mini__title">
         FUEL HISTOGRAM (last {history.length} laps)
       </div>
-      <svg width={width} height={height}>
+      <svg
+        className="fuel-mini-svg"
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+      >
         <line
           x1={0}
           x2={width}

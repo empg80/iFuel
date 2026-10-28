@@ -26,7 +26,7 @@ export function getFuelBarColor(
   avgFuel: number,
   safeThreshold: number
 ) {
-  if (value <= avgFuel * 0.98) return "#22c55e";
-  if (value <= safeThreshold) return "#eab308";
-  return "#f97316";
+  if (value <= avgFuel * 0.98) return "var(--ov-ok, #22c55e)";
+  if (value <= safeThreshold) return "var(--ov-warn, #eab308)";
+  return "var(--ov-crit, #f97316)";
 }

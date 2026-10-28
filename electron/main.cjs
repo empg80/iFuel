@@ -161,6 +161,7 @@ const DEFAULT_OVERLAY_STATE = {
   standingsScale: 1,
   layoutMode: "free",
 
+  fuelDetail: "compact", // "compact" (datos clave) | "full" (todos los datos) en el widget de combustible
   overlayMode: true, // ventana transparente, siempre encima y click-through (solo layout "free")
   overlayDisplayId: null, // monitor donde se dibuja el overlay (null = principal)
 };
@@ -195,6 +196,13 @@ function validateOverlayState(candidate) {
     if (typeof v !== "number" || !Number.isFinite(v) || v < 0.5 || v > 3) {
       return false;
     }
+  }
+
+  if (
+    candidate.fuelDetail != null &&
+    !["compact", "full"].includes(candidate.fuelDetail)
+  ) {
+    return false;
   }
 
   if (
@@ -327,6 +335,7 @@ const allowedKeys = new Set([
   "replayVisible",
   "overlayMode",
   "overlayDisplayId",
+  "fuelDetail",
 ]);
 
 
@@ -531,6 +540,22 @@ function buildMenuTemplate() {
 
         // Escala Fuel
         scaleMenu("Fuel size", "fuelScale"),
+        {
+          label: "Fuel detail",
+          submenu: [
+            ["compact", "Compact (key data)"],
+            ["full", "Full (all data)"],
+          ].map(([mode, label]) => ({
+            label,
+            type: "radio",
+            checked: overlayState.fuelDetail === mode,
+            click: () => {
+              overlayState.fuelDetail = mode;
+              saveOverlayState();
+              sendOverlayState();
+            },
+          })),
+        },
 
         // Escala Yellow
         scaleMenu("Yellow size", "yellowScale"),

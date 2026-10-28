@@ -61,6 +61,13 @@ export const PitClearAirWidget = ({
     }
   }
 
+  const level =
+    highlightClass === "pit-clear-air-widget__highlight--now"
+      ? "now"
+      : highlightClass === "pit-clear-air-widget__highlight--soon"
+        ? "soon"
+        : "none";
+
   const titleStateClass =
     highlightClass === "pit-clear-air-widget__highlight--now"
       ? "pit-clear-air-widget__title--now"
@@ -69,7 +76,7 @@ export const PitClearAirWidget = ({
         : "";
 
   return (
-    <div className="fuel-widget pit-clear-air-widget">
+    <div className="fuel-widget pit-clear-air-widget" data-level={level}>
       <div className={`label ${titleStateClass}`}>PIT CLEAR AIR</div>
 
       <div className="pit-clear-air-widget__header-row">
