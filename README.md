@@ -266,6 +266,10 @@ npm run build
 npm test          # client helpers + telemetry server (node:test, no iRacing needed)
 ```
 
+Real‑session test procedure and the files to collect: [`docs/PRUEBA-REAL.md`](docs/PRUEBA-REAL.md) (Spanish).
+
+Overlay mode: with the *Free* layout the window is transparent, always on top and click‑through; **Ctrl+Shift+L** toggles edit mode, **Ctrl+Shift+H** hides/shows it, and the tray icon has the full menu. iRacing must run windowed or borderless.
+
 Tests use a simulated iRacing SDK, so they run on any OS. `ANALYZE=1 npm run build` also writes `stats.html` (bundle report).
 
 Key files:
