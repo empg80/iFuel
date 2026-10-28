@@ -1,4 +1,6 @@
-# Prueba real con iRacing
+# Prueba real con iRacing (desde el código)
+
+> ¿Solo quieres probar la beta ya compilada? Usa `docs/PRUEBA-BETA.txt` (viene dentro del zip de la release): sin Node ni npm, y el informe se genera solo al cerrar.
 
 Guía para probar iFuel con el simulador y recoger los datos que hacen falta para revisarlo.
 Tiempo total: ~45 min (A: 5 · B: 25 · C: 15).

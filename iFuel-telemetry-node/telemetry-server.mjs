@@ -1407,7 +1407,9 @@ if (origin && !allowedOrigins.has(origin)) {
     await new Promise((resolve) => wss.close(() => resolve()));
   };
 
-  return { stop, startRecording, stopRecording, saveSnapshot };
+  const isSdkConnected = () => !!diag.sdk;
+
+  return { stop, startRecording, stopRecording, saveSnapshot, isSdkConnected };
 }
 
 export { startTelemetryServer, probeSimRunning, TELEMETRY_VARS, SNAPSHOT_VARS };

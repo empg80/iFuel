@@ -1,0 +1,67 @@
+iFUEL BETA - GUIA DE LA PRUEBA
+==============================
+
+Esta beta graba sola la sesión de prueba. Tú solo tienes que jugar, y al cerrar iFuel
+se genera UN archivo .zip con todo lo necesario. Tiempo: unos 30-40 minutos.
+
+ANTES DE EMPEZAR
+----------------
+1. Descomprime iFuel-0.1.0-beta.1-win-x64.zip en una carpeta tuya (por ejemplo C:\iFuel) y ejecuta iFuel.exe.
+   No hace falta instalar nada. Windows puede avisar "Windows protegió su PC" porque la app no está
+   firmada: pulsa "Más información" y luego "Ejecutar de todas formas".
+2. iRacing debe ir en modo VENTANA o VENTANA SIN BORDES (Opciones > Gráficos).
+   En pantalla completa exclusiva ningún overlay se puede dibujar encima (límite de Windows).
+3. Abre iFuel (antes o después de iRacing, da igual). No tiene ventana ni barra de título:
+   busca su icono en la bandeja del sistema (junto al reloj). Verás un aviso "iFuel BETA: grabando".
+
+CONTROLES
+---------
+  Ctrl+Shift+L   bloquear / desbloquear widgets (bloqueado = los clics atraviesan hasta el juego;
+                 desbloqueado = modo edición con marco rojo para mover los widgets)
+  Ctrl+Shift+H   ocultar / mostrar el overlay
+  Bandeja (clic derecho en el icono): menú completo, tamaños, monitor, "BETA test" y "Quit iFuel"
+
+LA PRUEBA
+---------
+A. Sin simulador (5 min)
+   - Se ve el cartel de estado encima de todo, sin marco de ventana.
+   - Con los widgets bloqueados, abre el Bloc de notas: puedes escribir y hacer clic "a través" de iFuel.
+   - Ctrl+Shift+L: marco rojo y puedes arrastrar los widgets. Ctrl+Shift+L otra vez: vuelve el click-through.
+
+B. Con iRacing (25 min) - práctica o Test Drive
+   1. Con el coche en boxes, espera medio minuto (iFuel hace un volcado del SDK solo).
+      Anota la capacidad del depósito que muestra iRacing en el garaje (L).
+   2. Sal a pista y da 5 vueltas limpias. Anota el consumo por vuelta que indique iRacing o tu dash.
+   3. Entra a boxes, reposta y sal. Mira si cuenta 1 parada y si el stint empieza de cero.
+   4. Da 2-3 vueltas más. Comprueba: el overlay se ve sobre el sim, el teclado y los clics siguen
+      llegando al sim, y el sim no parpadea ni pierde el foco.
+   5. Abre un replay 1-2 minutos con iFuel en marcha (no debe medir vueltas) y, si quieres, activa la
+      vista Replay desde el menú de la bandeja.
+   6. Cierra iRacing y vuelve a abrirlo SIN cerrar iFuel: debe recuperar los datos solo.
+   7. Si ves una bandera amarilla con un coche parado, apunta qué muestra el aviso.
+   8. Haz una captura del overlay sobre iRacing (bloqueado y en modo edición).
+
+C. Al terminar
+   - Bandeja > "Quit iFuel". Se genera el informe y se abre la carpeta con el archivo:
+       Documentos\iFuel-beta\ifuel-beta-AAAAMMDD-HHMMSS.zip
+   - (Si necesitas el informe sin cerrar: bandeja > BETA test > Generate report now.)
+   - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
+   - Envíame el .zip y las capturas.
+
+QUÉ LLEVA EL INFORME
+--------------------
+  logs\ifuel.log                  errores, reconexiones, arranque
+  diagnostics\ifuel-*.jsonl.gz    la sesión grabada (~4 mensajes/s)
+  diagnostics\*snapshot*.json     datos crudos del SDK (capacidad, unidades...)
+  overlay-state.json              tu configuración del overlay
+  resumen.json                    versión, sistema, monitores, duración
+  NOTAS.txt                       plantilla de notas
+
+Privacidad: la grabación incluye nombres y números de los coches de la sesión (lo que ya ve cualquiera en
+iRacing). El volcado del SDK no lleva nombres. Revisa el zip si prefieres no compartirlo entero.
+
+SI ALGO FALLA
+-------------
+  - Pantalla en blanco o el overlay no aparece: cierra iFuel y ábrelo desde una consola con
+    iFuel.exe --windowed (ventana normal). Aun así, el informe incluye el log.
+  - El zip no se genera: copia a mano la carpeta %APPDATA%\ifuel (logs y diagnostics) y envíala.

@@ -16,6 +16,7 @@ const path = require("path");
 const util = require("util");
 const { pathToFileURL } = require("url");
 const overlayWindow = require("./overlayWindow.cjs");
+const betaReport = require("./betaReport.cjs");
 
 // Salida de emergencia: `iFuel.exe --windowed` (o IFUEL_WINDOWED=1) arranca como ventana normal
 const forceWindowed =
@@ -35,6 +36,10 @@ let quitting = false;
 let replayWindow = null;
 
 const isDev = !app.isPackaged; // dev vs producción [web:17]
+
+// Versión beta (0.x.y-beta.N): graba la sesión sola y genera un informe .zip al cerrar
+const isBetaBuild = betaReport.isBeta(app.getVersion());
+const runStartedAt = Date.now();
 
 // Log en archivo (userData/logs/ifuel.log): la app instalada no tiene consola visible
 function setupFileLogging() {
@@ -614,6 +619,18 @@ function buildMenuTemplate() {
         },
       ],
     },
+    ...(isBetaBuild
+      ? [
+          {
+            label: "BETA test",
+            submenu: [
+              { label: "Open test guide", click: () => openTestGuide() },
+              { label: "Generate report now (zip)", click: () => generateBetaReport({ reveal: true }) },
+              { label: "Open reports folder", click: () => shell.openPath(betaReportsDir()) },
+            ],
+          },
+        ]
+      : []),
   ];
 }
 
@@ -758,6 +775,75 @@ function saveSnapshot() {
   }
 }
 
+// --- Beta: grabación automática, volcados periódicos del SDK e informe .zip al cerrar
+const betaReportsDir = () => path.join(app.getPath("documents"), "iFuel-beta");
+let betaTimer = null;
+let betaSnapshotsTaken = 0;
+let betaConnectedAt = null;
+let betaLastSnapshotAt = 0;
+
+function startBetaSession() {
+  if (!isBetaBuild || !telemetryHandle) return;
+  startRecording();
+  notify(
+    `iFuel BETA ${app.getVersion()}: grabando la prueba`,
+    "Al cerrar iFuel (bandeja → Quit iFuel) se genera el informe en Documentos\\iFuel-beta",
+  );
+  betaTimer = setInterval(() => {
+    try {
+      if (!telemetryHandle?.isSdkConnected?.()) return;
+      const now = Date.now();
+      betaConnectedAt ??= now;
+      // primer volcado 30 s después de recibir datos; luego uno cada 10 minutos
+      const due = betaSnapshotsTaken === 0 ? now - betaConnectedAt > 30_000 : now - betaLastSnapshotAt > 10 * 60_000;
+      if (due && betaSnapshotsTaken < 8) {
+        telemetryHandle.saveSnapshot(diagnosticsDir());
+        betaSnapshotsTaken++;
+        betaLastSnapshotAt = now;
+      }
+    } catch (err) {
+      console.error("[iFuel] Volcado automático del SDK fallido:", err);
+    }
+  }, 5000);
+}
+
+function openTestGuide() {
+  const guide = isDev
+    ? path.join(__dirname, "..", "docs", "PRUEBA-BETA.txt")
+    : path.join(process.resourcesPath, "PRUEBA-BETA.txt");
+  shell.openPath(guide).then((err) => {
+    if (err) console.error("No se pudo abrir la guía:", err);
+  });
+}
+
+// Reúne logs, grabación, volcados y configuración en un .zip. Devuelve la ruta (o null si falla).
+function generateBetaReport({ reveal = false } = {}) {
+  try {
+    const { zipPath, included } = betaReport.buildReport({
+      userData: app.getPath("userData"),
+      outDir: betaReportsDir(),
+      since: runStartedAt - 1000,
+      summary: {
+        app: `iFuel ${app.getVersion()}`,
+        electron: process.versions.electron,
+        sistema: `${process.platform} ${process.arch} ${require("os").release()}`,
+        inicio: new Date(runStartedAt).toISOString(),
+        duracionMin: Math.round((Date.now() - runStartedAt) / 600) / 100,
+        volcadosAutomaticos: betaSnapshotsTaken,
+        modoVentanaForzado: forceWindowed,
+        overlay: { ...overlayState },
+        monitores: screen.getAllDisplays().map((d) => ({ id: d.id, bounds: d.bounds, scale: d.scaleFactor })),
+      },
+    });
+    console.log(`[iFuel] Informe beta: ${zipPath} (${included.length} archivos)`);
+    if (reveal) shell.showItemInFolder(zipPath);
+    return zipPath;
+  } catch (err) {
+    console.error("No se pudo generar el informe beta:", err);
+    return null;
+  }
+}
+
 function createWindow() {
   const overlay = overlayWindow.shouldUseOverlay(overlayState, { forceWindowed });
   const display = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
@@ -841,6 +927,7 @@ if (!gotSingleInstanceLock) {
     createWindow();
     createTray();
     registerShortcuts();
+    startBetaSession();
 
     // Reafirma "siempre encima" y reacomoda el overlay si cambian los monitores
     topmostTimer = setInterval(() => {
@@ -862,7 +949,20 @@ app.on("before-quit", (event) => {
   quitting = true;
   event.preventDefault();
   if (topmostTimer) clearInterval(topmostTimer);
-  stopTelemetryServerInElectron().finally(() => app.quit());
+  if (betaTimer) clearInterval(betaTimer);
+  if (isBetaBuild) {
+    // volcado final con la sesión aún viva, antes de parar el servidor
+    try {
+      if (telemetryHandle?.isSdkConnected?.()) telemetryHandle.saveSnapshot(diagnosticsDir());
+    } catch (err) {
+      console.error("Volcado final del SDK fallido:", err);
+    }
+  }
+  stopTelemetryServerInElectron().finally(() => {
+    // el servidor ya cerró la grabación gzip: ahora sí, el informe
+    if (isBetaBuild) generateBetaReport({ reveal: true });
+    app.quit();
+  });
 });
 
 app.on("will-quit", () => {
