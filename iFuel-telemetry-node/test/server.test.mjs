@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import zlib from "node:zlib";
 import { WebSocket } from "ws";
 import { startTelemetryServer, TELEMETRY_VARS } from "../telemetry-server.mjs";
 import { createFakeSdk } from "./helpers/fake-sdk.mjs";
@@ -156,4 +157,38 @@ test("stop() libera el puerto: se puede reiniciar sin EADDRINUSE y el class map 
   await sleep(400);
   await h2.stop();
   assert.ok(fs.existsSync(path.join(dataDir, "classColorMap.json")));
+});
+
+test("grabación: guarda un payload por línea en .jsonl.gz, incluso sin clientes conectados", async () => {
+  const s = await boot();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ifuel-rec-"));
+  try {
+    s.ws.close(); await sleep(200); // sin ningún cliente WebSocket
+    const file = s.handle.startRecording(dir);
+    assert.ok(file.endsWith(".jsonl.gz"));
+    await sleep(1300);
+    assert.equal(await s.handle.stopRecording(), file);
+    const lines = zlib.gunzipSync(fs.readFileSync(file)).toString("utf8").trim().split("\n").map((l) => JSON.parse(l));
+    assert.ok(lines[0]._meta?.startedAt, "primera línea con metadatos");
+    assert.ok(lines.length >= 4, `varios payloads (${lines.length} líneas)`);
+    assert.equal(lines[1].sessionKey, "111:0");
+    assert.equal(await s.handle.stopRecording(), null, "parar dos veces no falla");
+  } finally { await s.handle.stop(); }
+});
+
+test("volcado del SDK: capacidad, unidades y variables crudas, sin nombres de pilotos", async () => {
+  const s = await boot();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ifuel-snap-"));
+  try {
+    await s.waitFor(() => true);
+    const file = s.handle.saveSnapshot(dir);
+    const raw = fs.readFileSync(file, "utf8");
+    const snap = JSON.parse(raw);
+    assert.equal(snap.driverInfo.DriverCarFuelMaxLtr, 100);
+    assert.equal(snap.driverInfo.DriverCarMaxFuelPct, 0.5);
+    assert.equal(snap.weekendInfo.TrackName, "test");
+    assert.deepEqual(snap.telemetry.FuelLevel, [40]);
+    assert.equal(snap.telemetry.PitSvFuel, null, "variable ausente en el fake -> null, no rompe");
+    assert.ok(!/D0|D1|UserName|CarNumber/.test(raw), "no se vuelcan nombres ni números de pilotos");
+  } finally { await s.close(); }
 });

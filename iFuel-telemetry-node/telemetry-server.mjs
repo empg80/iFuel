@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 
 import http from "node:http";
+import zlib from "node:zlib";
 import { pathToFileURL } from "node:url";
 import { createCarSpeedTracker } from "./carSpeed.mjs";
 import {
@@ -62,6 +63,42 @@ const TELEMETRY_VARS = [
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
   "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
 ];
+
+// Variables extra que se vuelcan en el "SDK snapshot" de diagnóstico (no las usa el bucle).
+// Sirven para comprobar unidades y significado de los datos en una sesión real.
+const SNAPSHOT_VARS = [
+  "FuelLevel", "FuelLevelPct", "FuelUsePerHour", "PitSvFuel", "PitSvFlags",
+  "SessionLapsRemainEx", "SessionLapsTotal", "SessionTimeRemain", "SessionTimeTotal",
+  "SessionState", "SessionFlags", "SessionNum", "Lap", "LapCompleted", "LapDistPct",
+  "LapLastLapTime", "LapBestLapTime", "LapCurrentLapTime", "Speed", "OnPitRoad", "IsOnTrack",
+  "IsInGarage", "IsReplayPlaying", "PlayerCarIdx", "PlayerTrackSurface",
+  "CarIdxEstTime", "CarIdxF2Time", "CarIdxLapDistPct", "CarIdxLapCompleted", "CarIdxPosition",
+  "CarIdxClassPosition", "CarIdxClass", "CarIdxOnPitRoad", "CarIdxTrackSurface",
+  "TrackTemp", "TrackTempCrew", "AirTemp",
+];
+
+const pick = (obj, keys) =>
+  Object.fromEntries(keys.filter((k) => obj && k in obj).map((k) => [k, obj[k]]));
+
+const timestamp = () => new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+
+// Grabador de payloads: una línea JSON por mensaje (~4 Hz), comprimido con gzip al vuelo.
+const MAX_RECORDING_BYTES = 400 * 1024 * 1024; // tope de datos SIN comprimir
+function openRecorder(file) {
+  const gz = zlib.createGzip({ level: 6 });
+  const out = fs.createWriteStream(file);
+  gz.pipe(out);
+  let bytes = 0;
+  return {
+    file,
+    write(line) {
+      if (bytes > MAX_RECORDING_BYTES) return;
+      bytes += line.length;
+      gz.write(line);
+    },
+    close: () => new Promise((resolve) => { out.on("finish", resolve); gz.end(); }),
+  };
+}
 
 function readTelemetry(sdk) {
   if (typeof sdk.getTelemetryVariable !== "function") return sdk.getTelemetry();
@@ -255,7 +292,7 @@ function computePitClearAirSuggestion({
 function startTelemetryLoop(
   sdk,
   wss,
-  { onSimClosed, isSimRunning = defaultIsSimRunning, simClosedCheckMs = SIM_CLOSED_CHECK_MS } = {},
+  { onSimClosed, isSimRunning = defaultIsSimRunning, simClosedCheckMs = SIM_CLOSED_CHECK_MS, diag = {} } = {},
 ) {
   resetPitAndStintState();
   const trackCarSpeeds = createCarSpeedTracker();
@@ -298,6 +335,8 @@ function startTelemetryLoop(
       if (fresh) sessionCache = { version: sessionVersion, data: fresh };
     }
     const session = sessionCache.data;
+    diag.sdk = sdk;
+    diag.session = session;
 
     // -------- WeekendInfo / Weather para TrackInfoWidget --------
 const weekend = session?.WeekendInfo ?? {};
@@ -1033,8 +1072,8 @@ standings.sort((a, b) => a.position - b.position);
       ? (carIdxBestLapTime[driverIdx] || null)
       : null;
 
-    // Sin clientes conectados no merece la pena serializar ni enviar nada
-    if (wss.clients.size === 0) return;
+    // Sin clientes conectados (y sin grabación en curso) no merece la pena serializar ni enviar nada
+    if (wss.clients.size === 0 && !diag.recorder) return;
 
     const payload = JSON.stringify({
   fuelLevel,
@@ -1071,6 +1110,8 @@ standings.sort((a, b) => a.position - b.position);
   rainChance,
 });
 
+
+    if (diag.recorder) diag.recorder.write(payload + "\n");
 
     wss.clients.forEach((client) => {
       if (client.readyState === 1) {
@@ -1135,6 +1176,9 @@ async function startTelemetryServer(options = {}) {
   });
 
   // Estado de conexion con iRacing, para poder parar/reiniciar el servidor de forma limpia
+  // Estado compartido con el bucle para diagnóstico (SDK actual, sesión y grabador)
+  const diag = { sdk: null, session: null, recorder: null };
+
   const control = {
     stopped: false,
     sdk: null,
@@ -1270,6 +1314,7 @@ if (origin && !allowedOrigins.has(origin)) {
           control.timer = startTelemetryLoop(sdk, wss, {
             isSimRunning: control.isSimRunning,
             simClosedCheckMs: control.simClosedCheckMs,
+            diag,
             onSimClosed: () => {
               console.log("[iFuel] iRacing se ha cerrado; esperando para reconectar...");
               resolve();
@@ -1299,8 +1344,59 @@ if (origin && !allowedOrigins.has(origin)) {
   });
 
   // Parada limpia: corta el bucle, libera el SDK y cierra el servidor WS
+  const startRecording = (dir) => {
+    if (diag.recorder) return diag.recorder.file;
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, `ifuel-${timestamp()}.jsonl.gz`);
+    diag.recorder = openRecorder(file);
+    diag.recorder.write(
+      JSON.stringify({ _meta: { startedAt: new Date().toISOString(), format: "un payload de iFuel por línea (~4 Hz)" } }) + "\n",
+    );
+    return file;
+  };
+
+  const stopRecording = async () => {
+    const recorder = diag.recorder;
+    diag.recorder = null;
+    if (!recorder) return null;
+    await recorder.close();
+    return recorder.file;
+  };
+
+  // Volcado puntual de datos crudos del SDK. No incluye nombres ni IDs de pilotos.
+  const saveSnapshot = (dir) => {
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, `ifuel-sdk-snapshot-${timestamp()}.json`);
+    const session = diag.session ?? {};
+    const sessionNum = diag.sdk?.getTelemetryVariable?.("SessionNum")?.value?.[0];
+    const telemetry = {};
+    for (const name of SNAPSHOT_VARS) {
+      const variable = diag.sdk?.getTelemetryVariable?.(name);
+      telemetry[name] = variable ? Array.from(variable.value ?? []).slice(0, 64) : null;
+    }
+    const snapshot = {
+      _meta: { takenAt: new Date().toISOString(), sdkConnected: !!diag.sdk, sessionNum },
+      weekendInfo: pick(session.WeekendInfo, [
+        "TrackName", "TrackDisplayName", "TrackLength", "TrackLengthOfficial", "SeriesID",
+        "SeasonID", "SessionID", "SubSessionID", "EventType", "Category", "NumCarClasses",
+      ]),
+      driverInfo: pick(session.DriverInfo, [
+        "DriverCarIdx", "DriverCarFuelKgPerLtr", "DriverCarFuelMaxLtr", "DriverCarMaxFuelPct",
+        "DriverCarEstLapTime", "DriverPitTrkPct", "DriverCarVersion",
+      ]),
+      session: pick(
+        (session.SessionInfo?.Sessions ?? []).find((x) => x.SessionNum === sessionNum),
+        ["SessionNum", "SessionType", "SessionName", "SessionLaps", "SessionTime"],
+      ),
+      telemetry,
+    };
+    fs.writeFileSync(file, JSON.stringify(snapshot, null, 2));
+    return file;
+  };
+
   const stop = async () => {
     control.stopped = true;
+    await stopRecording();
     if (control.timer) clearInterval(control.timer);
     if (control.finishLoop) control.finishLoop();
     try {
@@ -1312,10 +1408,10 @@ if (origin && !allowedOrigins.has(origin)) {
     await new Promise((resolve) => wss.close(() => resolve()));
   };
 
-  return { stop };
+  return { stop, startRecording, stopRecording, saveSnapshot };
 }
 
-export { startTelemetryServer, probeSimRunning, TELEMETRY_VARS };
+export { startTelemetryServer, probeSimRunning, TELEMETRY_VARS, SNAPSHOT_VARS };
 
 // Arranque manual: `npm run telemetry` (node telemetry-server.mjs). Electron lo importa y
 // lo arranca él mismo, así que esto solo se ejecuta si el archivo es el punto de entrada.

@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { TELEMETRY_VARS } from "../telemetry-server.mjs";
+import { TELEMETRY_VARS, SNAPSHOT_VARS } from "../telemetry-server.mjs";
 
 const serverSrc = fs.readFileSync(new URL("../telemetry-server.mjs", import.meta.url), "utf8");
 const typesUrl = new URL("../node_modules/@irsdk-node/types/dist/types/telemetry.gen.d.ts", import.meta.url);
@@ -24,5 +24,11 @@ test("TELEMETRY_VARS no tiene nombres duplicados ni sobrantes", () => {
 test("cada variable existe en la versión instalada del SDK (@irsdk-node/types)", { skip: !fs.existsSync(typesUrl) && "sin @irsdk-node/types instalado" }, () => {
   const types = fs.readFileSync(typesUrl, "utf8");
   const unknown = TELEMETRY_VARS.filter((n) => !new RegExp(`^\\s+${n}: TelemetryVariable`, "m").test(types));
+  assert.deepEqual(unknown, [], `No existen en el SDK: ${unknown.join(", ")}`);
+});
+
+test("las variables del volcado de diagnóstico (SNAPSHOT_VARS) también existen en el SDK", { skip: !fs.existsSync(typesUrl) && "sin @irsdk-node/types instalado" }, () => {
+  const types = fs.readFileSync(typesUrl, "utf8");
+  const unknown = SNAPSHOT_VARS.filter((n) => !new RegExp(`^\\s+${n}: TelemetryVariable`, "m").test(types));
   assert.deepEqual(unknown, [], `No existen en el SDK: ${unknown.join(", ")}`);
 });
