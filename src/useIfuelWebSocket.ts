@@ -1,3 +1,4 @@
+import { planRefuel } from "./utils/refuelPlan";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { StandingsRow } from "./types/standings";
 import { interpolateFuelAtLine } from "./utils/fuelInterpolation";
@@ -408,43 +409,17 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           if (laps.length >= 2 && fuelPerLapForEst && fuelPerLapForEst > 0) {
             estLaps = fuelLevel / fuelPerLapForEst;
 
-            const lapsRemain = sessionLapsRemainEx ?? 0;
-            const timeRemain = sessionTimeRemain ?? 0;
-
-            if (lapsRemain > 0 && lapsRemain < 1000) {
-              const lapsWithSafety = lapsRemain + opts.safetyExtraLaps;
-              const fuelNeededTotal = lapsWithSafety * fuelPerLapForEst;
-              const fuelToAdd = fuelNeededTotal - fuelLevel;
-              estRefuel = fuelToAdd > 0 ? fuelToAdd : 0;
-            } else if (timeRemain > 0) {
-              const avgLapTimeSeconds =
-                laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
-
-              if (avgLapTimeSeconds > 0) {
-                const lapsPossible = fuelLevel / fuelPerLapForEst;
-                const secondsOfFuel = lapsPossible * avgLapTimeSeconds;
-
-                const safetySeconds = opts.safetyExtraLaps * avgLapTimeSeconds;
-                const targetSeconds = timeRemain + safetySeconds;
-
-                const extraSecondsNeeded = targetSeconds - secondsOfFuel;
-
-                if (extraSecondsNeeded <= 0) {
-                  estRefuel = 0;
-                } else {
-                  const extraLapsNeeded =
-                    extraSecondsNeeded / avgLapTimeSeconds;
-                  estRefuel = extraLapsNeeded * fuelPerLapForEst;
-                }
-              } else {
-                estRefuel = 0;
-              }
-            } else {
-              estRefuel = 0;
-            }
-
             const avgLapTimeSeconds =
               laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
+
+            estRefuel = planRefuel({
+              fuelLevel,
+              fuelPerLap: fuelPerLapForEst,
+              avgLapTime: avgLapTimeSeconds,
+              lapsRemain: sessionLapsRemainEx,
+              timeRemain: sessionTimeRemain,
+              safetyLaps: opts.safetyExtraLaps,
+            }).toAdd;
 
             if (avgLapTimeSeconds > 0 && fuelPerLapForEst > 0) {
               const lapsPossible = fuelLevel / fuelPerLapForEst;
