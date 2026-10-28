@@ -15,6 +15,16 @@ exports.default = async function afterPack(context) {
     throw new Error(`Falta ${src}: ejecuta "npm install --prefix iFuel-telemetry-node" antes de empaquetar`);
   }
   fs.cpSync(src, dest, { recursive: true, dereference: true });
+  // node_modules/**/.bin son enlaces simbólicos a scripts: Windows no los puede crear al descomprimir el zip
+  // sin privilegios de administrador (error "Cannot create symbolic link") y en runtime no se usan.
+  const removeBins = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.name === ".bin") fs.rmSync(full, { recursive: true, force: true });
+      else if (entry.isDirectory() && !entry.isSymbolicLink()) removeBins(full);
+    }
+  };
+  removeBins(dest);
   const native = path.join(dest, "@irsdk-node", "native", "prebuilds");
   if (context.electronPlatformName === "win32" && !fs.existsSync(path.join(native, "win32-x64"))) {
     throw new Error("Falta el binario win32-x64 de @irsdk-node/native");

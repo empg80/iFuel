@@ -871,9 +871,16 @@ const leaderLapTime = leaderEntry
   ? (carIdxLastLapTime[leaderEntry.idx] > 0 ? carIdxLastLapTime[leaderEntry.idx]
     : carIdxBestLapTime[leaderEntry.idx] > 0 ? carIdxBestLapTime[leaderEntry.idx] : baseLapTime)
   : baseLapTime;
+const currentSessionType = (session?.SessionInfo?.Sessions ?? []).find(
+  (x) => x.SessionNum === telemetry.SessionNum?.value?.[0],
+)?.SessionType;
 const standingsGaps = computeStandingsGaps(
-  carsForStandings.map((c) => ({ idx: c.idx, pos: c.pos, lap: carIdxLap[c.idx] ?? 0, pct: carIdxLapDistPct[c.idx] ?? 0 })),
+  carsForStandings.map((c) => ({
+    idx: c.idx, pos: c.pos, lap: carIdxLap[c.idx] ?? -1, pct: carIdxLapDistPct[c.idx] ?? -1,
+    best: carIdxBestLapTime[c.idx] ?? 0,
+  })),
   leaderLapTime,
+  { byBestLap: !!currentSessionType && !/race/i.test(currentSessionType) },
 );
 
 for (const entry of carsForStandings) {
@@ -1067,8 +1074,8 @@ standings.sort((a, b) => a.position - b.position);
       }
     }
 
-    const bestLapTime = driverIdx >= 0
-      ? (carIdxBestLapTime[driverIdx] || null)
+    const bestLapTime = driverIdx >= 0 && carIdxBestLapTime[driverIdx] > 0
+      ? carIdxBestLapTime[driverIdx]
       : null;
 
     // Sin clientes conectados (y sin grabación en curso) no merece la pena serializar ni enviar nada

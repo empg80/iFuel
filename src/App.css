@@ -522,6 +522,31 @@ body {
   transform-origin: top left;
 }
 
+/* Standings no tenía estilos de contenedor: sin position, left/top se ignoraban y no se podía mover */
+.standings-widget-container {
+  position: relative;
+  transform-origin: top left;
+  width: max-content; /* sin esto, como bloque ocupa todo el ancho y la tabla se estira */
+}
+
+.standings-widget-status {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #fff;
+}
+
+.standings-widget-status--connected {
+  background: rgba(0, 128, 0, 0.7);
+}
+
+.standings-widget-status--disconnected {
+  background: rgba(128, 0, 0, 0.7);
+}
+
 .relative-widget-status {
   position: absolute;
   top: -20px;

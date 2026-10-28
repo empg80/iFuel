@@ -1,5 +1,5 @@
 // Vista previa de los overlays con datos simulados (solo en builds con VITE_PREVIEW=1).
-// Uso: iFuel/dist-preview/index.html#/preview?scene=calm|warn|crit|full|compare|edge|replay
+// Uso: iFuel/dist-preview/index.html#/preview?scene=calm|warn|crit|full|compare|edge|replay|container
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Backdrop } from "./Backdrop";
@@ -10,6 +10,7 @@ import { YellowFlagWidget } from "../components/YellowFlagWidget";
 import { PitClearAirWidget } from "../components/PitClearAirWidget";
 import { RaceStandingsWidget } from "../components/RaceStandingsWidget";
 import type { StandingsRow } from "../types/standings";
+import { RaceStandingsWidgetContainer } from "../components/RaceStandingsWidgetContainer";
 import { ReplayTowerWidget } from "../components/ReplayTowerWidget";
 import { DriverFocusWidget } from "../components/DriverFocusWidget";
 import { TrackInfoWidget } from "../components/TrackInfoWidget";
@@ -136,6 +137,16 @@ function Scene({ scene }: { scene: string }) {
           <div style={{ color: "#8a94a6", font: "600 16px system-ui", letterSpacing: ".12em", marginBottom: 24 }}>DESPUÉS</div>
           <FuelWidgetOverlay {...fuelProps("warn")} detail="compact" />
         </div>
+      </div>
+    );
+  }
+
+  if (scene === "container") {
+    // El contenedor real (posición arrastrable, etiqueta de estado) con el tema libre
+    return (
+      <div className="app-root app-root--free" style={{ position: "absolute", inset: 0, display: "block", minHeight: 0 }}>
+        <Backdrop />
+        <RaceStandingsWidgetContainer state={null} raceStandingsRows={rows} isConnected={true} />
       </div>
     );
   }

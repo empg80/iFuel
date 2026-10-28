@@ -83,13 +83,15 @@
 .app-root--free .fuel-widget-status--connected,
 .app-root--free .relative-widget-status--connected,
 .app-root--free .yellow-widget-status--connected,
-.app-root--free .pitclear-widget-status--connected {
+.app-root--free .pitclear-widget-status--connected,
+.app-root--free .standings-widget-status--connected {
   display: none;
 }
 .app-root--free .fuel-widget-status--disconnected,
 .app-root--free .relative-widget-status--disconnected,
 .app-root--free .yellow-widget-status--disconnected,
-.app-root--free .pitclear-widget-status--disconnected {
+.app-root--free .pitclear-widget-status--disconnected,
+.app-root--free .standings-widget-status--disconnected {
   background: rgba(255, 92, 92, 0.16);
   color: var(--ov-crit);
   border: 1px solid rgba(255, 92, 92, 0.35);

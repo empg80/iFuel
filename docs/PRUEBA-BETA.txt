@@ -6,8 +6,8 @@ se genera UN archivo .zip con todo lo necesario. Tiempo: unos 30-40 minutos.
 
 ANTES DE EMPEZAR
 ----------------
-1. Descomprime iFuel-0.1.0-beta.1-win-x64.zip en una carpeta tuya (por ejemplo C:\iFuel) y ejecuta iFuel.exe.
-   No hace falta instalar nada. Windows puede avisar "Windows protegió su PC" porque la app no está
+1. Descomprime iFuel-<versión>-win-x64.zip en una carpeta tuya (por ejemplo C:\iFuel) y ejecuta iFuel.exe.
+   Descomprime con el Explorador de Windows o 7-Zip. No hace falta instalar nada. Windows puede avisar "Windows protegió su PC" porque la app no está
    firmada: pulsa "Más información" y luego "Ejecutar de todas formas".
 2. iRacing debe ir en modo VENTANA o VENTANA SIN BORDES (Opciones > Gráficos).
    En pantalla completa exclusiva ningún overlay se puede dibujar encima (límite de Windows).

@@ -42,3 +42,17 @@ test("si no hay P1 el lider es el de mas progreso", () => {
   assert.deepEqual(g.get(0), { lapsDown: 0, gapSeconds: 0 });
   assert.ok(Math.abs(g.get(1).gapSeconds - 40) < 1e-9);
 });
+
+test("coches fuera de pista (lap/pct = -1) no cuentan como lider ni reciben 'LEAD'", () => {
+  const g = computeStandingsGaps([car(0, 1, -1, -1), car(1, 4, -1, -1), car(2, 6, 3, 0.5)], 100);
+  assert.equal(g.has(0), false);
+  assert.equal(g.has(1), false);
+  assert.deepEqual(g.get(2), { lapsDown: 0, gapSeconds: 0 });
+});
+test("practica/clasificacion: hueco = diferencia de mejor vuelta con el P1", () => {
+  const cars = [{ idx: 0, pos: 1, lap: -1, pct: -1, best: 100.5 }, { idx: 1, pos: 2, lap: -1, pct: -1, best: 101.25 }, { idx: 2, pos: 3, lap: -1, pct: -1, best: -1 }];
+  const g = computeStandingsGaps(cars, 100, { byBestLap: true });
+  assert.deepEqual(g.get(0), { lapsDown: 0, gapSeconds: 0 });
+  assert.ok(Math.abs(g.get(1).gapSeconds - 0.75) < 1e-9);
+  assert.equal(g.get(2).gapSeconds, null);
+});
