@@ -80,10 +80,10 @@ const rows: StandingsRow[] = [
   carModel: "GT3",
 }));
 
-const ahead = { carNum: "27", gapSeconds: 1.842, lastLap: 108.9, bestLap: 108.4, deltaLastToMe: -0.42, classId: 4011, classPosition: 3 };
-const behind = { carNum: "8", gapSeconds: -0.874, lastLap: 109.4, bestLap: 108.8, deltaLastToMe: 0.31, classId: 4011, classPosition: 5 };
-const onAhead = { carNum: "62", gapSeconds: 4.2, lapsDiff: -1, classId: 2523, classPosition: 1 };
-const onBehind = { carNum: "91", gapSeconds: -6.9, lapsDiff: 0, classId: 4011, classPosition: 6 };
+const ahead = { carNum: "27", driverName: "Marco Bellini", gapSeconds: 1.842, lastLap: 108.9, bestLap: 108.4, deltaLastToMe: -0.42, classId: 4011, classPosition: 3 };
+const behind = { carNum: "8", driverName: "Jonas Eriksen-Larsen", gapSeconds: -0.874, lastLap: 109.4, bestLap: 108.8, deltaLastToMe: 0.31, classId: 4011, classPosition: 5 };
+const onAhead = { carNum: "62", driverName: "Pablo Ruiz", gapSeconds: 4.2, lapsDiff: -1, classId: 2523, classPosition: 1 };
+const onBehind = { carNum: "91", driverName: "Liam O Connor", gapSeconds: -6.9, lapsDiff: 0, classId: 4011, classPosition: 6 };
 
 const Rel = () => (
   <RelativeWidget

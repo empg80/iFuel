@@ -203,6 +203,16 @@ test("relative en pista: el gap usa CarIdxEstTime cuando esta disponible", async
   } finally { await s.close(); }
 });
 
+test("relative y on-track incluyen el nombre del piloto del coche", async () => {
+  const s = await boot({ carSpeed: [0, 0, 0, 0] });
+  try {
+    const m = await s.waitFor((x) => x.relativeOnTrack?.ahead?.driverName != null, 5000);
+    assert.ok(m);
+    assert.equal(m.relativeOnTrack.ahead.driverName, "D0");
+    if (m.relative?.ahead) assert.match(m.relative.ahead.driverName, /^D\d$/);
+  } finally { await s.close(); }
+});
+
 test("relative en pista: sin CarIdxEstTime se mantiene el calculo por porcentaje", async () => {
   const s = await boot({ carSpeed: [0, 0, 0, 0] });
   try {

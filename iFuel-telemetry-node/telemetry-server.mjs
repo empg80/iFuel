@@ -537,6 +537,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         const last = carIdxLastLapTime[idx] ?? 0;
         const best = carIdxBestLapTime[idx] ?? 0;
         const carNum = carIdxNumberMap[idx] ?? null;
+        const driverName = drivers.find((d) => d.CarIdx === idx)?.UserName ?? null;
         const globalDist = lapIdx + pct;
         const classId = carIdxClass[idx] ?? null;
         const speed = carSpeeds[idx] ?? null; // null = desconocida (no es "parado")
@@ -548,6 +549,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
           idx,
           est,
           carNum,
+          driverName,
           lapIdx,
           pct,
           posClass,
@@ -736,6 +738,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
           aheadCar
             ? {
                 carNum: aheadCar.carNum,
+                driverName: aheadCar.driverName ?? null,
                 position: aheadCar.posClass || null,
                 classId: aheadCar.classId,
                 classPosition: aheadCar.posClass || null,
@@ -751,6 +754,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
           behindCar
             ? {
                 carNum: behindCar.carNum,
+                driverName: behindCar.driverName ?? null,
                 position: behindCar.posClass || null,
                 classId: behindCar.classId,
                 classPosition: behindCar.posClass || null,
@@ -823,6 +827,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
           onTrackAhead
             ? {
                 carNum: onTrackAhead.carNum,
+                driverName: onTrackAhead.driverName ?? null,
                 classId: onTrackAhead.classId,
                 classPosition: onTrackAhead.posClass || null,
                 gapSeconds: aheadOnTrackGap,
@@ -833,6 +838,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
           onTrackBehind
             ? {
                 carNum: onTrackBehind.carNum,
+                driverName: onTrackBehind.driverName ?? null,
                 classId: onTrackBehind.classId,
                 classPosition: onTrackBehind.posClass || null,
                 gapSeconds: behindOnTrackGap,

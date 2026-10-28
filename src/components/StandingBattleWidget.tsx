@@ -7,6 +7,14 @@ import {
 } from "../utils/relativeFormat";
 import { ClassBadge } from "./ClassBadge";
 
+// "Nombre Apellido Segundo" -> "N. Apellido Segundo" (cabe mejor en el overlay)
+function shortDriverName(name?: string | null): string {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length < 2) return name;
+  return `${parts[0][0]}. ${parts.slice(1).join(" ")}`;
+}
+
 type RelativeWidgetProps = {
   ahead: RelativeCar;
   behind: RelativeCar;
@@ -87,6 +95,10 @@ export const RelativeWidget = React.memo(function RelativeWidget({
             />
           </span>
 
+          <span className="relative-driver" title={car.driverName ?? undefined}>
+            {shortDriverName(car.driverName)}
+          </span>
+
           <span className={`relative-ontrack__gap ${colorClass}`}>
             {formatGap(car.gapSeconds)}
           </span>
@@ -125,6 +137,9 @@ export const RelativeWidget = React.memo(function RelativeWidget({
               {formatGap(behind?.gapSeconds ?? null)}
             </span>
           </div>
+          <div className="relative-driver" title={behind?.driverName ?? undefined}>
+            {shortDriverName(behind?.driverName) || "\u00a0"}
+          </div>
         </div>
 
         {/* YOU */}
@@ -148,6 +163,12 @@ export const RelativeWidget = React.memo(function RelativeWidget({
                 classColorIndexById={classColorIndexById}
               />
             </span>
+          </div>
+          <div
+            className="relative-driver relative-driver--right"
+            title={ahead?.driverName ?? undefined}
+          >
+            {shortDriverName(ahead?.driverName) || "\u00a0"}
           </div>
         </div>
       </div>

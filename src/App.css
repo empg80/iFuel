@@ -482,9 +482,23 @@ body {
 
 .relative-ontrack__row {
   display: grid;
-  grid-template-columns: auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   column-gap: 6px;
+}
+
+.relative-driver {
+  max-width: 150px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.relative-driver--right {
+  text-align: right;
+  margin-left: auto;
 }
 
 .relative-ontrack__car {
@@ -1442,4 +1456,15 @@ body {
   letter-spacing: 0.04em;
   pointer-events: none;
   z-index: 9999;
+}
+
+
+/* Vista libre: cada widget se coloca con left/top desde la esquina de la ventana.
+   Antes eran position: relative dentro de un flex centrado, así que al crecer un panel
+   (p. ej. standings con más coches) su posición base subía y se ocultaban filas. */
+.app-root--free .fuel-widget-container,
+.app-root--free .pitclear-widget-container,
+.app-root--free .relative-widget-container,
+.app-root--free .standings-widget-container {
+  position: absolute;
 }

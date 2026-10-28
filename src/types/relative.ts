@@ -1,5 +1,6 @@
 export type RelativeCar = {
   carNum: number | string | null;
+  driverName?: string | null;
   position?: number | null;
   gapSeconds: number | null;
   lastLap: number | null;
@@ -11,6 +12,7 @@ export type RelativeCar = {
 
 export type OnTrackCar = {
   carNum: number | string | null;
+  driverName?: string | null;
   gapSeconds: number | null;
   lapsDiff: number | null;
   classId?: number | null;
