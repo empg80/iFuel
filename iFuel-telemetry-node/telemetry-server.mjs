@@ -16,6 +16,7 @@ import {
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
+import { createYellowTracker } from "./yellowWarning.mjs";
 
 const TIMEOUT = Math.floor((1 / 60) * 1000);
 const BROADCAST_INTERVAL = 250; // ms
@@ -205,6 +206,7 @@ function startTelemetryLoop(
 ) {
   resetPitAndStintState();
   const pitLossTracker = createPitLossTracker();
+  const yellowTracker = createYellowTracker();
   const trackCarSpeeds = createCarSpeedTracker();
 
   let lastSessionKey = null;
@@ -314,6 +316,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
       if (lastSessionKey !== null) {
         resetPitAndStintState();
         pitLossTracker.reset();
+        yellowTracker.reset();
         // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
         if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
       }
@@ -916,91 +919,17 @@ standings.sort((a, b) => a.position - b.position);
 
 
 
-      // ---------- Yellow Warning (bandera amarilla + coche incidente / debris) ----------
-
-      const IRACING_FLAG_YELLOW = 0x00000008;
-      const IRACING_FLAG_DEBRIS = 0x00000040;
-      const IRACING_FLAG_YELLOW_WAVING = 0x00000100;
-      const IRACING_FLAG_CAUTION = 0x00004000;
-      const IRACING_FLAG_CAUTION_WAVING = 0x00008000;
-
-      const anyYellow =
-        (sessionFlags &
-          (IRACING_FLAG_YELLOW |
-           IRACING_FLAG_YELLOW_WAVING |
-           IRACING_FLAG_CAUTION |
-           IRACING_FLAG_CAUTION_WAVING)) !== 0;
-
-      const debrisOnly =
-        (sessionFlags & IRACING_FLAG_DEBRIS) !== 0 && !anyYellow;
-
-      if ((anyYellow || debrisOnly) && trackLengthMeters && trackLengthMeters > 0) {
-        const mySpeed = telemetry.Speed?.value?.[0] ?? carSpeeds[driverIdx] ?? 0;
-
-        const INCIDENT_MIN_METERS_AHEAD = 50;
-        let bestIncident = null;
-        let bestIncidentDeltaPct = Infinity;
-
-        if (anyYellow) {
-          // solo buscamos coche incidente cuando hay yellow/caution
-          for (const c of cars) {
-            if (c.idx === driverIdx) continue;
-            if (c.onPit) continue;
-            if (!Number.isFinite(c.speed) || c.speed > 5) continue;
-            if (!Number.isFinite(c.pct)) continue;
-
-            let dPct = c.pct - myPct;
-            if (dPct < 0) dPct += 1;
-
-            const distMeters = dPct * trackLengthMeters;
-            if (distMeters < INCIDENT_MIN_METERS_AHEAD) continue;
-
-            if (dPct < bestIncidentDeltaPct) {
-              bestIncidentDeltaPct = dPct;
-              bestIncident = c;
-            }
-          }
-        }
-
-        if (anyYellow && bestIncident) {
-          const distanceMeters = bestIncidentDeltaPct * trackLengthMeters;
-          let timeSeconds = null;
-          if (mySpeed > 1) {
-            timeSeconds = distanceMeters / mySpeed;
-          }
-
-          yellowWarning = {
-            active: true,
-            distanceMeters,
-            timeSeconds,
-            carNum: bestIncident.carNum ?? null,
-            classId: bestIncident.classId ?? null,
-            classPosition: bestIncident.posClass || null,
-            type: "incident",
-          };
-        } else {
-          // debris puro o yellow sin coche claro → rayado
-          yellowWarning = {
-            active: true,
-            distanceMeters: null,
-            timeSeconds: null,
-            carNum: null,
-            classId: null,
-            classPosition: null,
-            type: "debris",
-          };
-        }
-      } else {
-        yellowWarning = {
-          active: false,
-          distanceMeters: null,
-          timeSeconds: null,
-          carNum: null,
-          classId: null,
-          classPosition: null,
-          type: null,
-        };
-      }
+      // ---------- Yellow Warning (bandera amarilla / debris + coche incidente) ----------
+      yellowWarning = yellowTracker.update({
+        sessionFlags,
+        cars,
+        myIdx: driverIdx,
+        myPct,
+        mySpeed: telemetry.Speed?.value?.[0] ?? carSpeeds[driverIdx] ?? 0,
+        trackLengthMeters,
+        baseLapTime,
+        sessionTime,
+      });
     }
 
     const bestLapTime = driverIdx >= 0 && carIdxBestLapTime[driverIdx] > 0

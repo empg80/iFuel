@@ -38,7 +38,10 @@ B. Con iRacing (25 min) - práctica o Test Drive
    5. Abre un replay 1-2 minutos con iFuel en marcha (no debe medir vueltas) y, si quieres, activa la
       vista Replay desde el menú de la bandeja.
    6. Cierra iRacing y vuelve a abrirlo SIN cerrar iFuel: debe recuperar los datos solo.
-   7. Si ves una bandera amarilla con un coche parado, apunta qué muestra el aviso.
+   7. Banderas: si ves un trompo o un coche parado delante (o una bandera amarilla / de debris),
+      apunta: el título del widget (YELLOW FLAG o DEBRIS), los metros y los segundos que marca, y si
+      sale "#numero" del coche. Si no salta nada con un coche claramente parado delante, apunta
+      la hora aproximada: el informe lleva lo que veía iFuel en ese momento.
    8. Haz una captura del overlay sobre iRacing (bloqueado y en modo edición).
 
 C. Al terminar
