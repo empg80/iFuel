@@ -845,6 +845,7 @@ updatePitAndStintState({
   sessionTime,
   carIdxOnPitRoad,
   carIdxLapCompleted,
+  carIdxLapDistPct,
 });
 
 // ---------- Standings global (clasificación completa) ----------
@@ -1337,6 +1338,9 @@ if (origin && !allowedOrigins.has(origin)) {
       if (control.timer) clearInterval(control.timer);
       control.timer = null;
       control.finishLoop = null;
+      // El SDK parado no se debe volver a leer (volcados, estado): en iRacing real la lectura de la memoria
+      // compartida ya liberada puede cerrar el proceso de golpe. Se suelta ANTES de pararlo.
+      diag.sdk = null;
       try {
         sdk.stopSDK();
       } catch {
@@ -1404,6 +1408,7 @@ if (origin && !allowedOrigins.has(origin)) {
 
   const stop = async () => {
     control.stopped = true;
+    diag.sdk = null; // nadie debe leer el SDK mientras se para
     await stopRecording();
     if (control.timer) clearInterval(control.timer);
     if (control.finishLoop) control.finishLoop();

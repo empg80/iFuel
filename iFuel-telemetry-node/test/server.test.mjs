@@ -226,3 +226,21 @@ test("standings: hueco al lider con el tiempo de vuelta del LIDER y sin huecos n
     assert.equal(byNum["12"].lapsDown, 0);
   } finally { await s.close(); }
 });
+
+test("tras cerrarse iRacing no se vuelve a leer el SDK parado (volcado/estado) y el informe sigue funcionando", async () => {
+  // Fallo real de la beta 2: con iRacing cerrado el volcado final leia un SDK ya parado y la app moria sin generar informe
+  const s = await boot({}, {});
+  try {
+    await s.waitFor((x) => x.fuelLevel != null, 4000);
+    assert.equal(s.handle.isSdkConnected(), true);
+    s.sdk.state.running = false; // iRacing se cierra
+    const t0 = Date.now();
+    while (s.sdk.state.stopCalls === 0 && Date.now() - t0 < 6000) await sleep(50);
+    assert.ok(s.sdk.state.stopCalls > 0, "el servidor detecta el cierre y para el SDK");
+    assert.equal(s.handle.isSdkConnected(), false, "ya no hay SDK vivo");
+    const file = s.handle.saveSnapshot(s.dataDir);
+    const snap = JSON.parse(fs.readFileSync(file, "utf8"));
+    assert.equal(snap._meta.sdkConnected, false);
+    assert.equal(s.sdk.state.touchedAfterStop, 0, "no se toca el SDK despues de stopSDK()");
+  } finally { await s.close(); }
+});

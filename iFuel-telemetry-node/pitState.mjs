@@ -37,8 +37,12 @@ function updatePitAndStintState({
   sessionTime,
   carIdxOnPitRoad,
   carIdxLapCompleted,
+  carIdxLapDistPct,
 }) {
   for (let carIdx = 0; carIdx < carIdxOnPitRoad.length; carIdx++) {
+    // Coche fuera del mundo (garaje/replay): CarIdxOnPitRoad vale false aunque luego
+    // aparezca ya dentro del pit road. No cuenta como observación.
+    if (carIdxLapDistPct && (carIdxLapDistPct[carIdx] ?? -1) < 0) continue;
     const onPitRoad = !!carIdxOnPitRoad[carIdx];
     const lapCompleted = carIdxLapCompleted[carIdx] ?? 0;
     const state = getOrCreatePitState(carIdx);

@@ -10,6 +10,7 @@ export function createFakeSdk(overrides = {}) {
     getTelemetryCalls: 0,
     variableRequests: new Set(),
     stopCalls: 0,
+    touchedAfterStop: 0, // lecturas del SDK despues de stopSDK(): en iRacing real puede cerrar el proceso de golpe
     throwOnTick: -1,
     running: true,
     flags: 0,
@@ -48,6 +49,7 @@ export function createFakeSdk(overrides = {}) {
     waitForData: () => { st.tick++; return st.running; },
     getSessionVersionNum: () => st.sessionVersion,
     getSessionData: () => {
+      if (st.stopCalls > 0) st.touchedAfterStop++;
       st.sessionDataCalls++;
       return {
         WeekendInfo: { SubSessionID: 111, TrackName: "test", TrackLength: "4.00 km" },
@@ -63,6 +65,7 @@ export function createFakeSdk(overrides = {}) {
     },
     getTelemetry: () => { st.getTelemetryCalls++; return table(); },
     getTelemetryVariable: (name) => {
+      if (st.stopCalls > 0) st.touchedAfterStop++;
       st.variableRequests.add(name);
       if (st.tick === st.throwOnTick) throw new Error("fallo simulado");
       return table()[name] ?? null;
