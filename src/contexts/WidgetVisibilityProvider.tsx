@@ -24,6 +24,7 @@ export const WidgetVisibilityProvider: React.FC<{
         pitClearAir: overlayState.pitClearAirVisible ?? prev.pitClearAir,
         standings: overlayState.standingsVisible ?? prev.standings, // ← NUEVO
         widgetsLocked: overlayState.widgetsLocked ?? prev.widgetsLocked,
+        overlayActive: overlayState.overlayActive ?? prev.overlayActive,
         fuelSettingsVisible:
           overlayState.fuelSettingsVisible ?? prev.fuelSettingsVisible,
         fuelScale: overlayState.fuelScale ?? prev.fuelScale,

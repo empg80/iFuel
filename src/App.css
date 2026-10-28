@@ -1394,3 +1394,27 @@ body {
 .pitboard-layout .race-standings__row--class-3::before { background: #2ecc71; }
 .pitboard-layout .race-standings__row--class-4::before { background: #f1c40f; }
 .pitboard-layout .race-standings__row--class-5::before { background: #e74c3c; }
+
+/* Modo edición del overlay: la ventana captura el ratón; se avisa con un marco y un cartel */
+.edit-mode-frame {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 3px rgba(255, 90, 90, 0.85);
+  z-index: 9998;
+}
+
+.edit-mode-banner {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(190, 40, 40, 0.92);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 9999;
+}

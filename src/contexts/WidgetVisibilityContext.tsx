@@ -10,6 +10,7 @@ export type VisibilityState = {
   pitClearAir: boolean;
   standings: boolean;
   widgetsLocked: boolean;
+  overlayActive: boolean;
   fuelSettingsVisible: boolean;
   fuelScale: number;
   relativeScale: number;
@@ -26,6 +27,7 @@ export const defaultVisibilityState: VisibilityState = {
   pitClearAir: true,
   standings: true,
   widgetsLocked: true,
+  overlayActive: false,
   fuelSettingsVisible: false,
   fuelScale: 1,
   relativeScale: 1,

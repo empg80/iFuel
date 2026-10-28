@@ -2,6 +2,7 @@
 import React from "react";
 import type { IfuelState } from "./useIfuelWebSocket";
 import type { StandingsRow } from "./types/standings";
+import { useOverlayState } from "./contexts/useOverlayState";
 import { FuelWidgetContainer } from "./components/FuelWidgetContainer";
 import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContainer";
 import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
@@ -27,6 +28,9 @@ export const FreeLayout: React.FC<FreeLayoutProps> = ({
   serverStatus,
   layoutMode,
 }) => {
+  const { overlayActive, widgetsLocked } = useOverlayState();
+  const editingOverlay = !!overlayActive && !widgetsLocked;
+
   let label: string;
 
   if (serverStatus === "connected") {
@@ -39,6 +43,14 @@ export const FreeLayout: React.FC<FreeLayoutProps> = ({
 
   return (
     <div className="app-root app-root--free">
+      {editingOverlay && (
+        <>
+          <div className="edit-mode-frame" />
+          <div className="edit-mode-banner">
+            EDIT MODE · drag the widgets · Ctrl+Shift+L to lock (click-through)
+          </div>
+        </>
+      )}
       <div className={`server-status server-status--${serverStatus}`}>
         {label}
       </div>
