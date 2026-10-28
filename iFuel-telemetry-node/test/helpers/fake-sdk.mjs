@@ -18,6 +18,7 @@ export function createFakeSdk(overrides = {}) {
     // pct de cada coche en tick 0 y su velocidad (m/s); el coche 3 está parado
     carPct0: [0.55, 0.3, 0.5, 0.6],
     carSpeed: [60, 60, 60, 0],
+    estTimes: null, // CarIdxEstTime fijo por coche (null = la variable no se publica)
     ...overrides,
   };
   const TRACK_M = 4000;
@@ -37,6 +38,7 @@ export function createFakeSdk(overrides = {}) {
     CarIdxBestLapTime: v([88, 89, 90, 91]), CarIdxLastLapTime: v([89, 90, 91, 92]),
     CarIdxClass: v([4000, 4000, 4000, 4000]),
     TrackTemp: v([30]), AirTemp: v([22]),
+    ...(st.estTimes ? { CarIdxEstTime: v(st.estTimes) } : {}),
   });
 
   const sdk = {

@@ -1,4 +1,5 @@
 // telemetry-server.mjs
+import { relativeGapSeconds } from "./relativeGap.mjs";
 import { WebSocketServer } from "ws";
 import fs from "fs";
 import path from "path";
@@ -56,7 +57,7 @@ const defaultCreateSdk = async () => {
 // en cada tick. Debe coincidir con las lecturas `telemetry.<Nombre>` del bucle: lo comprueba test/variables.test.mjs,
 // que además verifica que cada nombre existe en el SDK (CarIdxSpeed no existía y fallaba en silencio).
 const TELEMETRY_VARS = [
-  "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition",
+  "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition", "CarIdxEstTime",
   "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct", "CarIdxLastLapTime",
   "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
@@ -420,6 +421,7 @@ let driverIdx =
 const carIdxLapDistPct = telemetry.CarIdxLapDistPct?.value ?? [];
 
 const carIdxLap = telemetry.CarIdxLap?.value ?? [];
+const carIdxEstTime = telemetry.CarIdxEstTime?.value ?? [];
 const carIdxLastLapTime = telemetry.CarIdxLastLapTime?.value ?? [];
 const carIdxBestLapTime = telemetry.CarIdxBestLapTime?.value ?? [];
 
@@ -537,9 +539,11 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         const speed = carSpeeds[idx] ?? null; // null = desconocida (no es "parado")
         const surface = carIdxTrackSurface[idx] ?? 0;
         const onPit = carIdxOnPitRoad[idx] ?? 0;
+        const est = carIdxEstTime[idx];
 
         return {
           idx,
+          est,
           carNum,
           lapIdx,
           pct,
@@ -678,6 +682,21 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         }
       }
 
+      // Gap con CarIdxEstTime (misma clase) o, si no hay dato, % de vuelta * tiempo de vuelta.
+      const myEstTime = carIdxEstTime[driverIdx];
+      const myEstLap = drivers.find((d) => d.CarIdx === driverIdx)?.CarClassEstLapTime;
+      const gapSecondsFor = (target, dPct) =>
+        target
+          ? relativeGapSeconds({
+              dPct,
+              myEst: myEstTime,
+              otherEst: target.est,
+              lapRef: myEstLap > 0 ? myEstLap : baseLapTime,
+              fallbackLap: baseLapTime,
+              sameClass: target.classId === myClassId,
+            })
+          : null;
+
       const norm = (x) => {
         let r = x % 1;
         if (r < 0) r += 1;
@@ -694,7 +713,7 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         let diff = tPos - myPosOnLap;
         if (diff > 0.5) diff -= 1;
         if (diff < -0.5) diff += 1;
-        return diff * baseLapTime;
+        return gapSecondsFor(target, diff);
       };
 
       const aheadGapSeconds = computeGapSeconds(aheadCar);
@@ -777,18 +796,15 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         }
       }
 
-      const computeGapSecondsOnTrack = (d) => {
-        if (baseLapTime <= 0 || !Number.isFinite(d)) return null;
-        return d * baseLapTime;
-      };
+      const computeGapSecondsOnTrack = (d, target) => gapSecondsFor(target, d);
 
       const aheadOnTrackGap =
         bestAheadDiff !== Infinity
-          ? computeGapSecondsOnTrack(bestAheadDiff)
+          ? computeGapSecondsOnTrack(bestAheadDiff, onTrackAhead)
           : null;
       const behindOnTrackGap =
         bestBehindDiff !== -Infinity
-          ? computeGapSecondsOnTrack(bestBehindDiff)
+          ? computeGapSecondsOnTrack(bestBehindDiff, onTrackBehind)
           : null;
 
       const computeLapsDiff = (target) => {

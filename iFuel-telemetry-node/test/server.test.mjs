@@ -192,3 +192,22 @@ test("volcado del SDK: capacidad, unidades y variables crudas, sin nombres de pi
     assert.ok(!/D0|D1|UserName|CarNumber/.test(raw), "no se vuelcan nombres ni números de pilotos");
   } finally { await s.close(); }
 });
+
+test("relative en pista: el gap usa CarIdxEstTime cuando esta disponible", async () => {
+  // jugador (idx 2) en 0.50 con EstTime 45 s; coche 0 en 0.55 con EstTime 52 s (por % seran ~4.5 s, por EstTime 7 s)
+  const s = await boot({ carSpeed: [0, 0, 0, 0], estTimes: [52, 30, 45, 55] });
+  try {
+    const m = await s.waitFor((x) => x.relativeOnTrack?.ahead?.gapSeconds != null, 5000);
+    assert.ok(m);
+    assert.ok(Math.abs(m.relativeOnTrack.ahead.gapSeconds - 7) < 0.01, `gap=${m.relativeOnTrack.ahead.gapSeconds}`);
+  } finally { await s.close(); }
+});
+
+test("relative en pista: sin CarIdxEstTime se mantiene el calculo por porcentaje", async () => {
+  const s = await boot({ carSpeed: [0, 0, 0, 0] });
+  try {
+    const m = await s.waitFor((x) => x.relativeOnTrack?.ahead?.gapSeconds != null, 5000);
+    assert.ok(m);
+    assert.ok(Math.abs(m.relativeOnTrack.ahead.gapSeconds - 4.55) < 0.2, `gap=${m.relativeOnTrack.ahead.gapSeconds}`);
+  } finally { await s.close(); }
+});
