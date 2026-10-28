@@ -1,11 +1,10 @@
 export function formatGap(seconds: number | null | undefined): string {
   if (seconds == null || !Number.isFinite(seconds)) return "--";
-  const sign = seconds >= 0 ? "" : "-";
-  const abs = Math.abs(seconds);
-  const ss = Math.floor(abs).toString().padStart(2, "0");
-  const dcm = Math.round((abs % 1) * 1000)
-    .toString()
-    .padStart(3, "0");
+  // Redondear primero a milisegundos: antes 1.9996 daba "01.1000"
+  const totalMs = Math.round(Math.abs(seconds) * 1000);
+  const sign = seconds < 0 && totalMs > 0 ? "-" : "";
+  const ss = Math.floor(totalMs / 1000).toString().padStart(2, "0");
+  const dcm = (totalMs % 1000).toString().padStart(3, "0");
   return `${sign}${ss}.${dcm}`;
 }
 
@@ -23,10 +22,11 @@ export function formatLapTimeSeconds(
 
 export function formatDelta(delta: number | null | undefined): string {
   if (delta == null || !Number.isFinite(delta)) return "";
-  const sign = delta > 0 ? "+" : "";
-  const abs = delta;
-  const dcm = Math.round(Math.abs(abs) * 1000)
-    .toString()
-    .padStart(3, "0");
-  return `${sign}0.${dcm}`;
+  // Signo explícito en ambos sentidos y parte entera incluida (antes -0.42 salía "0.420" y 1.5 salía "+0.500")
+  const totalMs = Math.round(Math.abs(delta) * 1000);
+  if (totalMs === 0) return "0.000";
+  const sign = delta > 0 ? "+" : "-";
+  const whole = Math.floor(totalMs / 1000);
+  const dcm = (totalMs % 1000).toString().padStart(3, "0");
+  return `${sign}${whole}.${dcm}`;
 }

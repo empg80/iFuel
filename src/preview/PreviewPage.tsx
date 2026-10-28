@@ -1,5 +1,5 @@
 // Vista previa de los overlays con datos simulados (solo en builds con VITE_PREVIEW=1).
-// Uso: iFuel/dist-preview/index.html#/preview?scene=calm|warn|crit|full|compare
+// Uso: iFuel/dist-preview/index.html#/preview?scene=calm|warn|crit|full|compare|edge
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { Backdrop } from "./Backdrop";
@@ -133,6 +133,26 @@ function Scene({ scene }: { scene: string }) {
           <div style={{ color: "#8a94a6", font: "600 16px system-ui", letterSpacing: ".12em", marginBottom: 24 }}>DESPUÉS</div>
           <FuelWidgetOverlay {...fuelProps("warn")} detail="compact" />
         </div>
+      </div>
+    );
+  }
+
+  if (scene === "edge") {
+    // Estados límite: sin estimación de combustible, escombros, parada "ahora", coches doblados, hueco de pit
+    const noEst: FuelWidgetProps = { ...fuelProps("calm"), estLaps: 0, fuelLast: 0, fuelAvg: 0, fuelAvg2: 0, fuelAvg5: 0, fuelAvg10: 0, estRefuel: 0, lapFuel: 0, fuelTime: "--:--", lapHistoryLast5: [], lapHistoryLast30: [], earliestPitLap: null, totalStops: null, stintLaps: [], lapNumber: 1, sessionLabel: "--" };
+    return (
+      <div className="app-root app-root--free" style={{ position: "absolute", inset: 0, display: "block", minHeight: 0 }}>
+        <Backdrop />
+        {at({ left: 36, bottom: 36 }, <FuelWidgetOverlay {...noEst} detail="compact" />)}
+        {at({ left: "50%", transform: "translateX(-50%)", bottom: 36 }, (
+          <RelativeWidget ahead={{ ...ahead, gapSeconds: 0.2 }} behind={{ ...behind, gapSeconds: -12.4 }} myPosition={1} myLastLap={0} myBestLap={0}
+            onTrackAhead={{ ...onAhead, gapSeconds: 1.1, lapsDiff: 1 }} onTrackBehind={{ ...onBehind, lapsDiff: -1 }} classColorIndexById={classColors} />
+        ))}
+        {at({ left: "50%", transform: "translateX(-50%)", top: 36 }, (
+          <YellowFlagWidget warning={{ active: true, distanceMeters: 95, timeSeconds: 1.6, carNum: null, classId: null, classPosition: null, type: "debris" }} classColorIndexById={classColors} />
+        ))}
+        {at({ right: 36, top: 36 }, <PitClearAirWidget data={undefined} lapNumber={3} pitWindowStartLap={null} pitWindowEndLap={null} />)}
+        {at({ right: 36, bottom: 36 }, <Pit lap={26} />)}
       </div>
     );
   }

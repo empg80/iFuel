@@ -101,7 +101,7 @@ export const PitClearAirWidget = ({
                 : "")
             }
           >
-            Lap {o.lap}: {o.trafficScore} cars ±3s
+            Lap {o.lap}: {o.trafficScore} {o.trafficScore === 1 ? "car" : "cars"} ±3s
           </div>
         ))}
       </div>
