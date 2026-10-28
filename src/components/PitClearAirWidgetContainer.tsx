@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { PitClearAirWidget } from "./PitClearAirWidget";
-import { loadWidgetPosition } from "../utils/position";
+import { loadWidgetPosition, clampPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { PitClearAirData } from "../types/pit";
 import { useOverlayState } from "../contexts/useOverlayState";
@@ -29,7 +29,7 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
   const pitClearScale = overlayState.pitClearScale ?? 1;
 
   const [position, setPosition] = useState(() =>
-    loadWidgetPosition(POS_KEY_PITCLEAR, { x: 300, y: 100 }),
+    loadWidgetPosition(POS_KEY_PITCLEAR, { x: 900, y: 40 }),
   );
 
   const draggingRef = useRef(false);
@@ -47,10 +47,12 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
 
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
-      setPosition({
-        x: e.clientX - dragOffsetRef.current.x,
-        y: e.clientY - dragOffsetRef.current.y,
-      });
+      setPosition(
+        clampPosition({
+          x: e.clientX - dragOffsetRef.current.x,
+          y: e.clientY - dragOffsetRef.current.y,
+        }),
+      );
     }
 
     function handleMouseUp() {

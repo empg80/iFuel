@@ -3,7 +3,7 @@ import type { IfuelState } from "../useIfuelWebSocket";
 import type { StandingsRow } from "../types/standings";
 import { RaceStandingsWidget } from "./RaceStandingsWidget";
 import { useOverlayState } from "../contexts/useOverlayState";
-import { loadWidgetPosition } from "../utils/position";
+import { loadWidgetPosition, clampPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 
 const POS_KEY_STANDINGS = "ifuel-pos-standings";
@@ -29,7 +29,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
   const standingsScale = overlayState.standingsScale ?? 1;
 
   const [position, setPosition] = useState(() =>
-    loadWidgetPosition(POS_KEY_STANDINGS, { x: 500, y: 120 }),
+    loadWidgetPosition(POS_KEY_STANDINGS, { x: 440, y: 40 }),
   );
 
   const draggingRef = useRef(false);
@@ -47,10 +47,12 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
 
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
-      setPosition({
-        x: e.clientX - dragOffsetRef.current.x,
-        y: e.clientY - dragOffsetRef.current.y,
-      });
+      setPosition(
+        clampPosition({
+          x: e.clientX - dragOffsetRef.current.x,
+          y: e.clientY - dragOffsetRef.current.y,
+        }),
+      );
     }
 
     function handleMouseUp() {

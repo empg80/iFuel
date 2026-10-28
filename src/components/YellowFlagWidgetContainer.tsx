@@ -1,7 +1,7 @@
 // YellowFlagWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { YellowFlagWidget } from "./YellowFlagWidget";
-import { loadWidgetPosition } from "../utils/position";
+import { loadWidgetPosition, clampPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
@@ -27,7 +27,7 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
   const yellowScale = overlayState.yellowScale ?? 1;
 
   const [position, setPosition] = useState(() =>
-    loadWidgetPosition(POS_KEY_YELLOW, { x: 900, y: 100 }),
+    loadWidgetPosition(POS_KEY_YELLOW, { x: 900, y: 330 }),
   );
 
   const draggingRef = useRef(false);
@@ -40,10 +40,12 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
 
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
-      setPosition({
-        x: e.clientX - dragOffsetRef.current.x,
-        y: e.clientY - dragOffsetRef.current.y,
-      });
+      setPosition(
+        clampPosition({
+          x: e.clientX - dragOffsetRef.current.x,
+          y: e.clientY - dragOffsetRef.current.y,
+        }),
+      );
     }
 
     function handleMouseUp() {

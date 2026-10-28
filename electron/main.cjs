@@ -523,6 +523,18 @@ function buildMenuTemplate() {
           })),
         },
         {
+          label: "Reset widget positions",
+          click: () => {
+            // Borra las posiciones guardadas y recarga: los widgets vuelven a su sitio por defecto
+            if (!mainWindow) return;
+            mainWindow.webContents
+              .executeJavaScript(
+                "Object.keys(localStorage).filter(k => k.startsWith('ifuel-pos-') && k !== 'ifuel-pos-version').forEach(k => localStorage.removeItem(k)); location.reload();",
+              )
+              .catch((err) => console.warn("[iFuel] No se pudieron reiniciar las posiciones:", err));
+          },
+        },
+        {
           label: "Lock widgets (click-through)  Ctrl+Shift+L",
           type: "checkbox",
           checked: overlayState.widgetsLocked,

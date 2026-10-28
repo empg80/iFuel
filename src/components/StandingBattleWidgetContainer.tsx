@@ -1,7 +1,7 @@
 // RelativeWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { RelativeWidget } from "./StandingBattleWidget";
-import { loadWidgetPosition } from "../utils/position";
+import { loadWidgetPosition, clampPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
@@ -26,7 +26,7 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
   const relativeScale = overlayState.relativeScale ?? 1;
 
   const [position, setPosition] = useState(() =>
-    loadWidgetPosition(POS_KEY_RELATIVE, { x: 500, y: 100 }),
+    loadWidgetPosition(POS_KEY_RELATIVE, { x: 440, y: 720 }),
   );
 
   const draggingRef = useRef(false);
@@ -44,10 +44,12 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
 
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
-      setPosition({
-        x: e.clientX - dragOffsetRef.current.x,
-        y: e.clientY - dragOffsetRef.current.y,
-      });
+      setPosition(
+        clampPosition({
+          x: e.clientX - dragOffsetRef.current.x,
+          y: e.clientY - dragOffsetRef.current.y,
+        }),
+      );
     }
 
     function handleMouseUp() {

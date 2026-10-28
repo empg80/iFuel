@@ -9,7 +9,7 @@ import { FuelWidget } from "./FuelWidget";
 import { FuelWidgetOverlay } from "./FuelWidgetOverlay";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
-import { loadWidgetPosition } from "../utils/position";
+import { loadWidgetPosition, clampPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
 
@@ -100,7 +100,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   );
 
   const [position, setPosition] = useState(() =>
-    loadWidgetPosition(POS_KEY_FUEL, { x: 100, y: 100 }),
+    loadWidgetPosition(POS_KEY_FUEL, { x: 40, y: 40 }),
   );
 
   const draggingRef = useRef(false);
@@ -128,10 +128,12 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
 
     function handleMouseMove(e: MouseEvent) {
       if (!draggingRef.current) return;
-      setPosition({
-        x: e.clientX - dragOffsetRef.current.x,
-        y: e.clientY - dragOffsetRef.current.y,
-      });
+      setPosition(
+        clampPosition({
+          x: e.clientX - dragOffsetRef.current.x,
+          y: e.clientY - dragOffsetRef.current.y,
+        }),
+      );
     }
 
     function handleMouseUp() {
