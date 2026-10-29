@@ -683,25 +683,20 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
     }
   }, []);
 
-  // Se deriva un valor primitivo: el efecto solo se dispara cuando cambia la vuelta central
-  // de la ventana de pit (antes se enviaba un mensaje por cada actualización de estado).
-  const earliestPitLap = state?.earliestPitLap ?? null;
-  const hasFuelEstimate = !!(state?.estLaps && state.estLaps > 0);
-  const pitCenterLap =
-    earliestPitLap != null && earliestPitLap > 0 && hasFuelEstimate
-      ? Math.round(earliestPitLap)
-      : null;
+  // Único emisor de la estrategia de parada: el servidor calcula la ventana con el combustible real,
+  // solo necesita el consumo por vuelta y el margen. Se redondea para no enviar en cada actualización.
+  const fuelPerLapRounded =
+    state?.fuelAvg5 && state.fuelAvg5 > 0 ? Math.round(state.fuelAvg5 * 100) / 100 : null;
+  const pitSafetyLaps = options.safetyExtraLaps ?? DEFAULT_OPTS.safetyExtraLaps ?? 1;
 
   useEffect(() => {
-    if (!isConnected || pitCenterLap === null) return;
-
+    if (!isConnected || fuelPerLapRounded === null) return;
     sendMessage({
       type: "updatePitStrategy",
-      pitWindowStartLap: Math.max(1, pitCenterLap - 5),
-      pitWindowEndLap: pitCenterLap + 5,
-      pitDeltaSeconds: 32,
+      fuelPerLap: fuelPerLapRounded,
+      safetyLaps: pitSafetyLaps,
     });
-  }, [pitCenterLap, isConnected, sendMessage]);
+  }, [fuelPerLapRounded, pitSafetyLaps, isConnected, sendMessage]);
 
   const raceStandingsRows: StandingsRow[] = useMemo(
     () => state?.standings ?? [],

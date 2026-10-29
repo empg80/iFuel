@@ -15,6 +15,7 @@ import {
   resetPitAndStintState,
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
+import { computePitWindow } from "./pitWindow.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
 
@@ -130,6 +131,8 @@ let pitStrategyParams = {
   pitWindowStartLap: null,
   pitWindowEndLap: null,
   pitDeltaSeconds: 32, // tiempo total de pit estimado
+  fuelPerLap: null, // consumo por vuelta (lo envía el cliente); con él la ventana sale del combustible real
+  safetyLaps: 1,
 };
 
 // Cargar si existe (se invoca desde startTelemetryServer, cuando ya se conoce dataDir)
@@ -890,16 +893,60 @@ standings.sort((a, b) => a.position - b.position);
       sessionTime,
       lapDistPct: myPct,
       baseLapTime,
+      fuelLevel,
       // garaje, replay o coche fuera del mundo: CarIdxOnPitRoad no es fiable
       inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
     });
     const pitLossSeconds = measuredPitLoss ?? pitStrategyParams.pitDeltaSeconds;
 
-    if (
+    // Ventana a partir del combustible real (vueltas en que se pasa por el box, con autonomía)
+    const lapsToFinish =
+      lapsRemainForRace != null && lapsRemainForRace < 1000
+        ? lapsRemainForRace
+        : sessionTimeRemain > 0 && baseLapTime > 0 && sessionTimeRemain < 86400 * 2
+          ? sessionTimeRemain / baseLapTime + 1
+          : null;
+    const pitPct = Number(driverInfo.DriverPitTrkPct);
+    const fpl = pitStrategyParams.fuelPerLap;
+    const windowInfo =
+      fpl > 0 && fuelMax > 0
+        ? computePitWindow({
+            fuelLevel, fuelPerLap: fpl, fuelCapacity: fuelMax, myLap, myPct,
+            pitPct: Number.isFinite(pitPct) ? pitPct : null,
+            lapsToFinish, safetyLaps: pitStrategyParams.safetyLaps,
+          })
+        : null;
+
+    if (windowInfo && windowInfo.passes.length > 0 && (windowInfo.status === "window" || windowInfo.status === "extra-stop" || windowInfo.status === "critical")) {
+      const remaining = (lapsToFinish ?? 0) - myPct;
+      const passes = windowInfo.passes.map((p) => {
+        // litros que habría que añadir en ese paso: lo que falta para meta, con el tope del depósito
+        const fuelAtPit = Math.max(0, fuelLevel - p.lapsToPit * fpl);
+        const need = (remaining - p.lapsToPit + pitStrategyParams.safetyLaps) * fpl - fuelAtPit;
+        const liters = Math.max(0, Math.min(need, fuelMax - fuelAtPit));
+        return { ...p, liters, lossSeconds: pitLossTracker.lossFor(liters) ?? pitStrategyParams.pitDeltaSeconds };
+      });
+      pitClearAir = computePitClearAirSuggestion({
+        myLap, myPct, cars, myIdx: driverIdx, baseLapTime,
+        pitPct: Number.isFinite(pitPct) ? pitPct : null,
+        passes,
+        pitDeltaSeconds: pitLossSeconds,
+      });
+      pitClearAir.windowStatus = windowInfo.status;
+      pitClearAir.windowStartLap = windowInfo.startLap;
+      pitClearAir.windowEndLap = windowInfo.endLap;
+      pitClearAir.litersNeeded = windowInfo.litersNeeded;
+      pitClearAir.pitLossSeconds = pitLossSeconds;
+      pitClearAir.pitLossMeasured = measuredPitLoss != null;
+    } else if (windowInfo && windowInfo.status === "no-stop") {
+      pitClearAir = { suggestedLap: null, options: [], nowScore: null, nowNearest: null, windowStatus: "no-stop",
+        windowStartLap: null, windowEndLap: null, pitLossSeconds, pitLossMeasured: measuredPitLoss != null };
+    } else if (
       pitStrategyParams.pitWindowStartLap != null &&
       pitStrategyParams.pitWindowEndLap != null &&
       pitStrategyParams.pitWindowEndLap >= pitStrategyParams.pitWindowStartLap
     ) {
+      // Sin consumo conocido: ventana manual enviada por el cliente
       pitClearAir = computePitClearAirSuggestion({
         myLap,
         myPct,
@@ -912,9 +959,11 @@ standings.sort((a, b) => a.position - b.position);
         lapsRemainForRace,
         maxStintLapsFromFull,
       });
+      pitClearAir.windowStatus = "window";
+      pitClearAir.windowStartLap = pitStrategyParams.pitWindowStartLap;
+      pitClearAir.windowEndLap = pitStrategyParams.pitWindowEndLap;
       pitClearAir.pitLossSeconds = pitLossSeconds;
       pitClearAir.pitLossMeasured = measuredPitLoss != null;
-
     }
 
 
@@ -1092,50 +1141,43 @@ if (origin && !allowedOrigins.has(origin)) {
 
       switch (msg.type) {
         case "updatePitStrategy": {
-          const {
-            pitWindowStartLap,
-            pitWindowEndLap,
-            pitDeltaSeconds,
-          } = msg;
+          const { pitWindowStartLap, pitWindowEndLap, pitDeltaSeconds, fuelPerLap, safetyLaps } = msg;
+          const next = { ...pitStrategyParams };
 
-          if (
-            typeof pitWindowStartLap !== "number" ||
-            typeof pitWindowEndLap !== "number" ||
-            typeof pitDeltaSeconds !== "number"
-          ) {
-            console.warn("[iFuel] updatePitStrategy: tipos inválidos");
-            return;
+          if (fuelPerLap !== undefined) {
+            if (fuelPerLap !== null && (typeof fuelPerLap !== "number" || !Number.isFinite(fuelPerLap) || fuelPerLap <= 0 || fuelPerLap > 1000)) {
+              console.warn("[iFuel] updatePitStrategy: fuelPerLap inválido");
+              return;
+            }
+            next.fuelPerLap = fuelPerLap;
           }
-
-          if (
-            !Number.isFinite(pitWindowStartLap) ||
-            !Number.isFinite(pitWindowEndLap) ||
-            !Number.isFinite(pitDeltaSeconds)
-          ) {
-            console.warn("[iFuel] updatePitStrategy: valores no finitos");
-            return;
+          if (safetyLaps !== undefined) {
+            if (typeof safetyLaps !== "number" || !Number.isFinite(safetyLaps) || safetyLaps < 0 || safetyLaps > 10) {
+              console.warn("[iFuel] updatePitStrategy: safetyLaps inválido");
+              return;
+            }
+            next.safetyLaps = safetyLaps;
           }
-
-          if (
-            pitWindowStartLap < 1 ||
-            pitWindowEndLap < pitWindowStartLap ||
-            pitWindowEndLap - pitWindowStartLap > 100
-          ) {
-            console.warn("[iFuel] updatePitStrategy: rango inválido");
-            return;
+          if (pitDeltaSeconds !== undefined) {
+            if (typeof pitDeltaSeconds !== "number" || !Number.isFinite(pitDeltaSeconds) || pitDeltaSeconds <= 0 || pitDeltaSeconds > 600) {
+              console.warn("[iFuel] updatePitStrategy: pitDeltaSeconds inválido");
+              return;
+            }
+            next.pitDeltaSeconds = pitDeltaSeconds;
           }
-
-          if (pitDeltaSeconds <= 0 || pitDeltaSeconds > 600) {
-            console.warn("[iFuel] updatePitStrategy: pitDeltaSeconds inválido");
-            return;
+          if (pitWindowStartLap !== undefined || pitWindowEndLap !== undefined) {
+            if (
+              typeof pitWindowStartLap !== "number" || typeof pitWindowEndLap !== "number" ||
+              !Number.isFinite(pitWindowStartLap) || !Number.isFinite(pitWindowEndLap) ||
+              pitWindowStartLap < 1 || pitWindowEndLap < pitWindowStartLap || pitWindowEndLap - pitWindowStartLap > 100
+            ) {
+              console.warn("[iFuel] updatePitStrategy: rango inválido");
+              return;
+            }
+            next.pitWindowStartLap = pitWindowStartLap;
+            next.pitWindowEndLap = pitWindowEndLap;
           }
-
-          pitStrategyParams = {
-            pitWindowStartLap,
-            pitWindowEndLap,
-            pitDeltaSeconds,
-          };
-
+          pitStrategyParams = next;
           break;
         }
 

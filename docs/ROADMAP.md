@@ -1,6 +1,6 @@
 # iFuel — hoja de ruta
 
-Actualizada: 2026-10-29 (añadido multiclase) · Versión de referencia: 0.1.0-beta.8 · Rama de trabajo: `claude/fase-5-grafico`
+Actualizada: 2026-10-29 (C2 y C4 hechos, pendientes de validar) · Versión de referencia: 0.1.0-beta.9 · Rama de trabajo: `claude/fase-5-grafico`
 
 Fuentes: análisis de competencia (RaceLab, iOverlay, irDashies, Track Impulse, Edge, Kapps, iRon; octubre 2026), pruebas reales de Kike con las betas 1 a 8 y sus ideas propias.
 
@@ -37,9 +37,9 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 | Id | Qué | Esfuerzo | Hecho cuando |
 | --- | --- | --- | --- |
 | C1 | Modelar rivales que paran en la misma ventana (quién lleva más vueltas de stint y combustible aproximado) | M | Test con escenario de varios rivales que entran |
-| C2 | Ventana de parada derivada del combustible real y, en carreras, de la regla de la serie (no ±5 vueltas fijas) | M | La ventana coincide con la autonomía calculada |
+| C2 | Ventana de parada derivada del combustible real y, en carreras, de la regla de la serie (no ±5 vueltas fijas) | M | **Hecho en beta.9 (servidor, `pitWindow.mjs`)**; falta validar en iRacing. Pendiente la regla de la serie |
 | C3 | Distinguir rivales más rápidos y más lentos que tú, y si tendrías que adelantarlos; en multiclase, ver M2 | M | La puntuación pondera el ritmo, con test |
-| C4 | Tiempo de repostaje: pérdida de parada según litros a poner (no solo la última parada) | S | La pérdida cambia con los litros previstos |
+| C4 | Tiempo de repostaje: pérdida de parada según litros a poner (no solo la última parada) | S | **Hecho en beta.9 (`pitLoss.lossFor`)**; falta validar con dos paradas reales |
 | C5 | Instrucción única y grande: "BOX AHORA: aire limpio" / "ESPERA N vueltas: pasas de X coches a Y" | S | Probado en carrera real por Kike |
 | C6 | Umbrales configurables (segundos de aire limpio, margen de combustible) | S | Se ajustan en ajustes |
 | C7 | Validar el modelo contra grabaciones con paradas y tráfico real | M | Informe de aciertos del modelo |

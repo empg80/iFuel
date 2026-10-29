@@ -8,10 +8,14 @@ const CLEAR_AIR_SECONDS = 3; // ±3 s alrededor de tu salida cuentan como tráfi
  * Tu posición al salir es la que tendrías en pista habiendo perdido `pitDeltaSeconds`;
  * los rivales que siguen rodando avanzan todo el tiempo (rodar + parada).
  */
-function trafficAtExit({ lapsToGo, myPct, cars, myIdx, baseLapTime, pitDeltaSeconds }) {
+function trafficAtExit({ lapsToGo, myPct, pitPct, cars, myIdx, baseLapTime, pitDeltaSeconds }) {
+  // lapsToGo = vueltas (fraccionarias) hasta pasar por tu box. Con pitPct conocido sales cerca de tu box;
+  // sin él (compatibilidad) se usa tu posición actual avanzada ese tiempo.
   const timeUntilPitIn = lapsToGo * baseLapTime;
   const pitExitTime = timeUntilPitIn + pitDeltaSeconds;
-  const projectedPct = ((((myPct ?? 0) + timeUntilPitIn / baseLapTime) % 1) + 1) % 1;
+  const projectedPct = Number.isFinite(pitPct) && pitPct >= 0
+    ? pitPct
+    : ((((myPct ?? 0) + timeUntilPitIn / baseLapTime) % 1) + 1) % 1;
 
   let trafficScore = 0;
   let nearest = null; // el coche más pegado a tu salida
@@ -45,6 +49,8 @@ export function computePitClearAirSuggestion({
   cars,
   myIdx,
   baseLapTime,
+  pitPct = null,
+  passes = null, // [{lap, lapsToPit, lossSeconds?}] de pitWindow.mjs; si no, se usa pitWindowStartLap..EndLap
   pitWindowStartLap,
   pitWindowEndLap,
   pitDeltaSeconds,
@@ -53,6 +59,28 @@ export function computePitClearAirSuggestion({
   maxStintLapsFromFull,
 }) {
   const empty = { suggestedLap: null, options: [], nowScore: null, nowNearest: null };
+  if (Array.isArray(passes) && passes.length > 0 && Number.isFinite(baseLapTime) && baseLapTime > 0) {
+    const opts = passes.map((p) => {
+      const loss = Number.isFinite(p.lossSeconds) && p.lossSeconds > 0 ? p.lossSeconds : pitDeltaSeconds;
+      const { trafficScore, nearest } = trafficAtExit({
+        lapsToGo: p.lapsToPit, myPct, pitPct, cars, myIdx, baseLapTime, pitDeltaSeconds: loss,
+      });
+      return { lap: p.lap, trafficScore, nearest, lossSeconds: loss };
+    });
+    const sorted = [...opts].sort((a, b) => a.trafficScore - b.trafficScore || a.lap - b.lap);
+    const first = passes[0];
+    const now = trafficAtExit({
+      lapsToGo: first.lapsToPit, myPct, pitPct, cars, myIdx, baseLapTime,
+      pitDeltaSeconds: opts[0].lossSeconds,
+    });
+    return {
+      suggestedLap: sorted[0].lap,
+      options: sorted.slice(0, 3),
+      nowScore: now.trafficScore, // si entras en el próximo paso por tu box
+      nowNearest: now.nearest,
+      nextPitLap: first.lap,
+    };
+  }
   if (
     !Number.isFinite(pitWindowStartLap) ||
     !Number.isFinite(pitWindowEndLap) ||

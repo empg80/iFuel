@@ -4,6 +4,7 @@ export type PitClearAirOption = {
   lap: number;
   trafficScore: number;
   nearest?: PitClearAirNearest;
+  lossSeconds?: number;
 };
 
 export type PitClearAirData = {
@@ -15,4 +16,10 @@ export type PitClearAirData = {
   /** Segundos que pierdes en una parada y si se han medido en tus paradas o son una estimación */
   pitLossSeconds?: number | null;
   pitLossMeasured?: boolean;
+  /** Ventana calculada por el servidor con el combustible real */
+  windowStatus?: "window" | "no-stop" | "extra-stop" | "critical";
+  windowStartLap?: number | null;
+  windowEndLap?: number | null;
+  litersNeeded?: number | null;
+  nextPitLap?: number;
 } | null;

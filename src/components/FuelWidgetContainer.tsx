@@ -84,7 +84,6 @@ type FuelWidgetContainerProps = {
 export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   state,
   isConnected,
-  sendMessage,
   variant = "free",
 }) => {
   const overlayState = useOverlayState();
@@ -105,12 +104,6 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
 
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
-
-  const lastSentPitStrategyRef = useRef<{
-    start: number;
-    end: number;
-    delta: number;
-  } | null>(null);
 
   const isPitboard = variant === "pitboard";
 
@@ -194,56 +187,6 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
 
   const capacity = fuelCapacity ?? fuelMax ?? fuel;
   const fuelLevelRatio = capacity > 0 ? fuel / capacity : 0;
-
-  const MIN_VALID_LAPS_FOR_PIT_CLEAR = 5;
-  const validLapsCount = state?.lapHistoryLast30.length ?? 0;
-
-  useEffect(() => {
-    if (!earliestPitLap || !estLaps) return;
-    if (validLapsCount < MIN_VALID_LAPS_FOR_PIT_CLEAR) return;
-
-    const firstStint = stintLaps?.[0] ?? null;
-    const stintLength = firstStint && firstStint > 0 ? firstStint : estLaps;
-
-    const baseHalfWidth = Math.round(stintLength * 0.2);
-    const MIN_HALF_WIDTH = 2;
-    const MAX_HALF_WIDTH = 8;
-
-    const halfWidth = Math.min(
-      MAX_HALF_WIDTH,
-      Math.max(MIN_HALF_WIDTH, baseHalfWidth),
-    );
-
-    const centerLap = earliestPitLap;
-    const pitWindowStartLap = Math.max(1, centerLap - halfWidth);
-    const pitWindowEndLap = centerLap + halfWidth;
-    const pitDeltaSeconds = 32;
-
-    const prev = lastSentPitStrategyRef.current;
-    const next = {
-      start: pitWindowStartLap,
-      end: pitWindowEndLap,
-      delta: pitDeltaSeconds,
-    };
-
-    if (
-      prev &&
-      prev.start === next.start &&
-      prev.end === next.end &&
-      prev.delta === next.delta
-    ) {
-      return;
-    }
-
-    lastSentPitStrategyRef.current = next;
-
-    sendMessage({
-      type: "updatePitStrategy",
-      pitWindowStartLap,
-      pitWindowEndLap,
-      pitDeltaSeconds,
-    });
-  }, [earliestPitLap, estLaps, stintLaps, validLapsCount, sendMessage]);
 
   const lapTimeStr =
     lapTime && lapTime > 0

@@ -84,10 +84,11 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
 
   if (!pitClearVisible) return null;
 
-  let pitWindowStartLap: number | null = null;
-  let pitWindowEndLap: number | null = null;
+  // La ventana la calcula el servidor con el combustible real; si aún no hay datos, el rango estimado antiguo
+  let pitWindowStartLap: number | null = pitClearAir?.windowStartLap ?? null;
+  let pitWindowEndLap: number | null = pitClearAir?.windowEndLap ?? null;
 
-  if (earliestPitLap && earliestPitLap > 0) {
+  if (pitWindowStartLap == null && earliestPitLap && earliestPitLap > 0) {
     const centerLap = Math.round(earliestPitLap);
     pitWindowStartLap = Math.max(1, centerLap - 5);
     pitWindowEndLap = centerLap + 5;

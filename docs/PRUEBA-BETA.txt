@@ -56,6 +56,16 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.9: VENTANA DE PARADA Y PIT CLEAR AIR
+--------------------------------------------------
+  - La ventana de parada ahora sale del combustible real y del punto de tu box (no son +-5 vueltas fijas).
+    Mira que el rango "Window: Lx-Ly" del widget Pit Clear Air tenga sentido con tu autonomia.
+  - Si el combustible llega a meta, el widget dice "No stop needed". Si con un solo repostaje no
+    llegas, avisa de que hace falta una parada extra. Si no llegas ni a tu box, avisa FUEL CRITICAL.
+  - La perdida de parada ya depende de los litros que vayas a poner (mide tu ritmo de repostaje en
+    tu primera parada). Haz una parada con repostaje y anota cuanto sale en el widget ("loss Ns").
+  - Si puedes, haz una segunda parada con otra cantidad de combustible y comprueba que la perdida cambia.
+
 QUÉ LLEVA EL INFORME
 --------------------
   logs\ifuel.log                  errores, reconexiones, arranque

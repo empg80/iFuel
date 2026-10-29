@@ -33,6 +33,16 @@ export const PitClearAirWidget = ({
     ? `Window: L${pitWindowStartLap}–L${pitWindowEndLap}`
     : "Window: --";
 
+  if (data?.windowStatus === "no-stop") {
+    return (
+      <div className="fuel-widget pit-clear-air-widget">
+        <div className="label">PIT CLEAR AIR</div>
+        <div className="value">No stop needed</div>
+        <div className="pit-clear-air-widget__window">Fuel reaches the finish</div>
+      </div>
+    );
+  }
+
   if (!data || !data.suggestedLap) {
     return (
       <div className="fuel-widget pit-clear-air-widget">
@@ -46,7 +56,10 @@ export const PitClearAirWidget = ({
   const { suggestedLap, options, nowScore, nowNearest, pitLossSeconds, pitLossMeasured } = data;
 
   const currentLap = lapNumber ?? 0;
-  const diff = suggestedLap - currentLap;
+  // Con la ventana del servidor, la referencia es tu próximo paso por boxes (puede ser la vuelta siguiente)
+  const refLap = data.nextPitLap ?? currentLap;
+  const diff = suggestedLap - refLap;
+  const entryLabel = refLap > currentLap && currentLap > 0 ? "BOX NEXT LAP" : "BOX THIS LAP";
 
   // tamaño de ventana real, si existe
   let windowSize = 0;
@@ -64,7 +77,7 @@ export const PitClearAirWidget = ({
   if (currentLap > 0) {
     if (diff <= 0) {
       highlightClass = "pit-clear-air-widget__highlight--now";
-      highlightLabel = "BOX THIS LAP";
+      highlightLabel = entryLabel;
     } else if (diff > 0 && diff <= SOON_THRESHOLD) {
       highlightClass = "pit-clear-air-widget__highlight--soon";
       highlightLabel = `IN ${diff} LAP${diff === 1 ? "" : "S"}`;
@@ -104,6 +117,13 @@ export const PitClearAirWidget = ({
             ? `Box now: ${carsText(nowScore)} at exit${describeNearest(nowNearest)}`
             : `Box now: ${carsText(nowScore)} at exit${describeNearest(nowNearest)} → wait ${diff} lap${diff === 1 ? "" : "s"}`}
         </div>
+      )}
+
+      {data.windowStatus === "extra-stop" && (
+        <div className="pit-clear-air-widget__advice">One more stop needed: a single refuel will not reach the finish</div>
+      )}
+      {data.windowStatus === "critical" && (
+        <div className="pit-clear-air-widget__advice">FUEL CRITICAL: box at the next pit entry</div>
       )}
 
       <div className="pit-clear-air-widget__window">
