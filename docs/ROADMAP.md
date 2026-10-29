@@ -1,6 +1,6 @@
 # iFuel — hoja de ruta
 
-Actualizada: 2026-10-29 · Versión de referencia: 0.1.0-beta.8 · Rama de trabajo: `claude/fase-5-grafico`
+Actualizada: 2026-10-29 (añadido multiclase) · Versión de referencia: 0.1.0-beta.8 · Rama de trabajo: `claude/fase-5-grafico`
 
 Fuentes: análisis de competencia (RaceLab, iOverlay, irDashies, Track Impulse, Edge, Kapps, iRon; octubre 2026), pruebas reales de Kike con las betas 1 a 8 y sus ideas propias.
 
@@ -12,7 +12,7 @@ Principios:
 - Lo importante se ve de un vistazo y no roba la atención del simulador.
 - Cada cálculo se valida con datos reales grabados antes de darlo por bueno.
 - Nada se presenta como probado si no se ha probado (Windows e iRacing reales los prueba Kike).
-- iRacing es el único simulador objetivo; sin carreras mixtas por ahora.
+- iRacing es el único simulador objetivo. Las carreras multiclase forman parte del alcance (ver P3b).
 
 ## 2. Estado actual (beta.8)
 
@@ -30,6 +30,7 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 | V1 | Revisar el informe de la prueba de la beta.8: posiciones de widgets, banderas, pit clear air | Kike confirma que se ven y el informe no muestra errores |
 | V2 | Examinar `relativeOnTrack` con `lapsDiff -5` y huecos de -41,6 s / 21,4 s frente a `CarIdxEstTime` | Explicado o corregido con test |
 | V3 | Comparar el consumo por vuelta grabado con el que calcula la app | Diferencia dentro de tolerancia o corregida |
+| V5 | Conseguir una grabación de una carrera **multiclase** real (la del 28-10 tenía una sola clase) para validar todo lo de P3b | Informe de Kike con 2 o más clases en pista |
 | V4 | Tabla de estados de bandera: verificar con grabaciones qué bits activa iRacing en práctica, carrera y safety car | Documentado en `docs/` con ejemplos |
 
 ### P1 — El diferenciador: pit clear air v2
@@ -37,7 +38,7 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 | --- | --- | --- | --- |
 | C1 | Modelar rivales que paran en la misma ventana (quién lleva más vueltas de stint y combustible aproximado) | M | Test con escenario de varios rivales que entran |
 | C2 | Ventana de parada derivada del combustible real y, en carreras, de la regla de la serie (no ±5 vueltas fijas) | M | La ventana coincide con la autonomía calculada |
-| C3 | Distinguir rivales más rápidos y más lentos que tú, y si tendrías que adelantarlos | M | La puntuación pondera el ritmo, con test |
+| C3 | Distinguir rivales más rápidos y más lentos que tú, y si tendrías que adelantarlos; en multiclase, ver M2 | M | La puntuación pondera el ritmo, con test |
 | C4 | Tiempo de repostaje: pérdida de parada según litros a poner (no solo la última parada) | S | La pérdida cambia con los litros previstos |
 | C5 | Instrucción única y grande: "BOX AHORA: aire limpio" / "ESPERA N vueltas: pasas de X coches a Y" | S | Probado en carrera real por Kike |
 | C6 | Umbrales configurables (segundos de aire limpio, margen de combustible) | S | Se ajustan en ajustes |
@@ -72,6 +73,19 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 - Tamaños de texto legibles a ese tamaño y modo "mínimo" con lo esencial.
 - Hecho cuando: capturas a 1280×800 sin solapes y prueba real.
 
+### P3b — Carreras multiclase
+Hoy ya hay colores e insignias por clase y posición de clase en relative y standings. Falta lo que más cambia la carrera de un multiclase: el tráfico de otras clases.
+
+| Id | Qué | Esfuerzo | Hecho cuando |
+| --- | --- | --- | --- |
+| M1 | **Aviso de tráfico más rápido por detrás**: clase superior que se acerca, con distancia, tiempo estimado de alcance y color de su clase. Lo calculan `CarIdxClass`, tiempos de vuelta por clase y el ritmo de cierre; con umbral configurable | M | Test con un escenario de alcance y prueba real |
+| M2 | **Pit clear air consciente de clases**: los coches de clases más rápidas te alcanzarán tras salir de boxes y los de clases más lentas son tráfico que tendrás que adelantar; la puntuación los pondera distinto | M | Test con rivales de 2 clases y validación con grabación |
+| M3 | **Standings por clase**: vista agrupada o filtrada por clase, posición y hueco al líder de tu clase, vueltas perdidas respecto al líder general | M | Escena de preview y prueba real |
+| M4 | **Relative multiclase**: tintar las filas por clase (más rápida o más lenta), mostrar vueltas de diferencia fiables (depende de V2) | S | Test del cálculo de vueltas |
+| M5 | **Fin de carrera y combustible en multiclase**: vueltas hasta meta por clase (cada clase termina al cruzar la meta tras el líder general); revisar el plan de repostaje por tiempo | M | Test con escenarios de carrera por tiempo |
+| M6 | Widget circular (K1) con los coches coloreados por clase y los de clase más rápida marcados cuando se acercan | S | Parte de K1 |
+| M7 | Banderas azules y avisos de vuelta doblada (N7) | S | V4 |
+
 ### P4 — Catálogo nuevo, por impacto/esfuerzo
 | Id | Qué | Esfuerzo | Dependencia |
 | --- | --- | --- | --- |
@@ -86,7 +100,7 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 | N9 | Nombre del equipo y piloto que conduce de verdad en carreras por equipos | S | — |
 
 ### P5 — Más adelante / solo si hace falta
-Reparto de combustible entre compañeros, layouts compartidos en comunidad, VR, tráfico multiclase (Kike no corre carreras mixtas), otros simuladores, bot de Twitch.
+Reparto de combustible entre compañeros, layouts compartidos en comunidad, VR, otros simuladores, bot de Twitch.
 
 ## 4. Deuda técnica
 
