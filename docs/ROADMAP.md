@@ -134,3 +134,8 @@ Restricciones conocidas: la sesión de trabajo no puede crear tags ni releases e
 ## 6. Seguridad y cuentas
 
 El token de GitHub compartido en la conversación debe revocarse cuando termine el trabajo. No se escribe en ficheros ni en la configuración de git.
+
+
+## Resultado de la prueba beta.11 (entregado en beta.12)
+- Reloj de sesión movido a Standings; jugador siempre presente en standings (playerCarNumber); fallback de vuelta con DriverCarEstLapTime; MIN_LAPS 0.25; widget de banderas rediseñado.
+- Pendiente de validar: ausencia en standings tras incidente (no reproducible desde la grabación).
