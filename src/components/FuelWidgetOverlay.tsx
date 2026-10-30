@@ -62,6 +62,7 @@ export const FuelWidgetOverlay = React.memo(function FuelWidgetOverlay(
     lapHistoryLast5,
     lapHistoryLast30,
     sessionLabel,
+    sessionClock,
     airTemp,
     trackTemp,
     detail,
@@ -100,7 +101,14 @@ export const FuelWidgetOverlay = React.memo(function FuelWidgetOverlay(
     >
       <div className="fw__head">
         <span className="fw__title">FUEL</span>
-        <span className="fw__session">{sessionLabel}</span>
+        {sessionClock ? (
+          <span className="fw__clock" aria-label="Session time left">
+            <span className="fw__clock-time">{sessionClock}</span>
+            <span className="fw__clock-cap">SESSION LEFT</span>
+          </span>
+        ) : (
+          <span className="fw__session">{sessionLabel}</span>
+        )}
       </div>
 
       <div className="fw__hero">

@@ -1,6 +1,6 @@
 # iFuel — hoja de ruta
 
-Actualizada: 2026-10-29 (informe beta.9 aplicado) · Versión de referencia: 0.1.0-beta.10 · Rama de trabajo: `claude/fase-5-grafico`
+Actualizada: 2026-10-29 (informe beta.10 aplicado) · Versión de referencia: 0.1.0-beta.11 · Rama de trabajo: `claude/fase-5-grafico`
 
 Fuentes: análisis de competencia (RaceLab, iOverlay, irDashies, Track Impulse, Edge, Kapps, iRon; octubre 2026), pruebas reales de Kike con las betas 1 a 8 y sus ideas propias.
 
@@ -36,6 +36,10 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 ### Resultado de la prueba beta.9 (Le Mans, multiclase, 30-10)
 Hecho en beta.10: leyenda de clases y nombre de categoría en insignias (M4 parcial), relative de ancho fijo, tipografía mayor, standings sin barra de desplazamiento y fila propia destacada, aviso de debris/amarilla que se apaga al pasar el incidente y que compara con la velocidad típica de cada zona (antes una horquilla lenta contaba como incidente), pérdida de parada solo en paradas reales (antes medía el reaparecer en boxes: 13 s falsos). El informe graba ahora los coches en pista (`cars`), lo que permite validar los avisos y es la base de K1.
 Pendiente de validar: metros y segundos del aviso de debris con un coche parado real; pérdida de parada y ventana en una parada real de carrera.
+
+### Resultado de la prueba beta.10 (Le Mans, 30-10)
+Hecho en beta.11: icono y datos de versión del .exe (parcheados con `resedit` en afterPack, sin wine), plan de combustible único en el servidor (`fuelPlan`: litros, paradas, ventana; el widget de combustible y el pit clear air usan la misma cifra), consumo medido rodando para cuando aún no hay vueltas válidas, reloj de sesión grande, standings recortado (10 primeros por clase + 3 delante y 3 detrás).
+Pendiente de validar: litros y ventana en una parada de carrera por tiempo y por vueltas; regla de la serie (paradas obligatorias) sigue pendiente en C2.
 
 ### P1 — El diferenciador: pit clear air v2
 | Id | Qué | Esfuerzo | Hecho cuando |

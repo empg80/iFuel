@@ -835,3 +835,33 @@
 .app-root--free .pit-clear-air-widget__advice { font-size: 15px; }
 
 .app-root--free .relative-ontrack-grid { column-gap: 28px; }
+
+/* ---- Reloj de sesión (tiempo restante) ---- */
+.app-root--free .fw__clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+.app-root--free .fw__clock-time {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ov-text);
+  letter-spacing: 0.01em;
+}
+.app-root--free .fw__clock-cap {
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--ov-text-3);
+}
+
+/* ---- Standings recortados: tramo oculto ---- */
+.app-root--free .race-standings__gap {
+  padding: 1px 8px 1px 54px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ov-text-3);
+  border-left: 5px solid transparent;
+}

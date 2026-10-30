@@ -30,4 +30,53 @@ exports.default = async function afterPack(context) {
     throw new Error("Falta el binario win32-x64 de @irsdk-node/native");
   }
   console.log(`  • afterPack: node_modules del servidor copiados a ${dest}`);
+
+  if (context.electronPlatformName === "win32") await patchWindowsExe(context);
 };
+
+// "signAndEditExecutable": false evita necesitar wine, pero entonces electron-builder no pone el icono ni
+// los datos de versión: el .exe salía con el icono de Electron. Se parchean aquí con resedit (JS puro).
+exports.patchWindowsExe = patchWindowsExe;
+async function patchWindowsExe(context) {
+  const { NtExecutable, NtExecutableResource, Resource, Data } = await import("resedit");
+  const exePath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.exe`);
+  const icoPath = path.join(context.packager.projectDir, "build", "icon.ico");
+  const exe = NtExecutable.from(fs.readFileSync(exePath));
+  const res = NtExecutableResource.from(exe);
+
+  const iconFile = Data.IconFile.from(fs.readFileSync(icoPath));
+  const groups = Resource.IconGroupEntry.fromEntries(res.entries);
+  const targets = groups.length ? groups.map((g) => ({ id: g.id, lang: g.lang })) : [{ id: 1, lang: 1033 }];
+  for (const t of targets) {
+    Resource.IconGroupEntry.replaceIconsForResource(
+      res.entries, t.id, t.lang, iconFile.icons.map((i) => i.data),
+    );
+  }
+
+  const infos = Resource.VersionInfo.fromEntries(res.entries);
+  const version = context.packager.appInfo.version;
+  const numeric = String(version).split(/[.-]/).filter((x) => /^\d+$/.test(x)).map(Number);
+  while (numeric.length < 3) numeric.push(0);
+  for (const info of infos) {
+    info.setFileVersion(numeric[0], numeric[1] ?? 0, numeric[2] ?? 0, 0, info.lang?.[0]?.lang ?? 1033);
+    info.setProductVersion(numeric[0], numeric[1] ?? 0, numeric[2] ?? 0, 0, info.lang?.[0]?.lang ?? 1033);
+    info.setStringValues(
+      { lang: info.lang?.[0]?.lang ?? 1033, codepage: 1200 },
+      {
+        FileDescription: "iFuel",
+        ProductName: "iFuel",
+        InternalName: "iFuel",
+        OriginalFilename: "iFuel.exe",
+        ProductVersion: String(version),
+        FileVersion: String(version),
+        CompanyName: "iFuel",
+        LegalCopyright: "iFuel",
+      },
+    );
+    info.outputToResourceEntries(res.entries);
+  }
+
+  res.outputResource(exe);
+  fs.writeFileSync(exePath, Buffer.from(exe.generate()));
+  console.log(`  • afterPack: icono y datos de versión de iFuel aplicados a ${exePath}`);
+}

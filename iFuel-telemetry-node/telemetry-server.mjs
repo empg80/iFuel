@@ -15,7 +15,8 @@ import {
   resetPitAndStintState,
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
-import { computePitWindow } from "./pitWindow.mjs";
+import { computeFuelPlan } from "./fuelPlan.mjs";
+import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
 
@@ -209,6 +210,7 @@ function startTelemetryLoop(
 ) {
   resetPitAndStintState();
   const pitLossTracker = createPitLossTracker();
+  const fuelModel = createFuelModel();
   const yellowTracker = createYellowTracker();
   const trackCarSpeeds = createCarSpeedTracker();
 
@@ -319,6 +321,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
       if (lastSessionKey !== null) {
         resetPitAndStintState();
         pitLossTracker.reset();
+        fuelModel.reset();
         yellowTracker.reset();
         // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
         if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
@@ -386,6 +389,7 @@ let standings = [];
 // coches en el mundo, formato compacto [número, %vuelta, velocidad m/s, superficie, clase, boxes]:
 // sirve para validar avisos con grabaciones y para el widget de pista
 let carsCompact = [];
+let fuelPlan = null;
 
 
 // mapa CarIdx -> número de coche (puede ser vacío si DriverInfo viene roto)
@@ -910,26 +914,40 @@ standings.sort((a, b) => a.position - b.position);
     });
     const pitLossSeconds = measuredPitLoss ?? pitStrategyParams.pitDeltaSeconds;
 
-    // Ventana a partir del combustible real (vueltas en que se pasa por el box, con autonomía)
-    const lapsToFinish =
-      lapsRemainForRace != null && lapsRemainForRace < 1000
-        ? lapsRemainForRace
-        : sessionTimeRemain > 0 && baseLapTime > 0 && sessionTimeRemain < 86400 * 2
-          ? sessionTimeRemain / baseLapTime + 1
-          : null;
+    // Plan de combustible y de parada: una sola fórmula para el widget de combustible y el pit clear air.
+    // Consumo: el del cliente (vueltas válidas) si lo hay; si no, el medido en pista desde media vuelta.
+    const measuredFuelPerLap = fuelModel.update({
+      fuelLevel, lap: myLap, lapDistPct: myPct, onPitRoad: !!carIdxOnPitRoad[driverIdx],
+      inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
+    });
+    const fpl = pitStrategyParams.fuelPerLap ?? measuredFuelPerLap;
+    const fplSource = pitStrategyParams.fuelPerLap != null ? "laps" : measuredFuelPerLap != null ? "measured" : null;
     const pitPct = Number(driverInfo.DriverPitTrkPct);
-    const fpl = pitStrategyParams.fuelPerLap;
-    const windowInfo =
-      fpl > 0 && fuelMax > 0
-        ? computePitWindow({
-            fuelLevel, fuelPerLap: fpl, fuelCapacity: fuelMax, myLap, myPct,
-            pitPct: Number.isFinite(pitPct) ? pitPct : null,
-            lapsToFinish, safetyLaps: pitStrategyParams.safetyLaps,
-          })
-        : null;
+    const plan = fpl > 0 && fuelMax > 0
+      ? computeFuelPlan({
+          fuelLevel, fuelPerLap: fpl, fuelCapacity: fuelMax, myLap, myPct,
+          pitPct: Number.isFinite(pitPct) ? pitPct : null,
+          safetyLaps: pitStrategyParams.safetyLaps,
+          lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime,
+        })
+      : null;
+    const windowInfo = plan?.window ?? null;
+    if (plan) {
+      const firstPass = windowInfo?.passes?.[0];
+      const fuelAtPit = firstPass ? Math.max(0, fuelLevel - firstPass.lapsToPit * fpl) : fuelLevel;
+      fuelPlan = {
+        perLap: fpl, perLapSource: fplSource, status: plan.status, stops: plan.stops, stintLaps: plan.stintLaps,
+        litersToAdd: plan.litersToAdd,
+        litersNextStop: plan.litersToAdd == null ? null : Math.min(plan.litersToAdd, Math.max(0, fuelMax - fuelAtPit)),
+        windowStartLap: windowInfo?.startLap ?? null, windowEndLap: windowInfo?.endLap ?? null,
+        remainingLaps: plan.remainingLaps,
+      };
+    } else {
+      fuelPlan = { perLap: fpl ?? null, perLapSource: fplSource, status: "unknown", stops: null, stintLaps: [], litersToAdd: null, litersNextStop: null, windowStartLap: null, windowEndLap: null, remainingLaps: null };
+    }
 
     if (windowInfo && windowInfo.passes.length > 0 && (windowInfo.status === "window" || windowInfo.status === "extra-stop" || windowInfo.status === "critical")) {
-      const remaining = (lapsToFinish ?? 0) - myPct;
+      const remaining = plan?.remainingLaps ?? 0;
       const passes = windowInfo.passes.map((p) => {
         // litros que habría que añadir en ese paso: lo que falta para meta, con el tope del depósito
         const fuelAtPit = Math.max(0, fuelLevel - p.lapsToPit * fpl);
@@ -1025,6 +1043,7 @@ standings.sort((a, b) => a.position - b.position);
   classColorIndexById,
   classNames,
   cars: carsCompact,
+  fuelPlan,
   yellowWarning,
   pitClearAir,
   standings,

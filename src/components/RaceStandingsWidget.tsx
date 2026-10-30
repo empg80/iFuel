@@ -3,6 +3,7 @@ import clsx from "clsx";
 import type { RaceStandingsWidgetProps } from "../types/standings";
 import { formatLapTimeSeconds } from "../utils/relativeFormat";
 import { ClassLegend } from "./ClassLegend";
+import { filterStandings } from "../utils/standingsFilter";
 
 function formatPit(sec: number | null): string {
   if (sec == null) return "--.-";
@@ -15,6 +16,9 @@ export function RaceStandingsWidget({
   classColorIndexById,
   classNames,
 }: RaceStandingsWidgetProps) {
+  // Top 10 de cada clase + 3 por delante y 3 por detrás de ti si no estás entre ellos
+  const items = filterStandings(rows, myCarNumber);
+
   return (
     <div className="widget race-standings-widget">
       <div className="widget__header">STANDINGS</div>
@@ -28,7 +32,15 @@ export function RaceStandingsWidget({
           <span>LAST PIT</span>
         </div>
 
-        {rows.map((row) => {
+        {items.map((item, i) => {
+          if (item.kind === "gap") {
+            return (
+              <div key={`gap-${i}`} className="race-standings__gap" aria-hidden="true">
+                ··· {item.hidden} more
+              </div>
+            );
+          }
+          const row = item.row;
           const isMe = row.carNumber === myCarNumber;
           const rawIndex = classColorIndexById[row.classId] ?? 0;
           const classColorIndex = rawIndex % 6;

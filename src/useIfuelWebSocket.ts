@@ -90,6 +90,7 @@ type RawMessage = {
   };
   classColorIndexById?: Record<number, number>;
   classNames?: Record<number, string>;
+  fuelPlan?: FuelPlan | null;
 
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir;
@@ -103,6 +104,20 @@ type RawMessage = {
   windSpeed?: number | null;
   windDirection?: string | null;
   rainChance?: number | null;
+};
+
+/** Plan de combustible y parada calculado por el servidor (única fuente para fuel y pit clear air) */
+export type FuelPlan = {
+  perLap: number | null;
+  perLapSource: "laps" | "measured" | null;
+  status: "unknown" | "no-stop" | "window" | "extra-stop" | "critical";
+  stops: number | null;
+  stintLaps: number[];
+  litersToAdd: number | null;
+  litersNextStop: number | null;
+  windowStartLap: number | null;
+  windowEndLap: number | null;
+  remainingLaps: number | null;
 };
 
 type LapSample = {
@@ -147,6 +162,7 @@ export type IfuelState = {
   onTrackBehind?: OnTrackCar | null;
   classColorIndexById?: Record<number, number>;
   classNames?: Record<number, string>;
+  fuelPlan?: FuelPlan | null;
 
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir;
@@ -271,6 +287,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             relativeOnTrack,
             classColorIndexById,
             classNames,
+            fuelPlan,
             yellowWarning,
             pitClearAir,
             standings: standingsRaw,
@@ -397,16 +414,19 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           const fuelAvg5 = takeLastN(5);
           const fuelAvg10 = takeLastN(10);
 
-          const fuelPerLapForEst = fuelAvg5 ?? fuelAvg ?? null;
+          // Sin vueltas válidas todavía: se usa el consumo que mide el servidor rodando
+          const measuredFpl = fuelPlan?.perLapSource === "measured" ? fuelPlan.perLap ?? null : null;
+          const fuelPerLapForEst = fuelAvg5 ?? fuelAvg ?? measuredFpl;
           let estLaps: number | null = null;
           let estRefuel: number | null = null;
           let fuelTimeStr = "--:--";
 
-          if (laps.length >= 2 && fuelPerLapForEst && fuelPerLapForEst > 0) {
+          if ((laps.length >= 2 || measuredFpl != null) && fuelPerLapForEst && fuelPerLapForEst > 0) {
             estLaps = fuelLevel / fuelPerLapForEst;
 
-            const avgLapTimeSeconds =
-              laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length;
+            const avgLapTimeSeconds = laps.length
+              ? laps.reduce((acc, l) => acc + l.lapTime, 0) / laps.length
+              : lastLapTime && lastLapTime > 0 ? lastLapTime : 0;
 
             estRefuel = planRefuel({
               fuelLevel,
@@ -416,6 +436,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               timeRemain: sessionTimeRemain,
               safetyLaps: opts.safetyExtraLaps,
             }).toAdd;
+            // El servidor es la única fuente de los litros (misma cifra que el pit clear air)
+            if (fuelPlan?.litersNextStop != null) estRefuel = fuelPlan.litersNextStop;
 
             if (avgLapTimeSeconds > 0 && fuelPerLapForEst > 0) {
               const lapsPossible = fuelLevel / fuelPerLapForEst;
@@ -589,6 +611,13 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               carModel: car.carModel ?? "",
             })) ?? [];
 
+          // Ventana, paradas y vueltas de parada: las del servidor, para que coincidan con el pit clear air
+          if (fuelPlan && fuelPlan.status !== "unknown") {
+            earliestPitLap = fuelPlan.status === "no-stop" ? null : fuelPlan.windowStartLap;
+            totalStops = fuelPlan.stops;
+            stintLaps = fuelPlan.stintLaps;
+          }
+
           const nextState: IfuelState = {
             fuel: fuelLevel,
             fuelMax: fuelMax ?? null,
@@ -689,12 +718,14 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
   // Único emisor de la estrategia de parada: el servidor calcula la ventana con el combustible real,
   // solo necesita el consumo por vuelta y el margen. Se redondea para no enviar en cada actualización.
+  const fuelPerLapSrc = state?.fuelAvg5 ?? state?.fuelAvg ?? null;
   const fuelPerLapRounded =
-    state?.fuelAvg5 && state.fuelAvg5 > 0 ? Math.round(state.fuelAvg5 * 100) / 100 : null;
+    fuelPerLapSrc && fuelPerLapSrc > 0 ? Math.round(fuelPerLapSrc * 100) / 100 : null;
   const pitSafetyLaps = options.safetyExtraLaps ?? DEFAULT_OPTS.safetyExtraLaps ?? 1;
 
   useEffect(() => {
-    if (!isConnected || fuelPerLapRounded === null) return;
+    if (!isConnected) return;
+    // null = sin vueltas válidas: el servidor usa el consumo que mide rodando
     sendMessage({
       type: "updatePitStrategy",
       fuelPerLap: fuelPerLapRounded,

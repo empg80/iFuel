@@ -230,6 +230,17 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
     return "--";
   }, [hasState, isLapsRace, sessionLapsRemainEx, sessionTimeRemain]);
 
+  const sessionClock = useMemo(() => {
+    if (!hasState || !sessionTimeRemain || sessionTimeRemain <= 0 || sessionTimeRemain > 86400 * 3) return null;
+    const total = Math.floor(sessionTimeRemain);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const sec = total % 60;
+    const mm = String(m).padStart(2, "0");
+    const ss = String(sec).padStart(2, "0");
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }, [hasState, sessionTimeRemain]);
+
   if (!fuelVisible) return null;
 
   // Mismas props para las dos variantes: PitBoard conserva el widget clásico, el overlay usa el rediseñado
@@ -253,6 +264,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
     lapHistoryLast5: lapHistoryLast5,
     lapHistoryLast30: lapHistoryLast30,
     sessionLabel: sessionLabel,
+    sessionClock,
     airTemp: airTemp ?? null,
     trackTemp: trackTemp ?? null,
   };

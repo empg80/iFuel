@@ -56,6 +56,18 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.11: QUE COMPROBAR
+-------------------------------
+  - El iFuel.exe y su acceso directo llevan el icono de iFuel (no el de Electron). Si Windows aun
+    muestra el antiguo, es la cache de iconos: copia el .exe a otra carpeta y compruebalo ahi.
+  - Combustible y Pit Clear Air dicen ahora lo mismo (los litros a repostar y la ventana salen del
+    mismo calculo). Anota si en algun momento difieren.
+  - Sin vueltas validas el consumo se mide rodando (aparece desde media vuelta). Prueba: sal de boxes
+    y comprueba que "TO ADD" y "FUEL LAPS" tienen valor antes de completar una vuelta.
+  - Tiempo restante de sesion en grande, arriba a la derecha del widget de combustible.
+  - Standings recortado: 10 primeros de cada clase; si no estas entre ellos, 3 delante, tu y 3 detras
+    (las filas ocultas se marcan con "··· N more").
+
 NOVEDAD BETA.10: QUE COMPROBAR
 -------------------------------
   - Leyenda de categorias bajo el relative y los standings (solo en multiclase); el nombre de la clase

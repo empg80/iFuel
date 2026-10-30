@@ -42,6 +42,7 @@ function fuelProps(kind: "calm" | "warn" | "crit"): FuelWidgetProps {
     lapHistoryLast5: hist(2.7, 5),
     lapHistoryLast30: hist(2.7, 24),
     sessionLabel: "28 LAPS LEFT",
+    sessionClock: "1:23:45",
     airTemp: 24.3,
     trackTemp: 36.8,
   };
