@@ -85,8 +85,26 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
   if (!standingsVisible) return null;
 
   // antes usabas relativeAhead.carNum
-  const myCarNumber =
-    state?.cameraCarNumber != null ? String(state.cameraCarNumber) : "";
+  // En directo "yo" es el coche del jugador (aunque la cámara apunte a otro); en replay, la cámara
+  const myCarNumber = state?.isReplayPlaying
+    ? String(state?.cameraCarNumber ?? "")
+    : String(state?.playerCarNumber ?? state?.cameraCarNumber ?? "");
+
+  const clock = (() => {
+    const laps = state?.sessionLapsRemainEx ?? null;
+    const t = state?.sessionTimeRemain ?? null;
+    if (laps != null && laps > 0 && laps < 10000) {
+      return { time: String(laps), cap: laps === 1 ? "LAP LEFT" : "LAPS LEFT", low: laps <= 2 };
+    }
+    if (t != null && t > 0 && t < 86400 * 7) {
+      const h = Math.floor(t / 3600);
+      const m = Math.floor((t % 3600) / 60);
+      const sec = Math.floor(t % 60);
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return { time: h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`, cap: "TIME LEFT", low: t < 300 };
+    }
+    return null;
+  })();
 
   const classColorIndexById = state?.classColorIndexById ?? {};
 
@@ -119,6 +137,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
           myCarNumber={myCarNumber}
           classColorIndexById={classColorIndexById}
           classNames={state?.classNames}
+          clock={clock}
         />
 
         <div

@@ -42,7 +42,6 @@ function fuelProps(kind: "calm" | "warn" | "crit"): FuelWidgetProps {
     lapHistoryLast5: hist(2.7, 5),
     lapHistoryLast30: hist(2.7, 24),
     sessionLabel: "28 LAPS LEFT",
-    sessionClock: "1:23:45",
     airTemp: 24.3,
     trackTemp: 36.8,
   };
@@ -101,7 +100,7 @@ const Rel = () => (
   />
 );
 const Standings = () => (
-  <RaceStandingsWidget rows={rows} myCarNumber="14" classColorIndexById={classColors} classNames={classNames} />
+  <RaceStandingsWidget clock={{ time: "1:23:45", cap: "TIME LEFT", low: false }} rows={rows} myCarNumber="14" classColorIndexById={classColors} classNames={classNames} />
 );
 const Yellow = ({ on }: { on: boolean }) => (
   <YellowFlagWidget

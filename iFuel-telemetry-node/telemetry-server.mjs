@@ -606,7 +606,11 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
         myBestLap > 0 ? myBestLap : 0;
 
       if (baseLapTime <= 0) {
-        if (trackLengthMeters && trackLengthMeters > 0) {
+        // Sin vueltas todavía: la estimación de iRacing para este coche acierta mucho más que una media de 150 km/h
+        const estLap = parseFloat(driverInfo.DriverCarEstLapTime);
+        if (Number.isFinite(estLap) && estLap > 30 && estLap < 1200) {
+          baseLapTime = estLap;
+        } else if (trackLengthMeters && trackLengthMeters > 0) {
           // Aprox: 150 km/h de media (41.6 m/s)
           baseLapTime = trackLengthMeters / 41.6;
         } else {
@@ -797,6 +801,17 @@ for (let idx = 0; idx < carIdxPosition.length; idx++) {
   const totalProgress = lapIdx + pct;
 
   carsForStandings.push({ idx, pos, totalProgress });
+}
+
+// Tu coche siempre aparece: tras un incidente, reset a boxes o grúa iRacing puede dejar CarIdxPosition en 0
+// y entonces desaparecías de la tabla. Se coloca tras el último clasificado, con su progreso real.
+if (driverIdx != null && driverIdx >= 0 && !carsForStandings.some((c) => c.idx === driverIdx)
+    && (carIdxLapDistPct[driverIdx] ?? -1) >= 0) {
+  const maxPos = carsForStandings.reduce((m, c) => Math.max(m, c.pos), 0);
+  carsForStandings.push({
+    idx: driverIdx, pos: maxPos + 1,
+    totalProgress: (carIdxLap[driverIdx] ?? 0) + (carIdxLapDistPct[driverIdx] ?? 0),
+  });
 }
 
 // ordenar de más adelantado a más atrasado por progreso total
@@ -1048,6 +1063,7 @@ standings.sort((a, b) => a.position - b.position);
   pitClearAir,
   standings,
   cameraCarNumber,
+  playerCarNumber: carIdxNumberMap[driverIdx] ?? null,
   debugCamera,
   cameraDriver, 
 

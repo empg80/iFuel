@@ -836,27 +836,6 @@
 
 .app-root--free .relative-ontrack-grid { column-gap: 28px; }
 
-/* ---- Reloj de sesión (tiempo restante) ---- */
-.app-root--free .fw__clock {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  line-height: 1;
-}
-.app-root--free .fw__clock-time {
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--ov-text);
-  letter-spacing: 0.01em;
-}
-.app-root--free .fw__clock-cap {
-  margin-top: 3px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: var(--ov-text-3);
-}
-
 /* ---- Standings recortados: tramo oculto ---- */
 .app-root--free .race-standings__gap {
   padding: 1px 8px 1px 54px;
@@ -865,3 +844,122 @@
   color: var(--ov-text-3);
   border-left: 5px solid transparent;
 }
+
+/* ==========================================================================
+   BANDERAS (rediseño beta.12): icono grande, cifras claras y barra de aproximación
+   ========================================================================== */
+.yfw {
+  --yfw-accent: var(--ov-ok, #3ddc97);
+  --yfw-bg: rgba(10, 30, 22, 0.82);
+  --yfw-edge: rgba(61, 220, 151, 0.45);
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  width: 340px;
+  box-sizing: border-box;
+  padding: 12px 16px 12px 12px;
+  background: var(--yfw-bg);
+  border: 1px solid var(--yfw-edge);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.yfw[data-state="yellow"] {
+  --yfw-accent: #ffd23f;
+  --yfw-bg: rgba(52, 40, 4, 0.9);
+  --yfw-edge: rgba(255, 210, 63, 0.75);
+}
+.yfw[data-state="debris"] {
+  --yfw-accent: #ffd23f;
+  --yfw-bg: rgba(48, 30, 6, 0.9);
+  --yfw-edge: rgba(255, 170, 40, 0.75);
+}
+/* franja de peligro en el borde superior cuando hay aviso */
+.yfw[data-state="yellow"]::before,
+.yfw[data-state="debris"]::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 5px;
+  background: repeating-linear-gradient(135deg, #ffd23f 0 9px, #15110a 9px 18px);
+}
+.yfw__icon {
+  flex: none;
+  width: 54px;
+  align-self: center;
+  height: 54px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--yfw-accent);
+  color: #0b0e13;
+}
+.yfw[data-state="clear"] .yfw__icon { background: rgba(61, 220, 151, 0.18); color: var(--ov-ok, #3ddc97); }
+.yfw__flag { width: 32px; height: 32px; }
+.yfw__body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.yfw__title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--yfw-accent);
+}
+.yfw__readout { display: flex; align-items: baseline; gap: 14px; line-height: 1; }
+.yfw__dist { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+.yfw__eta { font-size: 24px; font-weight: 800; color: var(--yfw-accent); }
+.yfw__dist small,
+.yfw__eta small { font-size: 15px; font-weight: 700; margin-left: 3px; color: var(--ov-text-2, #a4adbd); }
+.yfw__hint { font-size: 16px; font-weight: 600; color: var(--ov-text-2, #a4adbd); }
+.yfw__approach {
+  position: relative;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.yfw__approach-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 210, 63, 0.35), var(--yfw-accent));
+  transition: width 0.25s linear;
+}
+.yfw__approach-car {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--yfw-accent);
+  box-sizing: border-box;
+  transition: left 0.25s linear;
+}
+.yfw__car {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ov-text-2, #a4adbd);
+}
+.yfw__car strong { color: #fff; font-size: 16px; }
+@keyframes yfw-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 210, 63, 0); }
+  50% { box-shadow: 0 0 0 5px rgba(255, 210, 63, 0.45); }
+}
+.yfw[data-close="1"] { animation: yfw-pulse 0.9s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .yfw[data-close="1"] { animation: none; }
+}
+
+/* ---- Standings: cabecera con el tiempo restante de sesión ---- */
+.app-root--free .race-standings__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 0 4px 8px;
+}
+.app-root--free .race-standings__head .widget__header { margin: 0; align-self: center; }
+.app-root--free .race-standings__clock { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+.app-root--free .race-standings__clock-time { font-size: 30px; font-weight: 800; color: var(--ov-text); letter-spacing: 0.01em; }
+.app-root--free .race-standings__clock-cap { margin-top: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--ov-text-3); }
+.app-root--free .race-standings__clock[data-low="1"] .race-standings__clock-time { color: var(--ov-warn); }

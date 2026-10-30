@@ -7,77 +7,79 @@ type Props = {
   classNames?: Record<number, string>;
 };
 
+/** A partir de esta distancia la barra de aproximación empieza a llenarse */
+const APPROACH_METERS = 1000;
+/** Por debajo, el aviso pulsa */
+const CLOSE_METERS = 250;
+
+const FlagIcon = ({ variant }: { variant: "clear" | "yellow" | "debris" }) => (
+  <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true" className="yfw__flag">
+    {variant === "clear" ? (
+      <path d="M7 17.5l6 6 12-13" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+    ) : (
+      <>
+        <path d="M8 4v25" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M10 6c4-2.4 7 2.4 11 0 1.6-.9 3-1.3 4.2-1.2v13c-1.2-.1-2.6.3-4.2 1.2-4 2.4-7-2.4-11 0z" fill="currentColor" />
+      </>
+    )}
+  </svg>
+);
+
 export const YellowFlagWidget = ({ warning, classColorIndexById, classNames }: Props) => {
   const w = warning;
+  const active = !!w && w.active;
+  const isDebris = active && w!.type === "debris";
+  const state = !active ? "clear" : isDebris ? "debris" : "yellow";
 
-  const isActiveYellow = !!w && w.active;
-  const isDebris = isActiveYellow && w.type === "debris";
+  const hasDistance = active && w!.distanceMeters != null;
+  const meters = hasDistance ? Math.round(w!.distanceMeters as number) : null;
+  const seconds = hasDistance && w!.timeSeconds != null ? (w!.timeSeconds as number).toFixed(1) : null;
 
-  // Solo se muestran cifras que existen: sin incidente localizado no se ponen "-- m"
-  const hasDistance = isActiveYellow && w != null && w.distanceMeters != null;
-  const hasTime = hasDistance && w!.timeSeconds != null;
-  const distanceStr = hasDistance ? `${Math.round(w!.distanceMeters as number)} m` : "";
-  const timeStr = hasTime ? `${(w!.timeSeconds as number).toFixed(1)} s` : "";
-
-  const title = isActiveYellow
-    ? isDebris
-      ? "DEBRIS / SURFACE"
-      : "YELLOW FLAG"
-    : "GREEN FLAG";
-
-  const flagState = !isActiveYellow ? "clear" : isDebris ? "debris" : "yellow";
-
-  const iconBackground = !isActiveYellow
-    ? "#00c853"
-    : isDebris
-    ? "repeating-linear-gradient(45deg, #ffd000 0 6px, #ffd000 6px 10px, #b00000 10px 14px)"
-    : "#ffd000";
-
-  const iconText = isActiveYellow ? "⚑" : "✓";
+  const title = !active ? "TRACK CLEAR" : isDebris ? "DEBRIS ON TRACK" : "YELLOW FLAG";
+  // 0 = lejos / 1 = encima del incidente
+  const approach = hasDistance ? Math.min(1, Math.max(0, 1 - (w!.distanceMeters as number) / APPROACH_METERS)) : 0;
+  const close = hasDistance && (w!.distanceMeters as number) <= CLOSE_METERS;
 
   return (
-    <div className="fuel-widget yellow-flag-widget" data-state={flagState}>
-      <div
-        className="yellow-flag-widget__icon"
-        style={{ background: iconBackground }}
-      >
-        <span className="yellow-flag-widget__icon-text">{iconText}</span>
+    <div className="fuel-widget yfw" data-state={state} data-close={close ? "1" : "0"} role="status" aria-live="polite">
+      <div className="yfw__icon">
+        <FlagIcon variant={state} />
       </div>
 
-      <div className="yellow-flag-widget__content">
-        <div className="label">{title}</div>
-        <div className="value yellow-flag-widget__status">
-          {isActiveYellow ? (
-            hasDistance ? (
-              <>
-                <span className="yf-prefix">Ahead </span>
-                <span className="yf-dist">{distanceStr}</span>
-                {hasTime && (
-                  <>
-                    <span className="yf-sep"> · </span>
-                    <span className="yf-time">{timeStr}</span>
-                  </>
-                )}
-              </>
-            ) : (
-              <span className="yf-prefix">Caution on track</span>
-            )
-          ) : (
-            "Track clear"
-          )}
-        </div>
+      <div className="yfw__body">
+        <div className="yfw__title">{title}</div>
 
-        {isActiveYellow && w && w.carNum != null && (
-          <div className="yellow-flag-widget__incident">
-            Incident car:{" "}
+        {active ? (
+          hasDistance ? (
+            <div className="yfw__readout">
+              <span className="yfw__dist">{meters}<small>m</small></span>
+              {seconds != null && <span className="yfw__eta">{seconds}<small>s</small></span>}
+            </div>
+          ) : (
+            <div className="yfw__hint">Caution ahead</div>
+          )
+        ) : (
+          <div className="yfw__hint">No flags on your lap</div>
+        )}
+
+        {active && (
+          <div className="yfw__approach" aria-hidden="true">
+            <div className="yfw__approach-fill" style={{ width: `${approach * 100}%` }} />
+            <div className="yfw__approach-car" style={{ left: `${approach * 100}%` }} />
+          </div>
+        )}
+
+        {active && w!.carNum != null && (
+          <div className="yfw__car">
+            <span>Car</span>
+            <strong>#{w!.carNum}</strong>
             <ClassBadge
               small
-              classId={w.classId}
-              classPosition={w.classPosition}
+              classId={w!.classId}
+              classPosition={w!.classPosition}
               classColorIndexById={classColorIndexById}
               classNames={classNames}
-            />{" "}
-            {`#${w.carNum}`}
+            />
           </div>
         )}
       </div>

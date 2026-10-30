@@ -96,6 +96,7 @@ type RawMessage = {
   pitClearAir?: PitClearAir;
   standings?: StandingsRowPayload[];
   cameraCarNumber?: string | null;
+  playerCarNumber?: string | null;
   cameraDriver?: CameraDriverPayload;
 
   // datos para TrackInfoWidget
@@ -168,6 +169,8 @@ export type IfuelState = {
   pitClearAir?: PitClearAir;
   standings?: StandingsRow[];
   cameraCarNumber?: string | null;
+  playerCarNumber?: string | null;
+  isReplayPlaying: boolean;
   cameraDriver?: CameraDriverPayload | null;
 
   // Track info
@@ -292,6 +295,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             pitClearAir,
             standings: standingsRaw,
             cameraCarNumber: rawCameraCarNumber,
+            playerCarNumber: rawPlayerCarNumber,
             cameraDriver,
             trackName,
             trackLength,
@@ -303,6 +307,11 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
           const cameraCarNumber =
             typeof rawCameraCarNumber === "string" && rawCameraCarNumber !== ""
               ? rawCameraCarNumber
+              : null;
+
+          const playerCarNumber =
+            typeof rawPlayerCarNumber === "string" && rawPlayerCarNumber !== ""
+              ? rawPlayerCarNumber
               : null;
 
           const opts = optsRef.current;
@@ -653,6 +662,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             pitClearAir: pitClearAir ?? null,
             standings,
             cameraCarNumber,
+            playerCarNumber,
+            isReplayPlaying: !!isReplayPlaying,
             cameraDriver: cameraDriver ?? null,
             // Track info
             trackName: trackName ?? "",

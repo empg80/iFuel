@@ -15,13 +15,22 @@ export function RaceStandingsWidget({
   myCarNumber,
   classColorIndexById,
   classNames,
+  clock,
 }: RaceStandingsWidgetProps) {
   // Top 10 de cada clase + 3 por delante y 3 por detrás de ti si no estás entre ellos
   const items = filterStandings(rows, myCarNumber);
 
   return (
     <div className="widget race-standings-widget">
-      <div className="widget__header">STANDINGS</div>
+      <div className="race-standings__head">
+        <div className="widget__header">STANDINGS</div>
+        {clock ? (
+          <div className="race-standings__clock" data-low={clock.low ? "1" : "0"}>
+            <span className="race-standings__clock-time">{clock.time}</span>
+            <span className="race-standings__clock-cap">{clock.cap}</span>
+          </div>
+        ) : null}
+      </div>
       <div className="race-standings__table">
         <div className="race-standings__row race-standings__row--header">
           <span>POS</span>

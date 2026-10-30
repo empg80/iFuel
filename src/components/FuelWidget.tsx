@@ -32,8 +32,6 @@ export type FuelWidgetProps = {
   lapHistoryLast30?: LapHistoryItem[];
 
   sessionLabel: string;
-  /** Tiempo restante de sesión ya formateado (h:mm:ss o mm:ss); null si la sesión no es por tiempo */
-  sessionClock?: string | null;
   airTemp: number | null;
   trackTemp: number | null;
 };

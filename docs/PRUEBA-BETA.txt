@@ -56,6 +56,17 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.12
+---------------
+- El tiempo restante de la sesión (o las vueltas que quedan) ahora está arriba a la derecha del STANDINGS.
+- Tu coche en Standings se identifica por el coche del jugador, aunque la cámara apunte a otro (en replay sigue a la cámara).
+  Además, si tras un incidente/reset iRacing no te da posición, te mostramos igualmente al final de tu clase.
+- El plan de repostaje aparece antes tras salir de boxes (basta 1/4 de vuelta medida) y usa el tiempo de vuelta estimado por iRacing
+  en lugar de un valor genérico.
+- Widget de banderas rediseñado: icono de bandera, título claro (YELLOW FLAG / DEBRIS ON TRACK / TRACK CLEAR),
+  distancia y segundos en grande y barra de aproximación con el coche.
+  QUÉ MIRAR: tras un incidente y varias vueltas en boxes, ¿sale tu litros-a-añadir en cuanto ruedas?, ¿apareces en Standings?
+
 NOVEDAD BETA.11: QUE COMPROBAR
 -------------------------------
   - El iFuel.exe y su acceso directo llevan el icono de iFuel (no el de Electron). Si Windows aun

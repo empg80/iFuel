@@ -4,7 +4,7 @@
 
 const MAX_STEP_LAPS = 0.05; // más que esto entre dos lecturas = salto, no se fía
 const MAX_STEP_LITERS = 2; // una caída mayor entre lecturas no es consumo normal
-const MIN_LAPS = 0.4; // con menos distancia el consumo por zona (rectas/curvas) engaña
+const MIN_LAPS = 0.25; // con menos distancia el consumo por zona (rectas/curvas) engaña; es una estimación
 const DECAY_AT_LAPS = 8; // tras esto se olvida lo más antiguo para seguir los cambios de ritmo
 const DECAY = 0.7;
 
