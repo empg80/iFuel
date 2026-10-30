@@ -2,6 +2,7 @@
 import clsx from "clsx";
 import type { RaceStandingsWidgetProps } from "../types/standings";
 import { formatLapTimeSeconds } from "../utils/relativeFormat";
+import { ClassLegend } from "./ClassLegend";
 
 function formatPit(sec: number | null): string {
   if (sec == null) return "--.-";
@@ -12,6 +13,7 @@ export function RaceStandingsWidget({
   rows,
   myCarNumber,
   classColorIndexById,
+  classNames,
 }: RaceStandingsWidgetProps) {
   return (
     <div className="widget race-standings-widget">
@@ -54,6 +56,7 @@ export function RaceStandingsWidget({
                 </span>
               </span>
               <span className="race-standings__cell race-standings__cell--driver">
+                {isMe && <span className="race-standings__me-mark" aria-hidden="true">▶</span>}
                 {row.driverName}
               </span>
               <span className="race-standings__cell race-standings__cell--best">
@@ -69,6 +72,7 @@ export function RaceStandingsWidget({
           );
         })}
       </div>
+      <ClassLegend classColorIndexById={classColorIndexById} classNames={classNames} />
     </div>
   );
 }

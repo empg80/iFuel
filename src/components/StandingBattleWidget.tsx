@@ -6,6 +6,7 @@ import {
   formatDelta,
 } from "../utils/relativeFormat";
 import { ClassBadge } from "./ClassBadge";
+import { ClassLegend } from "./ClassLegend";
 
 // "Nombre Apellido Segundo" -> "N. Apellido Segundo" (cabe mejor en el overlay)
 function shortDriverName(name?: string | null): string {
@@ -24,6 +25,7 @@ type RelativeWidgetProps = {
   onTrackAhead?: OnTrackCar | null;
   onTrackBehind?: OnTrackCar | null;
   classColorIndexById?: Record<number, number> | undefined;
+  classNames?: Record<number, string> | undefined;
 };
 
 export const RelativeWidget = React.memo(function RelativeWidget({
@@ -35,6 +37,7 @@ export const RelativeWidget = React.memo(function RelativeWidget({
   onTrackAhead,
   onTrackBehind,
   classColorIndexById,
+  classNames,
 }: RelativeWidgetProps) {
   const { aheadPos, behindPos } = useMemo(() => {
     const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
@@ -92,17 +95,18 @@ export const RelativeWidget = React.memo(function RelativeWidget({
               classId={car.classId ?? null}
               classPosition={car.classPosition ?? null}
               classColorIndexById={classColorIndexById}
+              classNames={classNames}
             />
-          </span>
-
-          <span className="relative-driver" title={car.driverName ?? undefined}>
-            {shortDriverName(car.driverName)}
           </span>
 
           <span className={`relative-ontrack__gap ${colorClass}`}>
             {formatGap(car.gapSeconds)}
           </span>
-
+        </div>
+        <div className="relative-ontrack__sub">
+          <span className="relative-driver" title={car.driverName ?? undefined}>
+            {shortDriverName(car.driverName) || "\u00a0"}
+          </span>
           <span className={`relative-ontrack__laps ${colorClass}`}>
             {car.lapsDiff == null
               ? ""
@@ -131,6 +135,7 @@ export const RelativeWidget = React.memo(function RelativeWidget({
                 classId={behind?.classId ?? null}
                 classPosition={behind?.classPosition ?? null}
                 classColorIndexById={classColorIndexById}
+              classNames={classNames}
               />
             </span>
             <span className="relative-gap">
@@ -161,6 +166,7 @@ export const RelativeWidget = React.memo(function RelativeWidget({
                 classId={ahead?.classId ?? null}
                 classPosition={ahead?.classPosition ?? null}
                 classColorIndexById={classColorIndexById}
+              classNames={classNames}
               />
             </span>
           </div>
@@ -251,6 +257,8 @@ export const RelativeWidget = React.memo(function RelativeWidget({
         {renderOnTrackCar("ON-TRACK BEHIND", onTrackBehind ?? null)}
         {renderOnTrackCar("ON-TRACK AHEAD", onTrackAhead ?? null)}
       </div>
+
+      <ClassLegend classColorIndexById={classColorIndexById} classNames={classNames} />
     </div>
   );
 });

@@ -90,6 +90,7 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
   const onTrackAhead = state?.onTrackAhead ?? null;
   const onTrackBehind = state?.onTrackBehind ?? null;
   const classColorIndexById = state?.classColorIndexById;
+  const classNames = state?.classNames;
 
   const hasRelative =
     myPos != null ||
@@ -136,6 +137,7 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
           onTrackAhead={onTrackAhead}
           onTrackBehind={onTrackBehind}
           classColorIndexById={classColorIndexById}
+          classNames={classNames}
         />
       ) : (
         <div className="fuel-widget">

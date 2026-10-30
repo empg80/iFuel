@@ -56,6 +56,17 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.10: QUE COMPROBAR
+-------------------------------
+  - Leyenda de categorias bajo el relative y los standings (solo en multiclase); el nombre de la clase
+    aparece junto a P# en las insignias del relative.
+  - El relative tiene siempre el mismo ancho aunque cambie el coche de referencia.
+  - Standings: sin barra de desplazamiento aunque haya muchos coches, y tu fila destacada (flecha + marco).
+  - Bandera debris/amarilla: debe apagarse al pasar el coche o el escombro. Si no localiza el coche,
+    solo dice "Caution on track" (sin cifras). Anota si alguna distancia en metros no cuadra con lo que ves.
+  - La perdida de parada ya no se mide al reaparecer en boxes: solo en paradas reales.
+  - El informe ahora graba los coches en pista (posicion, velocidad, clase): sirve para validar los avisos.
+
 NOVEDAD BETA.9: VENTANA DE PARADA Y PIT CLEAR AIR
 --------------------------------------------------
   - La ventana de parada ahora sale del combustible real y del punto de tu box (no son +-5 vueltas fijas).

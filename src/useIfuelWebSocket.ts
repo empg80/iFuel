@@ -89,6 +89,7 @@ type RawMessage = {
     behind: OnTrackCar;
   };
   classColorIndexById?: Record<number, number>;
+  classNames?: Record<number, string>;
 
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir;
@@ -145,6 +146,7 @@ export type IfuelState = {
   onTrackAhead?: OnTrackCar | null;
   onTrackBehind?: OnTrackCar | null;
   classColorIndexById?: Record<number, number>;
+  classNames?: Record<number, string>;
 
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir;
@@ -268,6 +270,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             relative,
             relativeOnTrack,
             classColorIndexById,
+            classNames,
             yellowWarning,
             pitClearAir,
             standings: standingsRaw,
@@ -616,6 +619,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             onTrackAhead,
             onTrackBehind,
             classColorIndexById: classColorIndexById ?? undefined,
+            classNames: classNames ?? undefined,
             yellowWarning: yellowWarning ?? null,
             pitClearAir: pitClearAir ?? null,
             standings,

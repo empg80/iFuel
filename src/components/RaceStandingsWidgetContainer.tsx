@@ -118,6 +118,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
           rows={raceStandingsRows}
           myCarNumber={myCarNumber}
           classColorIndexById={classColorIndexById}
+          classNames={state?.classNames}
         />
 
         <div

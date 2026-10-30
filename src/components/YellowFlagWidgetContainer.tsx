@@ -133,6 +133,7 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
         <YellowFlagWidget
           warning={warning}
           classColorIndexById={classColorIndexById}
+          classNames={state?.classNames}
         />
       ) : (
         <div className="fuel-widget">

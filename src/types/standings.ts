@@ -20,4 +20,5 @@ export type RaceStandingsWidgetProps = {
   rows: StandingsRow[];
   myCarNumber: string;
   classColorIndexById: Record<number, number>;
+  classNames?: Record<number, string>;
 };

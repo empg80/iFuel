@@ -13,6 +13,7 @@ const MAX_FUEL_RATE = 15; // L/s; por encima, el dato no es creíble
 
 export function createPitLossTracker() {
   let seenOnTrack = false; // hemos visto al coche en pista antes de entrar (no es la salida inicial)
+  let lastOffPit = null; // { time, pct } última lectura en pista: la entrada a boxes debe ser continua con ella
   let entry = null; // { time, pct, fillStart, fillEnd, fillStartFuel, fillEndFuel, lastFuel }
   let lastLoss = null;
   let lastLiters = null; // litros que se añadieron en la última parada medida
@@ -55,7 +56,13 @@ export function createPitLossTracker() {
           }
         }
         seenOnTrack = true;
+        lastOffPit = { time: sessionTime, pct: lapDistPct };
       } else if (!entry && seenOnTrack) {
+        // Una parada real viene de rodar por pista justo antes. Reaparecer en boxes (reset, salida de
+        // garaje, cambio de sesión) no lo es: la lectura anterior en pista queda lejos en tiempo o distancia.
+        const gap = lastOffPit ? (((lapDistPct - lastOffPit.pct) % 1) + 1) % 1 : null;
+        const continuous = lastOffPit && sessionTime - lastOffPit.time <= 5 && gap <= 0.08;
+        if (!continuous) { seenOnTrack = false; lastOffPit = null; return lastLoss; }
         entry = {
           time: sessionTime, pct: lapDistPct,
           fillStart: null, fillEnd: null, fillStartFuel: null, fillEndFuel: null,
@@ -91,6 +98,7 @@ export function createPitLossTracker() {
     get stops() { return stops; },
     reset() {
       seenOnTrack = false;
+      lastOffPit = null;
       entry = null;
       lastLoss = null;
       lastLiters = null;

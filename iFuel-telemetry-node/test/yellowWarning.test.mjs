@@ -68,3 +68,47 @@ test("sin flags ni longitud de pista no avisa", () => {
   const w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [], myIdx: 0, myPct: 0, mySpeed: 0, trackLengthMeters: 0, baseLapTime: 100, sessionTime: 0 });
   assert.equal(w.active, false);
 });
+
+test("al pasar el incidente el aviso desaparece aunque la bandera siga puesta", () => {
+  const t = createYellowTracker();
+  const stopped = car(1, 0.12, { speed: 0, surface: 0 });
+  // incidente a 80 m por delante
+  let w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [car(0, 0.1), stopped], myIdx: 0, myPct: 0.1, mySpeed: 50, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: 10 });
+  assert.equal(w.active, true);
+  assert.ok(w.distanceMeters < 100);
+  // ya lo has pasado (estás por delante del coche parado) y la bandera sigue
+  w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [car(0, 0.13), stopped], myIdx: 0, myPct: 0.13, mySpeed: 50, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: 11 });
+  assert.equal(w.active, false);
+  w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [car(0, 0.14), stopped], myIdx: 0, myPct: 0.14, mySpeed: 50, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: 12 });
+  assert.equal(w.active, false);
+  // la bandera se apaga y se vuelve a levantar con otro coche delante: aviso nuevo
+  t.update({ sessionFlags: 0, cars: [car(0, 0.5)], myIdx: 0, myPct: 0.5, mySpeed: 50, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: 60 });
+  w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [car(0, 0.5), car(2, 0.55, { speed: 1, surface: 0 })], myIdx: 0, myPct: 0.5, mySpeed: 50, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: 61 });
+  assert.equal(w.active, true);
+});
+
+test("sin coche localizado el aviso se apaga casi al soltar la bandera", () => {
+  const t = createYellowTracker();
+  run(t, FLAG_DEBRIS, [car(0, 0.1)], 100);
+  assert.equal(run(t, 0, [car(0, 0.1)], 100.8).active, true);
+  assert.equal(run(t, 0, [car(0, 0.1)], 102).active, false);
+});
+
+test("una curva lenta no es un incidente: se compara con lo que hacen los demás coches en esa zona", () => {
+  const t = createYellowTracker();
+  // 12 coches pasan a 15 m/s por la horquilla (pct 0.3) y se aprende ese ritmo
+  const slowCorner = Array.from({ length: 12 }, (_, i) => car(i + 1, 0.3, { speed: 15 }));
+  run(t, 0, [car(0, 0.1), ...slowCorner], 50);
+  // con bandera, un coche a 14 m/s en la horquilla es normal; uno a 2 m/s (parado en el sentido de la zona) cuenta
+  let w = run(t, FLAG_DEBRIS, [car(0, 0.1), car(20, 0.3, { speed: 14 })], 60);
+  assert.equal(w.carNum, null);
+  w = run(t, FLAG_DEBRIS, [car(0, 0.1), car(21, 0.3, { speed: 4 })], 61);
+  assert.equal(w.carNum, "21");
+});
+
+test("sin velocidad propia suficiente no se calcula el tiempo", () => {
+  const t = createYellowTracker();
+  const w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [car(0, 0.1), car(1, 0.2, { speed: 0, surface: 0 })], myIdx: 0, myPct: 0.1, mySpeed: 3, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: 0 });
+  assert.ok(w.distanceMeters > 0);
+  assert.equal(w.timeSeconds, null);
+});

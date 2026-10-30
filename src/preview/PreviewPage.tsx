@@ -53,6 +53,7 @@ function fuelProps(kind: "calm" | "warn" | "crit"): FuelWidgetProps {
 }
 
 const classColors = { 4011: 0, 2523: 1 };
+const classNames = { 4011: "Hypercar", 2523: "GT3" };
 
 const rows: StandingsRow[] = [
   ["1", "M. Fernández", "27", 4011, 108.412, 14, 1],
@@ -95,10 +96,11 @@ const Rel = () => (
     onTrackAhead={onAhead}
     onTrackBehind={onBehind}
     classColorIndexById={classColors}
+    classNames={classNames}
   />
 );
 const Standings = () => (
-  <RaceStandingsWidget rows={rows} myCarNumber="14" classColorIndexById={classColors} />
+  <RaceStandingsWidget rows={rows} myCarNumber="14" classColorIndexById={classColors} classNames={classNames} />
 );
 const Yellow = ({ on }: { on: boolean }) => (
   <YellowFlagWidget
@@ -108,6 +110,7 @@ const Yellow = ({ on }: { on: boolean }) => (
         : { active: false, distanceMeters: null, timeSeconds: null, carNum: null, classId: null, classPosition: null, type: null }
     }
     classColorIndexById={classColors}
+    classNames={classNames}
   />
 );
 const Pit = ({ lap }: { lap: number }) => (

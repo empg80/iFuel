@@ -38,7 +38,7 @@ test("ventana: desconocida sin consumo, sin box o sin final", () => {
 test("pitLoss: mide el ritmo de repostaje y lossFor cambia con los litros", () => {
   const t = createPitLossTracker();
   const lap = 90;
-  t.update({ onPitRoad: false, sessionTime: 0, lapDistPct: 0.9, baseLapTime: lap, fuelLevel: 10 });
+  for (let s = 0; s < 10; s++) t.update({ onPitRoad: false, sessionTime: s, lapDistPct: 0.9 + s * 0.005, baseLapTime: lap, fuelLevel: 10 });
   t.update({ onPitRoad: true, sessionTime: 10, lapDistPct: 0.95, baseLapTime: lap, fuelLevel: 10 });
   // 4 s de entrada, luego repostaje 2.5 L/s durante 10 s, luego sale
   let fuel = 10;
@@ -70,4 +70,26 @@ test("pitClearAir con pasos y box: usa la posición del box y la pérdida de cad
   assert.equal(r.options.length, 2);
   assert.equal(r.nextPitLap, 5);
   assert.ok(r.options[0].lossSeconds === 20);
+});
+
+test("pitLoss: reaparecer en boxes (reset, salida de garaje) no cuenta como parada", () => {
+  const t = createPitLossTracker();
+  const lap = 210;
+  t.update({ onPitRoad: false, sessionTime: 0, lapDistPct: 0, baseLapTime: lap, fuelLevel: 58 });
+  // aparece de golpe en boxes, 16 s después sale
+  for (let s = 10; s <= 26; s++) t.update({ onPitRoad: true, sessionTime: s, lapDistPct: 0.012 + (s - 10) * 0.001, baseLapTime: lap, fuelLevel: 58 });
+  t.update({ onPitRoad: false, sessionTime: 27, lapDistPct: 0.03, baseLapTime: lap, fuelLevel: 58 });
+  assert.equal(t.lastLoss, null);
+  assert.equal(t.stops, 0);
+});
+
+test("pitLoss: una parada real tras rodar por pista sí cuenta", () => {
+  const t = createPitLossTracker();
+  const lap = 100;
+  for (let s = 0; s < 60; s += 1) t.update({ onPitRoad: false, sessionTime: s, lapDistPct: (s / lap) % 1, baseLapTime: lap, fuelLevel: 40 });
+  // entra en boxes sin hueco: pct 0.60 -> 0.66 en 25 s
+  for (let s = 60; s <= 85; s++) t.update({ onPitRoad: true, sessionTime: s, lapDistPct: 0.6 + (s - 60) * 0.0024, baseLapTime: lap, fuelLevel: 40 });
+  t.update({ onPitRoad: false, sessionTime: 86, lapDistPct: 0.66, baseLapTime: lap, fuelLevel: 40 });
+  assert.equal(t.stops, 1);
+  assert.ok(t.lastLoss > 15 && t.lastLoss < 30);
 });

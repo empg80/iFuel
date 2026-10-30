@@ -383,6 +383,9 @@ let relativeOnTrack = { ahead: null, behind: null };
 let yellowWarning = null;
 let pitClearAir = { suggestedLap: null, options: [], nowScore: null, nowNearest: null, pitLossSeconds: null, pitLossMeasured: false };
 let standings = [];
+// coches en el mundo, formato compacto [número, %vuelta, velocidad m/s, superficie, clase, boxes]:
+// sirve para validar avisos con grabaciones y para el widget de pista
+let carsCompact = [];
 
 
 // mapa CarIdx -> número de coche (puede ser vacío si DriverInfo viene roto)
@@ -392,6 +395,14 @@ for (const d of drivers) {
   if (typeof d.CarIdx === "number") {
     carIdxNumberMap[d.CarIdx] = d.CarNumberRaw ?? d.CarNumber ?? null;
   }
+}
+
+// nombre corto de cada clase ("Hypercar", "LMP2", "GT3"...) para la leyenda de colores
+const classNames = {};
+for (const d of drivers) {
+  const id = d.CarClassID;
+  const name = d.CarClassShortName ?? d.CarClassName;
+  if (typeof id === "number" && id > 0 && name && classNames[id] == null) classNames[id] = String(name);
 }
 
 // índice del coche en cámara
@@ -968,6 +979,10 @@ standings.sort((a, b) => a.position - b.position);
 
 
 
+      carsCompact = cars
+        .filter((c) => Number.isFinite(c.pct) && c.pct >= 0)
+        .map((c) => [c.carNum ?? null, Math.round(c.pct * 10000) / 10000, Number.isFinite(c.speed) ? Math.round(c.speed * 10) / 10 : null, c.surface ?? null, c.classId ?? null, c.onPit ? 1 : 0]);
+
       // ---------- Yellow Warning (bandera amarilla / debris + coche incidente) ----------
       yellowWarning = yellowTracker.update({
         sessionFlags,
@@ -1008,6 +1023,8 @@ standings.sort((a, b) => a.position - b.position);
   relative,
   relativeOnTrack,
   classColorIndexById,
+  classNames,
+  cars: carsCompact,
   yellowWarning,
   pitClearAir,
   standings,

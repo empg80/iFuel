@@ -1,6 +1,6 @@
 # iFuel — hoja de ruta
 
-Actualizada: 2026-10-29 (C2 y C4 hechos, pendientes de validar) · Versión de referencia: 0.1.0-beta.9 · Rama de trabajo: `claude/fase-5-grafico`
+Actualizada: 2026-10-29 (informe beta.9 aplicado) · Versión de referencia: 0.1.0-beta.10 · Rama de trabajo: `claude/fase-5-grafico`
 
 Fuentes: análisis de competencia (RaceLab, iOverlay, irDashies, Track Impulse, Edge, Kapps, iRon; octubre 2026), pruebas reales de Kike con las betas 1 a 8 y sus ideas propias.
 
@@ -32,6 +32,10 @@ Esfuerzo: S = menos de un día, M = unos días, L = más de una semana. Cada pun
 | V3 | Comparar el consumo por vuelta grabado con el que calcula la app | Diferencia dentro de tolerancia o corregida |
 | V5 | Conseguir una grabación de una carrera **multiclase** real (la del 28-10 tenía una sola clase) para validar todo lo de P3b | Informe de Kike con 2 o más clases en pista |
 | V4 | Tabla de estados de bandera: verificar con grabaciones qué bits activa iRacing en práctica, carrera y safety car | Documentado en `docs/` con ejemplos |
+
+### Resultado de la prueba beta.9 (Le Mans, multiclase, 30-10)
+Hecho en beta.10: leyenda de clases y nombre de categoría en insignias (M4 parcial), relative de ancho fijo, tipografía mayor, standings sin barra de desplazamiento y fila propia destacada, aviso de debris/amarilla que se apaga al pasar el incidente y que compara con la velocidad típica de cada zona (antes una horquilla lenta contaba como incidente), pérdida de parada solo en paradas reales (antes medía el reaparecer en boxes: 13 s falsos). El informe graba ahora los coches en pista (`cars`), lo que permite validar los avisos y es la base de K1.
+Pendiente de validar: metros y segundos del aviso de debris con un coche parado real; pérdida de parada y ventana en una parada real de carrera.
 
 ### P1 — El diferenciador: pit clear air v2
 | Id | Qué | Esfuerzo | Hecho cuando |

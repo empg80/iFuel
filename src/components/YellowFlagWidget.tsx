@@ -4,23 +4,20 @@ import { ClassBadge } from "./ClassBadge";
 type Props = {
   warning: YellowWarning;
   classColorIndexById?: Record<number, number>;
+  classNames?: Record<number, string>;
 };
 
-export const YellowFlagWidget = ({ warning, classColorIndexById }: Props) => {
+export const YellowFlagWidget = ({ warning, classColorIndexById, classNames }: Props) => {
   const w = warning;
 
   const isActiveYellow = !!w && w.active;
   const isDebris = isActiveYellow && w.type === "debris";
 
-  const distanceStr =
-    isActiveYellow && w && w.distanceMeters != null
-      ? `${Math.round(w.distanceMeters)} m`
-      : "-- m";
-
-  const timeStr =
-    isActiveYellow && w && w.timeSeconds != null
-      ? `${w.timeSeconds.toFixed(1)} s`
-      : "--.- s";
+  // Solo se muestran cifras que existen: sin incidente localizado no se ponen "-- m"
+  const hasDistance = isActiveYellow && w != null && w.distanceMeters != null;
+  const hasTime = hasDistance && w!.timeSeconds != null;
+  const distanceStr = hasDistance ? `${Math.round(w!.distanceMeters as number)} m` : "";
+  const timeStr = hasTime ? `${(w!.timeSeconds as number).toFixed(1)} s` : "";
 
   const title = isActiveYellow
     ? isDebris
@@ -51,18 +48,26 @@ export const YellowFlagWidget = ({ warning, classColorIndexById }: Props) => {
         <div className="label">{title}</div>
         <div className="value yellow-flag-widget__status">
           {isActiveYellow ? (
-            <>
-              <span className="yf-prefix">Ahead: </span>
-              <span className="yf-dist">{distanceStr}</span>
-              <span className="yf-sep"> / </span>
-              <span className="yf-time">{timeStr}</span>
-            </>
+            hasDistance ? (
+              <>
+                <span className="yf-prefix">Ahead </span>
+                <span className="yf-dist">{distanceStr}</span>
+                {hasTime && (
+                  <>
+                    <span className="yf-sep"> · </span>
+                    <span className="yf-time">{timeStr}</span>
+                  </>
+                )}
+              </>
+            ) : (
+              <span className="yf-prefix">Caution on track</span>
+            )
           ) : (
             "Track clear"
           )}
         </div>
 
-        {isActiveYellow && w && (
+        {isActiveYellow && w && w.carNum != null && (
           <div className="yellow-flag-widget__incident">
             Incident car:{" "}
             <ClassBadge
@@ -70,8 +75,9 @@ export const YellowFlagWidget = ({ warning, classColorIndexById }: Props) => {
               classId={w.classId}
               classPosition={w.classPosition}
               classColorIndexById={classColorIndexById}
+              classNames={classNames}
             />{" "}
-            {w.carNum != null ? `#${w.carNum}` : "N/A"}
+            {`#${w.carNum}`}
           </div>
         )}
       </div>
