@@ -13,9 +13,11 @@ const LAP_MODE_MAX = 1000; // SessionLapsRemainEx = 32767 significa "sin límite
  * por línea que quedan hasta que el reloj se agota.
  * @returns {number|null}
  */
-export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct }) {
+export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired }) {
   const pct = Number.isFinite(myPct) ? Math.min(Math.max(myPct, 0), 0.999) : 0;
   if (Number.isFinite(lapsRemain) && lapsRemain > 0 && lapsRemain < LAP_MODE_MAX) return lapsRemain - pct;
+  // El reloj ya llegó a 0: iRacing puede volver a poner un valor raro, pero solo queda llegar a la meta
+  if (timeExpired && !(lapsRemain > 0 && lapsRemain < LAP_MODE_MAX)) return 1 - pct;
   if (Number.isFinite(timeRemain) && timeRemain > 0 && timeRemain < 86400 * 3 && lapTime > 0) {
     const toLine = (1 - pct) * lapTime; // tiempo hasta cruzar la meta de esta vuelta
     if (timeRemain <= toLine) return 1 - pct; // el reloj se agota antes de la línea: terminas ahí
@@ -29,11 +31,11 @@ export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct }) {
  *   status:string, stops:number|null, stintLaps:number[], window:ReturnType<typeof computePitWindow>|null}}
  */
 export function computeFuelPlan(i) {
-  const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime } = i;
+  const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime, timeExpired } = i;
   const empty = { perLap: fuelPerLap ?? null, litersToAdd: null, status: "unknown", stops: null, stintLaps: [], window: null, remainingLaps: null };
   if (!(fuelPerLap > 0) || !(fuelCapacity > 0)) return empty;
 
-  const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct });
+  const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired });
   if (remaining == null) return empty;
 
   const pct = Number.isFinite(myPct) ? myPct : 0;

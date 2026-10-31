@@ -65,3 +65,8 @@ test("llegas a meta y solo falta margen de seguridad (<1 vuelta): no se manda a 
   assert.notEqual(q.status, "no-stop");
   assert.ok(q.stops >= 1);
 });
+
+test("lapsToRun: con el reloj agotado solo queda cruzar la meta, aunque el reloj vuelva a dar un valor raro", () => {
+  const r = lapsToRun({ lapsRemain: 32767, timeRemain: 311, lapTime: 237, myPct: 0.73, timeExpired: true });
+  assert.ok(Math.abs(r - 0.27) < 1e-9);
+});

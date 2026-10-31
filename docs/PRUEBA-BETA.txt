@@ -56,6 +56,13 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.15
+---------------
+- ARREGLADO (carrera por tiempo): cuando el reloj llega a 0, iRacing devolvía un valor raro y el plan te pedía ~17 L y una
+  parada en la última vuelta. Ahora, con el reloj agotado, solo cuenta lo que falta hasta cruzar la meta.
+- En replay ya no se calcula plan de combustible (antes salía "critical" con 0 L).
+  QUÉ MIRAR: en una carrera por tiempo, tras llegar el reloj a 0 el widget no debe pedir parada.
+
 NOVEDAD BETA.14
 ---------------
 - El plan ya no te manda a boxes por un margen de seguridad corto: si el combustible llega a meta y solo falta

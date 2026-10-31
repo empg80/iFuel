@@ -215,6 +215,8 @@ function startTelemetryLoop(
   const trackCarSpeeds = createCarSpeedTracker();
 
   let lastSessionKey = null;
+  let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
+  let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
   let sessionCache = { version: -1, data: null };
   let noDataSince = null;
   let checkingSim = false;
@@ -322,6 +324,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
         resetPitAndStintState();
         pitLossTracker.reset();
         fuelModel.reset();
+        timeWasRunning = false; timeExpired = false;
         yellowTracker.reset();
         // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
         if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
@@ -935,15 +938,20 @@ standings.sort((a, b) => a.position - b.position);
       fuelLevel, lap: myLap, lapDistPct: myPct, onPitRoad: !!carIdxOnPitRoad[driverIdx],
       inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
     });
+    if (!telemetry.IsReplayPlaying?.value?.[0]) {
+      if (sessionTimeRemain > 1) timeWasRunning = true;
+      else if (timeWasRunning && sessionTimeRemain >= 0 && sessionTimeRemain <= 1) timeExpired = true;
+    }
     const fpl = pitStrategyParams.fuelPerLap ?? measuredFuelPerLap;
     const fplSource = pitStrategyParams.fuelPerLap != null ? "laps" : measuredFuelPerLap != null ? "measured" : null;
     const pitPct = Number(driverInfo.DriverPitTrkPct);
-    const plan = fpl > 0 && fuelMax > 0
+    // en replay el combustible vale 0: no hay plan que calcular
+    const plan = fpl > 0 && fuelMax > 0 && !telemetry.IsReplayPlaying?.value?.[0]
       ? computeFuelPlan({
           fuelLevel, fuelPerLap: fpl, fuelCapacity: fuelMax, myLap, myPct,
           pitPct: Number.isFinite(pitPct) ? pitPct : null,
           safetyLaps: pitStrategyParams.safetyLaps,
-          lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime,
+          lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime, timeExpired,
         })
       : null;
     const windowInfo = plan?.window ?? null;
