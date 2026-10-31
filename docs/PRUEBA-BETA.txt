@@ -56,6 +56,13 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.17
+---------------
+- Widget de BANDERAS rediseñado como banner de dirección de carrera: baldosa con franjas de precaución y glifo (bandera,
+  triángulo de debris o check), título grande, metros y segundos, y una tira de 12 luces que se enciende según te acercas
+  (las 3 últimas en rojo; pulsa a menos de 250 m). El debris sin coche localizado muestra las luces barriendo como aviso.
+  Todo lo demás es igual que en la beta.16.
+
 NOVEDAD BETA.16
 ---------------
 - PIT CLEAR AIR con el diseño nuevo: una frase grande (BOX NOW / WAIT 2 LAPS / BOX NEXT LAP / NO STOP NEEDED / FUEL CRITICAL),

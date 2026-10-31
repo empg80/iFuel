@@ -127,6 +127,18 @@ const at = (style: React.CSSProperties, child: React.ReactNode) => (
 );
 
 function Scene({ scene }: { scene: string }) {
+  if (scene === "flags") {
+    const w = (o: object) => ({ active: true, distanceMeters: null, timeSeconds: null, carNum: null, classId: null, classPosition: null, type: "incident", ...o }) as never;
+    return (
+      <div className="app-root--free" style={{ display: "flex", flexDirection: "column", gap: 22, padding: 36, background: "#3a4658", minHeight: "100vh" }}>
+        <YellowFlagWidget warning={{ active: false, distanceMeters: null, timeSeconds: null, carNum: null, classId: null, classPosition: null, type: null }} />
+        <YellowFlagWidget warning={w({ distanceMeters: 860, timeSeconds: 14.2, carNum: "33", classId: 4011, classPosition: 5 })} classColorIndexById={classColors} classNames={classNames} />
+        <YellowFlagWidget warning={w({ distanceMeters: 420, timeSeconds: 6.8, carNum: "33", classId: 4011, classPosition: 5 })} classColorIndexById={classColors} classNames={classNames} />
+        <YellowFlagWidget warning={w({ distanceMeters: 95, timeSeconds: 1.6, carNum: "7", classId: 4011, classPosition: 2 })} classColorIndexById={classColors} classNames={classNames} />
+        <YellowFlagWidget warning={w({ type: "debris" })} />
+      </div>
+    );
+  }
   if (scene === "compare") {
     // Antes (widget clásico, estilos antiguos) frente a después (rediseño), sobre fondo neutro
     return (

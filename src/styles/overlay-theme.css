@@ -781,109 +781,85 @@
 }
 
 /* ==========================================================================
-   BANDERAS (rediseño beta.12): icono grande, cifras claras y barra de aproximación
+   BANDERAS (beta.17): banner de dirección de carrera con tira de luces de aproximación
    ========================================================================== */
 .yfw {
-  --yfw-accent: var(--ov-ok, #3ddc97);
-  --yfw-bg: rgba(10, 30, 22, 0.82);
+  --yfw-accent: #3ddc97;
+  --yfw-glow: rgba(61, 220, 151, 0.28);
   --yfw-edge: rgba(61, 220, 151, 0.45);
+  position: relative;
   display: flex;
   align-items: stretch;
-  gap: 14px;
-  width: 340px;
+  gap: 0;
+  width: 540px;
   box-sizing: border-box;
-  padding: 12px 16px 12px 12px;
-  background: var(--yfw-bg);
-  border: 1px solid var(--yfw-edge);
-  border-radius: 14px;
-  position: relative;
+  border-radius: 16px;
   overflow: hidden;
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(180deg, rgba(20, 24, 31, 0.94), rgba(9, 11, 15, 0.94));
+  border: 1px solid var(--yfw-edge);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset, 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 40px var(--yfw-glow);
+  color: #fff;
 }
-.yfw[data-state="yellow"] {
-  --yfw-accent: #ffd23f;
-  --yfw-bg: rgba(52, 40, 4, 0.9);
-  --yfw-edge: rgba(255, 210, 63, 0.75);
-}
-.yfw[data-state="debris"] {
-  --yfw-accent: #ffd23f;
-  --yfw-bg: rgba(48, 30, 6, 0.9);
-  --yfw-edge: rgba(255, 170, 40, 0.75);
-}
-/* franja de peligro en el borde superior cuando hay aviso */
-.yfw[data-state="yellow"]::before,
-.yfw[data-state="debris"]::before {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  height: 5px;
-  background: repeating-linear-gradient(135deg, #ffd23f 0 9px, #15110a 9px 18px);
-}
-.yfw__icon {
-  flex: none;
-  width: 54px;
-  align-self: center;
-  height: 54px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: var(--yfw-accent);
-  color: #0b0e13;
-}
-.yfw[data-state="clear"] .yfw__icon { background: rgba(61, 220, 151, 0.18); color: var(--ov-ok, #3ddc97); }
-.yfw__flag { width: 32px; height: 32px; }
-.yfw__body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.yfw__title {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  color: var(--yfw-accent);
-}
-.yfw__readout { display: flex; align-items: baseline; gap: 14px; line-height: 1; }
-.yfw__dist { font-size: 38px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
-.yfw__eta { font-size: 24px; font-weight: 800; color: var(--yfw-accent); }
-.yfw__dist small,
-.yfw__eta small { font-size: 15px; font-weight: 700; margin-left: 3px; color: var(--ov-text-2, #a4adbd); }
-.yfw__hint { font-size: 16px; font-weight: 600; color: var(--ov-text-2, #a4adbd); }
-.yfw__approach {
+.yfw[data-state="yellow"] { --yfw-accent: #ffd21f; --yfw-glow: rgba(255, 210, 31, 0.34); --yfw-edge: rgba(255, 210, 31, 0.7); }
+.yfw[data-state="debris"] { --yfw-accent: #ff9f1a; --yfw-glow: rgba(255, 159, 26, 0.32); --yfw-edge: rgba(255, 159, 26, 0.7); }
+.yfw[data-state="clear"] { width: 330px; }
+
+/* Baldosa del glifo: borde diagonal y franjas de precaución */
+.yfw__tile {
   position: relative;
-  height: 8px;
-  margin-top: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-}
-.yfw__approach-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 210, 63, 0.35), var(--yfw-accent));
-  transition: width 0.25s linear;
-}
-.yfw__approach-car {
-  position: absolute;
-  top: 50%;
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
-  border-radius: 50%;
-  background: #fff;
-  border: 3px solid var(--yfw-accent);
-  box-sizing: border-box;
-  transition: left 0.25s linear;
-}
-.yfw__car {
+  flex: none;
+  width: 92px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--ov-text-2, #a4adbd);
+  justify-content: center;
+  color: #14110a;
+  background: var(--yfw-accent);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
 }
-.yfw__car strong { color: #fff; font-size: 16px; }
+.yfw__tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-55deg, rgba(0, 0, 0, 0.16) 0 9px, rgba(0, 0, 0, 0) 9px 18px);
+}
+.yfw[data-state="clear"] .yfw__tile { background: rgba(61, 220, 151, 0.16); color: var(--yfw-accent); }
+.yfw[data-state="clear"] .yfw__tile::before { display: none; }
+.yfw__glyph { position: relative; width: 46px; height: 46px; margin-right: 8px; }
+
+.yfw__main { flex: 1 1 auto; min-width: 0; padding: 12px 18px 12px 6px; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.yfw__kicker { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ov-text-3, #6f798b); }
+.yfw__car { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; letter-spacing: 0; color: #fff; }
+.yfw__row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; line-height: 1; }
+.yfw .class-badge { white-space: nowrap; flex: none; margin: 0; }
+.yfw__car { flex: none; white-space: nowrap; }
+.yfw__title { font-size: 25px; font-weight: 900; letter-spacing: 0.04em; color: var(--yfw-accent); white-space: nowrap; }
+.yfw__readout { display: inline-flex; align-items: baseline; gap: 12px; font-variant-numeric: tabular-nums; }
+.yfw__dist { font-size: 36px; font-weight: 800; letter-spacing: -0.01em; }
+.yfw__eta { font-size: 20px; font-weight: 800; color: var(--yfw-accent); padding: 2px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.07); }
+.yfw__dist small, .yfw__eta small { font-size: 13px; font-weight: 700; margin-left: 2px; color: var(--ov-text-2, #a4adbd); }
+
+/* Tira de luces: se enciende de izquierda a derecha según te acercas; las 3 últimas son rojas */
+.yfw__lights { display: flex; gap: 4px; margin-top: 2px; }
+.yfw__seg {
+  flex: 1; height: 9px; border-radius: 3px; transform: skewX(-24deg);
+  background: rgba(255, 255, 255, 0.1);
+}
+.yfw__seg[data-on="1"] { background: var(--yfw-accent); box-shadow: 0 0 10px var(--yfw-glow); }
+.yfw__seg[data-on="1"][data-hot="1"] { background: #ff4b4b; box-shadow: 0 0 12px rgba(255, 75, 75, 0.7); }
+.yfw__lights[data-sweep="1"] .yfw__seg { animation: yfw-sweep 1.6s ease-in-out infinite; }
+@keyframes yfw-sweep {
+  0%, 60%, 100% { background: rgba(255, 255, 255, 0.1); box-shadow: none; }
+  25% { background: var(--yfw-accent); box-shadow: 0 0 10px var(--yfw-glow); }
+}
 @keyframes yfw-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 210, 63, 0); }
-  50% { box-shadow: 0 0 0 5px rgba(255, 210, 63, 0.45); }
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset, 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 22px var(--yfw-glow); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset, 0 12px 34px rgba(0, 0, 0, 0.5), 0 0 56px var(--yfw-accent); }
 }
-.yfw[data-close="1"] { animation: yfw-pulse 0.9s ease-in-out infinite; }
+.yfw[data-close="1"] { animation: yfw-pulse 0.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .yfw[data-close="1"] { animation: none; }
+  .yfw[data-close="1"], .yfw__lights[data-sweep="1"] .yfw__seg { animation: none; }
 }
 
 /* ---- Standings: cabecera con el tiempo restante de sesión ---- */
