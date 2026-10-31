@@ -522,65 +522,6 @@
 }
 
 /* ==========================================================================
-   PIT CLEAR AIR
-   ========================================================================== */
-.app-root--free .pit-clear-air-widget {
-  min-width: 250px;
-  --pc-accent: var(--ov-text-2);
-}
-.app-root--free .pit-clear-air-widget[data-level="soon"] {
-  --pc-accent: var(--ov-warn);
-  border-color: rgba(255, 181, 71, 0.45);
-}
-.app-root--free .pit-clear-air-widget[data-level="now"] {
-  --pc-accent: var(--ov-ok);
-  border-color: rgba(61, 220, 151, 0.65);
-  background: rgba(10, 36, 26, 0.84);
-}
-.app-root--free .pit-clear-air-widget__header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin: 2px 0 4px;
-}
-.app-root--free .pit-clear-air-widget .fuel-main {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--ov-text);
-}
-.app-root--free .pit-clear-air-widget__highlight {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 4px 9px;
-  border-radius: 999px;
-  color: #0b0e13;
-  background: var(--pc-accent);
-}
-.app-root--free .pit-clear-air-widget__title--now,
-.app-root--free .pit-clear-air-widget__title--soon {
-  color: var(--pc-accent);
-}
-.app-root--free .pit-clear-air-widget__window {
-  font-size: 11px;
-  color: var(--ov-text-3);
-  margin-bottom: 4px;
-}
-.app-root--free .pit-clear-air-widget__option {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ov-text-3);
-  padding: 2px 6px;
-  border-radius: 6px;
-}
-.app-root--free .pit-clear-air-widget__option--selected {
-  color: var(--ov-text);
-  background: rgba(255, 255, 255, 0.08);
-  font-weight: 700;
-}
-
-/* ==========================================================================
    STANDINGS
    ========================================================================== */
 .app-root--free .race-standings-widget {
@@ -827,12 +768,6 @@
 .app-root--free .yellow-flag-widget__incident { font-size: 13px; }
 
 /* ---- Pit clear air ---- */
-.app-root--free .pit-clear-air-widget { min-width: 330px; }
-.app-root--free .pit-clear-air-widget .fuel-main { font-size: 30px; }
-.app-root--free .pit-clear-air-widget__highlight { font-size: 14px; }
-.app-root--free .pit-clear-air-widget__window { font-size: 13px; }
-.app-root--free .pit-clear-air-widget__option { font-size: 14px; }
-.app-root--free .pit-clear-air-widget__advice { font-size: 15px; }
 
 .app-root--free .relative-ontrack-grid { column-gap: 28px; }
 
@@ -963,3 +898,64 @@
 .app-root--free .race-standings__clock-time { font-size: 30px; font-weight: 800; color: var(--ov-text); letter-spacing: 0.01em; }
 .app-root--free .race-standings__clock-cap { margin-top: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--ov-text-3); }
 .app-root--free .race-standings__clock[data-low="1"] .race-standings__clock-time { color: var(--ov-warn); }
+
+/* ---- Ajustes del combustible: margen de seguridad ---- */
+.app-root--free .fuel-settings {
+  display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 12px;
+  border-radius: 10px; background: var(--ov-panel); border: 1px solid var(--ov-line);
+  font-size: 13px; color: var(--ov-text-2);
+}
+.app-root--free .fuel-settings__label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; color: var(--ov-text-3); margin-right: auto; }
+.app-root--free .fuel-settings__value { min-width: 64px; text-align: center; font-weight: 700; color: var(--ov-text); font-variant-numeric: tabular-nums; }
+.app-root--free .fuel-settings__btn {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--ov-line-strong);
+  background: rgba(255,255,255,0.06); color: var(--ov-text); font-size: 18px; line-height: 1; cursor: pointer;
+}
+.app-root--free .fuel-settings__btn:hover { background: rgba(255,255,255,0.14); }
+
+/* ==========================================================================
+   PIT CLEAR AIR · una frase grande + el porqué
+   ========================================================================== */
+.app-root--free .pca {
+  --pca: #7f93a6; --pca-glow: rgba(127,147,166,0.0); --pca-edge: rgba(255,255,255,0.12);
+  width: 400px; box-sizing: border-box; padding: 16px 18px 14px; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(18,27,36,0.92), rgba(10,15,21,0.92));
+  border: 1px solid var(--pca-edge);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset, 0 0 34px var(--pca-glow);
+  display: flex; flex-direction: column; gap: 12px; color: var(--ov-text);
+}
+.app-root--free .pca[data-tone="go"]   { --pca: var(--ov-ok);   --pca-glow: rgba(61,220,151,0.22);  --pca-edge: rgba(61,220,151,0.5); }
+.app-root--free .pca[data-tone="wait"] { --pca: var(--ov-warn); --pca-glow: rgba(255,181,71,0.18);  --pca-edge: rgba(255,181,71,0.45); }
+.app-root--free .pca[data-tone="bad"]  { --pca: var(--ov-crit); --pca-glow: rgba(255,92,92,0.22);   --pca-edge: rgba(255,92,92,0.5); }
+.app-root--free .pca[data-tone="info"] { --pca: #6fb4e8;        --pca-glow: rgba(111,180,232,0.16); --pca-edge: rgba(111,180,232,0.4); }
+.app-root--free .pca__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.app-root--free .pca__title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; color: var(--ov-text-3); }
+.app-root--free .pca__dot { width: 8px; height: 8px; border-radius: 2px; background: var(--pca); }
+.app-root--free .pca__pill { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; color: var(--ov-text-2); border: 1px solid var(--ov-line-strong); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.app-root--free .pca__main { display: flex; align-items: center; gap: 14px; }
+.app-root--free .pca__badge {
+  flex: none; width: 62px; height: 62px; border-radius: 50%; border: 3px solid var(--pca);
+  display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--pca);
+  box-shadow: 0 0 20px var(--pca-glow);
+}
+.app-root--free .pca__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.app-root--free .pca__headline { font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: 0.01em; color: var(--pca); white-space: nowrap; }
+.app-root--free .pca__sub { font-size: 14px; line-height: 1.25; color: var(--ov-text-2); }
+.app-root--free .pca__exit { display: flex; flex-direction: column; gap: 5px; }
+.app-root--free .pca__exit-labels, .app-root--free .pca__exit-scale { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.12em; color: var(--ov-text-3); }
+.app-root--free .pca__exit-scale { letter-spacing: 0.02em; }
+.app-root--free .pca__exit-bar { position: relative; height: 34px; border-radius: 10px; background: rgba(0,0,0,0.35); border: 1px solid var(--ov-line); overflow: hidden; }
+.app-root--free .pca__exit-zone { position: absolute; left: 33.3%; width: 33.4%; top: 0; bottom: 0; background: rgba(61,220,151,0.12); border-left: 1px dashed rgba(61,220,151,0.5); border-right: 1px dashed rgba(61,220,151,0.5); }
+.app-root--free .pca__exit-me { position: absolute; left: 50%; top: 5px; bottom: 5px; width: 3px; margin-left: -1.5px; border-radius: 2px; background: var(--ov-text); }
+.app-root--free .pca__car { position: absolute; top: 50%; transform: translate(-50%, -50%); height: 22px; min-width: 34px; padding: 0 6px; box-sizing: border-box; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #06090d; background: var(--ov-ok); }
+.app-root--free .pca__car[data-tone="wait"] { background: var(--ov-warn); }
+.app-root--free .pca__car[data-tone="bad"] { background: var(--ov-crit); }
+.app-root--free .pca__laps { display: flex; gap: 8px; align-items: flex-end; justify-content: center; height: 58px; }
+.app-root--free .pca__lap { flex: 1; max-width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+.app-root--free .pca__bar { width: 100%; border-radius: 6px 6px 3px 3px; background: var(--ov-ok); opacity: 0.55; }
+.app-root--free .pca__lap[data-tone="wait"] .pca__bar { background: var(--ov-warn); }
+.app-root--free .pca__lap[data-tone="bad"] .pca__bar { background: var(--ov-crit); }
+.app-root--free .pca__lap[data-sel="1"] .pca__bar { opacity: 1; outline: 2px solid var(--ov-text); outline-offset: 2px; }
+.app-root--free .pca__lap-label { font-size: 10px; color: var(--ov-text-3); font-variant-numeric: tabular-nums; }
+.app-root--free .pca__lap[data-sel="1"] .pca__lap-label { color: var(--ov-text); font-weight: 700; }
+.app-root--free .pca__foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--ov-text-2); border-top: 1px solid var(--ov-line); padding-top: 9px; font-variant-numeric: tabular-nums; }

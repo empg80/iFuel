@@ -9,6 +9,7 @@ import { FuelWidget } from "./FuelWidget";
 import { FuelWidgetOverlay } from "./FuelWidgetOverlay";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
+import { useSafetyLaps, setSafetyLaps } from "../utils/safetyMargin";
 import { loadWidgetPosition, clampPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
@@ -65,14 +66,17 @@ const emptyState: IfuelState = {
   pitClearAir: null,
 };
 
-const FuelSettingsPanel = React.memo(function FuelSettingsPanel({
-  fuelOpts: _fuelOpts,
-  onChange: _onChange,
-}: {
-  fuelOpts: FuelOpts;
-  onChange: (next: FuelOpts) => void;
-}) {
-  return null;
+// Ajustes del widget de combustible: margen de seguridad (vueltas extra que se reservan al calcular litros)
+const FuelSettingsPanel = React.memo(function FuelSettingsPanel() {
+  const laps = useSafetyLaps();
+  return (
+    <div className="fuel-settings">
+      <span className="fuel-settings__label">SAFETY MARGIN</span>
+      <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps - 0.5)} aria-label="Less margin">−</button>
+      <span className="fuel-settings__value">{laps.toFixed(1)} laps</span>
+      <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps + 0.5)} aria-label="More margin">+</button>
+    </div>
+  );
 });
 
 type FuelWidgetContainerProps = {
@@ -95,7 +99,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
   const fuelScale = overlayState.fuelScale ?? 1;
   const fuelDetail = overlayState.fuelDetail === "full" ? "full" : "compact";
 
-  const [fuelOpts, setFuelOpts] = useState<FuelOpts>(() =>
+  const [fuelOpts] = useState<FuelOpts>(() =>
     loadJsonFromStorage(LS_KEY, DEFAULT_FUEL_OPTS),
   );
 
@@ -299,7 +303,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
       </div>
 
       {fuelSettingsVisible && (
-        <FuelSettingsPanel fuelOpts={fuelOpts} onChange={setFuelOpts} />
+        <FuelSettingsPanel />
       )}
     </div>
   );

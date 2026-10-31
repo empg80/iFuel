@@ -46,10 +46,10 @@ Pendiente de validar: litros y ventana en una parada de carrera por tiempo y por
 | --- | --- | --- | --- |
 | C1 | Modelar rivales que paran en la misma ventana (quién lleva más vueltas de stint y combustible aproximado) | M | Test con escenario de varios rivales que entran |
 | C2 | Ventana de parada derivada del combustible real y, en carreras, de la regla de la serie (no ±5 vueltas fijas) | M | **Hecho en beta.9 (servidor, `pitWindow.mjs`)**; falta validar en iRacing. Pendiente la regla de la serie |
-| C3 | Distinguir rivales más rápidos y más lentos que tú, y si tendrías que adelantarlos; en multiclase, ver M2 | M | La puntuación pondera el ritmo, con test |
+| C3 | Distinguir rivales más rápidos y más lentos que tú, y si tendrías que adelantarlos; en multiclase, ver M2 | M | **Hecho en beta.16 (`pitClearAir.mjs`: más rápidos que te alcanzan y más lentos que adelantarás pesan 0,5)**; falta validar en iRacing |
 | C4 | Tiempo de repostaje: pérdida de parada según litros a poner (no solo la última parada) | S | **Hecho en beta.9 (`pitLoss.lossFor`)**; falta validar con dos paradas reales |
-| C5 | Instrucción única y grande: "BOX AHORA: aire limpio" / "ESPERA N vueltas: pasas de X coches a Y" | S | Probado en carrera real por Kike |
-| C6 | Umbrales configurables (segundos de aire limpio, margen de combustible) | S | Se ajustan en ajustes |
+| C5 | Instrucción única y grande: "BOX AHORA: aire limpio" / "ESPERA N vueltas: pasas de X coches a Y" | S | **Hecho en beta.16 (nuevo widget: frase grande + barra de salida + barras de vueltas)**; falta probar en carrera real |
+| C6 | Umbrales configurables (segundos de aire limpio, margen de combustible) | S | **Parcial en beta.16: margen de combustible ajustable (±0,5 vueltas) en el panel de ajustes**; faltan los segundos de aire limpio |
 | C7 | Validar el modelo contra grabaciones con paradas y tráfico real | M | Informe de aciertos del modelo |
 
 ### P2 — Experiencia y distribución (lo que impide competir hoy)
@@ -87,7 +87,7 @@ Hoy ya hay colores e insignias por clase y posición de clase en relative y stan
 | Id | Qué | Esfuerzo | Hecho cuando |
 | --- | --- | --- | --- |
 | M1 | **Aviso de tráfico más rápido por detrás**: clase superior que se acerca, con distancia, tiempo estimado de alcance y color de su clase. Lo calculan `CarIdxClass`, tiempos de vuelta por clase y el ritmo de cierre; con umbral configurable | M | Test con un escenario de alcance y prueba real |
-| M2 | **Pit clear air consciente de clases**: los coches de clases más rápidas te alcanzarán tras salir de boxes y los de clases más lentas son tráfico que tendrás que adelantar; la puntuación los pondera distinto | M | Test con rivales de 2 clases y validación con grabación |
+| M2 | **Pit clear air consciente de clases**: los coches de clases más rápidas te alcanzarán tras salir de boxes y los de clases más lentas son tráfico que tendrás que adelantar; la puntuación los pondera distinto | M | **Hecho en beta.16 con test de 2 clases (junto a C3)**; falta validar con grabación multiclase |
 | M3 | **Standings por clase**: vista agrupada o filtrada por clase, posición y hueco al líder de tu clase, vueltas perdidas respecto al líder general | M | Escena de preview y prueba real |
 | M4 | **Relative multiclase**: tintar las filas por clase (más rápida o más lenta), mostrar vueltas de diferencia fiables (depende de V2) | S | Test del cálculo de vueltas |
 | M5 | **Fin de carrera y combustible en multiclase**: vueltas hasta meta por clase (cada clase termina al cruzar la meta tras el líder general); revisar el plan de repostaje por tiempo | M | Test con escenarios de carrera por tiempo |
@@ -139,3 +139,11 @@ El token de GitHub compartido en la conversación debe revocarse cuando termine 
 ## Resultado de la prueba beta.11 (entregado en beta.12)
 - Reloj de sesión movido a Standings; jugador siempre presente en standings (playerCarNumber); fallback de vuelta con DriverCarEstLapTime; MIN_LAPS 0.25; widget de banderas rediseñado.
 - Pendiente de validar: ausencia en standings tras incidente (no reproducible desde la grabación).
+
+
+## Resultado de la prueba beta.14 (entregado en beta.15/16)
+- Tras llegar el reloj a 0, iRacing devolvía un valor raro y el plan pedía parada: corregido (beta.15). Sin plan en replay.
+- El margen de combustible no era configurable (panel vacío, fijo 1 vuelta): selector añadido (beta.16).
+- Standings en práctica/qualy muestra tiempo y vueltas restantes (beta.16).
+- Pit Clear Air con el diseño aprobado (beta.16) y puntuación multiclase (C3+M2).
+- Siguiente: C1 (rivales que paran en la misma ventana), M1 (aviso de clase más rápida por detrás), regla de la serie en C2.

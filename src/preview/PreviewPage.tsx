@@ -115,7 +115,7 @@ const Yellow = ({ on }: { on: boolean }) => (
 );
 const Pit = ({ lap }: { lap: number }) => (
   <PitClearAirWidget
-    data={{ suggestedLap: 26, options: [{ lap: 25, trafficScore: 4 }, { lap: 26, trafficScore: 1 }, { lap: 27, trafficScore: 3 }] }}
+    data={{ suggestedLap: 26, nowScore: 4, nowNearest: { carNum: 12, gapSeconds: 1.1 }, nextPitLap: lap, pitLossSeconds: 45, pitLossMeasured: true, windowStatus: "window", litersNeeded: 46.3, options: [{ lap: 25, trafficScore: 4, nearest: { carNum: 12, gapSeconds: 1.1 } }, { lap: 26, trafficScore: 1, nearest: { carNum: 7, gapSeconds: -2.4 } }, { lap: 27, trafficScore: 3 }, { lap: 28, trafficScore: 0 }] }}
     lapNumber={lap}
     pitWindowStartLap={22}
     pitWindowEndLap={30}

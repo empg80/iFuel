@@ -56,6 +56,17 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.16
+---------------
+- PIT CLEAR AIR con el diseño nuevo: una frase grande (BOX NOW / WAIT 2 LAPS / BOX NEXT LAP / NO STOP NEEDED / FUEL CRITICAL),
+  la barra de tu salida (±6 s, la zona de aire limpio es ±3 s) y las barras de tráfico por vuelta de la ventana.
+- MULTICLASE: un coche mucho más rápido que viene detrás y te alcanzará, o uno más lento por delante que tendrás que adelantar,
+  cuentan como tráfico (la mitad que uno pegado a tu salida) y el widget lo desglosa ("1 faster car closing").
+- MARGEN DE COMBUSTIBLE ajustable: antes iba fijo a 1 vuelta. Ahora, con los ajustes del combustible visibles y los widgets
+  desbloqueados, hay un selector SAFETY MARGIN (- / +, pasos de 0,5 vueltas, de 0 a 3).
+- STANDINGS en práctica/clasificación: arriba a la derecha sale el tiempo restante y las vueltas (p. ej. 8:00 · 2 LAPS).
+  QUÉ MIRAR: en qualy, ¿ves el tiempo y las vueltas?; cambia el margen y comprueba que los litros a añadir se mueven.
+
 NOVEDAD BETA.15
 ---------------
 - ARREGLADO (carrera por tiempo): cuando el reloj llega a 0, iRacing devolvía un valor raro y el plan te pedía ~17 L y una

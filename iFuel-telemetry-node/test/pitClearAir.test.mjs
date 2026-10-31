@@ -48,3 +48,23 @@ test("indica el tráfico si entras ahora y el coche más pegado a tu salida", ()
   assert.equal(r.nowNearest.carNum, "27");
   assert.ok(Math.abs(r.nowNearest.gapSeconds - 1) < 0.01, `gap=${r.nowNearest.gapSeconds}`);
 });
+
+test("multiclase: un coche más rápido que viene detrás cuenta como tráfico aunque no esté pegado", () => {
+  // Salgo con 25 s de pérdida. El rival (80 s/vuelta) sale ~8,7 s por detrás de mi salida y gana 20 s por vuelta:
+  // me alcanza antes de una vuelta.
+  const me = { idx: 0, pct: 0.5, lastLap: 100, bestLap: 100 };
+  const fast = { idx: 1, pct: 0.1, lastLap: 80, bestLap: 80 };
+  const r = f({ ...base, cars: [me, fast], passes: [{ lap: 5, lapsToPit: 0 }], pitDeltaSeconds: 25 });
+  assert.equal(r.options[0].direct, 0);
+  assert.equal(r.options[0].fastBehind, 1);
+  assert.equal(r.options[0].trafficScore, 1);
+});
+
+test("multiclase: un coche más lento por delante que alcanzarás cuenta; uno de tu ritmo lejano no", () => {
+  const me = { idx: 0, pct: 0.5, lastLap: 100, bestLap: 100 };
+  const slow = { idx: 1, pct: 0.45, lastLap: 120, bestLap: 120 }; // sale ~16 s por delante y 20 s/vuelta más lento
+  const same = { idx: 2, pct: 0.75, lastLap: 100, bestLap: 100 };
+  const r = f({ ...base, cars: [me, slow, same], passes: [{ lap: 5, lapsToPit: 0 }], pitDeltaSeconds: 25 });
+  assert.equal(r.options[0].slowAhead, 1);
+  assert.equal(r.options[0].fastBehind, 0);
+});

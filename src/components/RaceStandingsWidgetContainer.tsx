@@ -93,16 +93,19 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
   const clock = (() => {
     const laps = state?.sessionLapsRemainEx ?? null;
     const t = state?.sessionTimeRemain ?? null;
-    if (laps != null && laps > 0 && laps < 10000) {
-      return { time: String(laps), cap: laps === 1 ? "LAP LEFT" : "LAPS LEFT", low: laps <= 2 };
-    }
-    if (t != null && t > 0 && t < 86400 * 7) {
+    const hasLaps = laps != null && laps > 0 && laps < 10000;
+    const hasTime = t != null && t > 0 && t < 86400 * 7;
+    const lapsText = hasLaps ? `${laps} ${laps === 1 ? "LAP" : "LAPS"}` : "";
+    if (hasTime) {
       const h = Math.floor(t / 3600);
       const m = Math.floor((t % 3600) / 60);
       const sec = Math.floor(t % 60);
       const pad = (n: number) => String(n).padStart(2, "0");
-      return { time: h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`, cap: "TIME LEFT", low: t < 300 };
+      const time = h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
+      // Clasificación/práctica: tiempo Y vueltas (p. ej. 8:00 · 2 LAPS); carrera por tiempo: solo tiempo
+      return { time, cap: hasLaps ? `TIME LEFT · ${lapsText}` : "TIME LEFT", low: t < 300 || (hasLaps && laps <= 1) };
     }
+    if (hasLaps) return { time: String(laps), cap: laps === 1 ? "LAP LEFT" : "LAPS LEFT", low: laps <= 2 };
     return null;
   })();
 

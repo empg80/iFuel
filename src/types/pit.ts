@@ -3,6 +3,11 @@ export type PitClearAirNearest = { carNum: string | number | null; gapSeconds: n
 export type PitClearAirOption = {
   lap: number;
   trafficScore: number;
+  /** Coches pegados a tu salida (±3 s) */
+  direct?: number;
+  /** Multiclase: coches más rápidos que te alcanzarán / más lentos que tendrás que adelantar */
+  fastBehind?: number;
+  slowAhead?: number;
   nearest?: PitClearAirNearest;
   lossSeconds?: number;
 };
@@ -12,6 +17,8 @@ export type PitClearAirData = {
   options: PitClearAirOption[];
   /** Coches que encontrarías al salir si entras esta misma vuelta */
   nowScore?: number | null;
+  nowFastBehind?: number;
+  nowSlowAhead?: number;
   nowNearest?: PitClearAirNearest;
   /** Segundos que pierdes en una parada y si se han medido en tus paradas o son una estimación */
   pitLossSeconds?: number | null;

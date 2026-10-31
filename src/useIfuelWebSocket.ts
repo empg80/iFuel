@@ -1,4 +1,5 @@
 import { planRefuel } from "./utils/refuelPlan";
+import { getSafetyLaps, useSafetyLaps } from "./utils/safetyMargin";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { PitClearAirData } from "./types/pit";
 import type { StandingsRow } from "./types/standings";
@@ -440,7 +441,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               avgLapTime: avgLapTimeSeconds,
               lapsRemain: sessionLapsRemainEx,
               timeRemain: sessionTimeRemain,
-              safetyLaps: opts.safetyExtraLaps,
+              safetyLaps: getSafetyLaps(),
             }).toAdd;
             // El servidor es la única fuente de los litros (misma cifra que el pit clear air)
             if (fuelPlan?.litersNextStop != null) estRefuel = fuelPlan.litersNextStop;
@@ -729,7 +730,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   const fuelPerLapSrc = state?.fuelAvg5 ?? state?.fuelAvg ?? null;
   const fuelPerLapRounded =
     fuelPerLapSrc && fuelPerLapSrc > 0 ? Math.round(fuelPerLapSrc * 100) / 100 : null;
-  const pitSafetyLaps = options.safetyExtraLaps ?? DEFAULT_OPTS.safetyExtraLaps ?? 1;
+  const pitSafetyLaps = useSafetyLaps();
 
   useEffect(() => {
     if (!isConnected) return;
