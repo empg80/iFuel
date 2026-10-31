@@ -55,3 +55,13 @@ test("fuelModel: no tiene dato con menos de media vuelta ni cuenta boxes ni repo
   m.update({ fuelLevel: 60, lap: 1, lapDistPct: 0.22, onPitRoad: false });
   assert.equal(m.lapsMeasured < 0.05, true);
 });
+
+test("llegas a meta y solo falta margen de seguridad (<1 vuelta): no se manda a boxes", () => {
+  const base = { fuelPerLap: 2.9, fuelCapacity: 46, myLap: 25, myPct: 0.64, pitPct: 0.98, safetyLaps: 1, timeRemain: -1, lapTime: 237 };
+  const p = computeFuelPlan({ ...base, fuelLevel: 6.4, lapsRemain: 2 }); // 1.36 vueltas por rodar, 2.2 de gasolina
+  assert.equal(p.status, "no-stop");
+  assert.equal(p.stops, 0);
+  const q = computeFuelPlan({ ...base, fuelLevel: 3.0, lapsRemain: 2 }); // 1.03 vueltas de gasolina: no llega
+  assert.notEqual(q.status, "no-stop");
+  assert.ok(q.stops >= 1);
+});

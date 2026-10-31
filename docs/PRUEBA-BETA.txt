@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.14
+---------------
+- El plan ya no te manda a boxes por un margen de seguridad corto: si el combustible llega a meta y solo falta
+  menos de 1 vuelta de margen, el estado es "sin parada" (antes salía "ventana" con 0,4-0,6 L a añadir en las últimas vueltas).
+  QUÉ MIRAR: al final de una carrera con combustible justo, que no te pida parar si llegas a meta.
+
 NOVEDAD BETA.13
 ---------------
 - ARREGLADO: tu fila en Standings no se resaltaba. iRacing envía tu número de coche como número (16) y la app lo

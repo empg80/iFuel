@@ -59,5 +59,12 @@ export function computeFuelPlan(i) {
     for (let k = 0; k < stops; k++) stintLaps.push(window.endLap + k * step);
   }
 
+  // Si el combustible llega a meta sin margen de seguridad y solo falta menos de 1 vuelta de margen,
+  // no merece la pena una parada (~40 s): se avisa del margen corto pero no se manda a boxes.
+  const reachesFinish = remaining <= lapsOnFuel;
+  if (stops > 0 && reachesFinish && deficitLaps < 1) {
+    return { perLap: fuelPerLap, litersToAdd, status: "no-stop", stops: 0, stintLaps: [], window: { ...window, status: "no-stop" }, remainingLaps: remaining };
+  }
+
   return { perLap: fuelPerLap, litersToAdd, status: window.status, stops, stintLaps, window, remainingLaps: remaining };
 }
