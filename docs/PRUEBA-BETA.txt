@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.13
+---------------
+- ARREGLADO: tu fila en Standings no se resaltaba. iRacing envía tu número de coche como número (16) y la app lo
+  descartaba esperando texto ("16"); ahora lo reconoce y la fila lleva fondo azul, borde y la marca ▶.
+  QUÉ MIRAR: que tu fila destaque de color en cuanto entras en pista (también en práctica/clasificación).
+
 NOVEDAD BETA.12
 ---------------
 - El tiempo restante de la sesión (o las vueltas que quedan) ahora está arriba a la derecha del STANDINGS.

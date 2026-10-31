@@ -95,8 +95,8 @@ type RawMessage = {
   yellowWarning?: YellowWarning;
   pitClearAir?: PitClearAir;
   standings?: StandingsRowPayload[];
-  cameraCarNumber?: string | null;
-  playerCarNumber?: string | null;
+  cameraCarNumber?: string | number | null;
+  playerCarNumber?: string | number | null;
   cameraDriver?: CameraDriverPayload;
 
   // datos para TrackInfoWidget
@@ -304,15 +304,12 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             rainChance,
           } = msg;
 
-          const cameraCarNumber =
-            typeof rawCameraCarNumber === "string" && rawCameraCarNumber !== ""
-              ? rawCameraCarNumber
-              : null;
+          // iRacing manda el número de coche como entero (16) y el standings como texto ("16")
+          const carNumToString = (v: unknown): string | null =>
+            (typeof v === "string" && v !== "") || typeof v === "number" ? String(v) : null;
+          const cameraCarNumber = carNumToString(rawCameraCarNumber);
 
-          const playerCarNumber =
-            typeof rawPlayerCarNumber === "string" && rawPlayerCarNumber !== ""
-              ? rawPlayerCarNumber
-              : null;
+          const playerCarNumber = carNumToString(rawPlayerCarNumber);
 
           const opts = optsRef.current;
 
