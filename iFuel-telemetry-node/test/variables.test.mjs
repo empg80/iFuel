@@ -4,6 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { TELEMETRY_VARS, SNAPSHOT_VARS } from "../telemetry-server.mjs";
+import { CAR_VARS } from "../carData.mjs";
 
 const serverSrc = fs.readFileSync(new URL("../telemetry-server.mjs", import.meta.url), "utf8");
 const typesUrl = new URL("../node_modules/@irsdk-node/types/dist/types/telemetry.gen.d.ts", import.meta.url);
@@ -17,7 +18,7 @@ test("todas las variables que lee el servidor están en TELEMETRY_VARS", () => {
 test("TELEMETRY_VARS no tiene nombres duplicados ni sobrantes", () => {
   assert.equal(new Set(TELEMETRY_VARS).size, TELEMETRY_VARS.length);
   const used = new Set([...serverSrc.matchAll(/\btelemetry\.([A-Za-z][A-Za-z0-9_]*)/g)].map((m) => m[1]));
-  const extra = TELEMETRY_VARS.filter((n) => !used.has(n));
+  const extra = TELEMETRY_VARS.filter((n) => !used.has(n) && !CAR_VARS.includes(n));
   assert.deepEqual(extra, [], `Sobran en TELEMETRY_VARS: ${extra.join(", ")}`);
 });
 

@@ -20,6 +20,7 @@ import { computeFuelPlan } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
+import { createCarTracker, createTraceBuffer, CAR_VARS } from "./carData.mjs";
 
 const TIMEOUT = Math.floor((1 / 60) * 1000);
 const BROADCAST_INTERVAL = 250; // ms
@@ -70,6 +71,7 @@ const TELEMETRY_VARS = [
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
   "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
+  ...CAR_VARS,
 ];
 
 // Variables extra que se vuelcan en el "SDK snapshot" de diagnóstico (no las usa el bucle).
@@ -213,6 +215,8 @@ function startTelemetryLoop(
   const pitLossTracker = createPitLossTracker();
   const fuelModel = createFuelModel();
   const yellowTracker = createYellowTracker();
+  const carTracker = createCarTracker();
+  const trace = createTraceBuffer();
   const trackCarSpeeds = createCarSpeedTracker();
 
   let lastSessionKey = null;
@@ -330,6 +334,8 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
         timeWasRunning = false; timeExpired = false;
         paceLaps.length = 0; paceLastLap = null;
         yellowTracker.reset();
+        carTracker.reset();
+        trace.clear();
         // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
         if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
       }
@@ -1065,6 +1071,21 @@ standings.sort((a, b) => a.position - b.position);
     // Sin clientes conectados (y sin grabación en curso) no merece la pena serializar ni enviar nada
     if (wss.clients.size === 0 && !diag.recorder) return;
 
+    const carVars = {};
+    for (const name of CAR_VARS) {
+      const v = telemetry[name]?.value?.[0];
+      if (v !== undefined) carVars[name] = typeof v === "boolean" ? v : Number(v);
+    }
+    const carData = carTracker.update({
+      vars: carVars,
+      sessionTime,
+      lap,
+      lapDistPct: telemetry.LapDistPct?.value?.[0] ?? -1,
+      onPitRoad: !!telemetry.OnPitRoad?.value?.[0],
+      inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
+      sectorStarts: (session?.SplitTimeInfo?.Sectors ?? []).map((s) => s.SectorStartPct).filter(Number.isFinite),
+    });
+
     const payload = JSON.stringify({
   fuelLevel,
   lap,
@@ -1093,6 +1114,8 @@ standings.sort((a, b) => a.position - b.position);
   standings,
   cameraCarNumber,
   playerCarNumber: carIdxNumberMap[driverIdx] ?? null,
+  carData,
+  trace: trace.snapshot(),
   debugCamera,
   cameraDriver, 
 
@@ -1121,6 +1144,19 @@ standings.sort((a, b) => a.position - b.position);
      }
    }
   }, BROADCAST_INTERVAL);
+
+  // Muestreador rápido del pedal: no usa waitForData (lee el último valor) y se para solo
+  // cuando se cancela el temporizador principal.
+  if (typeof sdk.getTelemetryVariable === "function") {
+    const fast = setInterval(() => {
+      if (timer._destroyed) return clearInterval(fast);
+      if (wss.clients.size === 0) return;
+      try {
+        trace.push(sdk.getTelemetryVariable("ThrottleRaw")?.value?.[0], sdk.getTelemetryVariable("BrakeRaw")?.value?.[0]);
+      } catch { /* ignorar un fallo puntual de lectura */ }
+    }, Math.round(1000 / trace.hz));
+    fast.unref?.();
+  }
 
   return timer;
 }
