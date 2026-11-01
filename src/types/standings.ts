@@ -21,5 +21,5 @@ export type RaceStandingsWidgetProps = {
   myCarNumber: string;
   classColorIndexById: Record<number, number>;
   classNames?: Record<number, string>;
-  clock?: { time: string; cap: string; low: boolean } | null;
+  clock?: { time: string; cap: string; extra?: string; low: boolean } | null;
 };

@@ -147,3 +147,8 @@ El token de GitHub compartido en la conversación debe revocarse cuando termine 
 - Standings en práctica/qualy muestra tiempo y vueltas restantes (beta.16).
 - Pit Clear Air con el diseño aprobado (beta.16) y puntuación multiclase (C3+M2).
 - Siguiente: C1 (rivales que paran en la misma ventana), M1 (aviso de clase más rápida por detrás), regla de la serie en C2.
+
+
+## beta.18
+- M3 (standings por clase) hecho: separadores de clase con color, POS y CLS; falta validar con una sesión multiclase real.
+- Debris con memoria del punto de incidente y límite de 3 km; Pit Clear Air sin desbordes; vueltas de qualy en grande.

@@ -894,7 +894,7 @@
    ========================================================================== */
 .app-root--free .pca {
   --pca: #7f93a6; --pca-glow: rgba(127,147,166,0.0); --pca-edge: rgba(255,255,255,0.12);
-  width: 400px; box-sizing: border-box; padding: 16px 18px 14px; border-radius: 18px;
+  width: 400px; max-width: 100%; box-sizing: border-box; padding: 16px 18px 14px; border-radius: 18px; overflow: hidden;
   background: linear-gradient(180deg, rgba(18,27,36,0.92), rgba(10,15,21,0.92));
   border: 1px solid var(--pca-edge);
   box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset, 0 0 34px var(--pca-glow);
@@ -904,7 +904,7 @@
 .app-root--free .pca[data-tone="wait"] { --pca: var(--ov-warn); --pca-glow: rgba(255,181,71,0.18);  --pca-edge: rgba(255,181,71,0.45); }
 .app-root--free .pca[data-tone="bad"]  { --pca: var(--ov-crit); --pca-glow: rgba(255,92,92,0.22);   --pca-edge: rgba(255,92,92,0.5); }
 .app-root--free .pca[data-tone="info"] { --pca: #6fb4e8;        --pca-glow: rgba(111,180,232,0.16); --pca-edge: rgba(111,180,232,0.4); }
-.app-root--free .pca__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.app-root--free .pca__top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 .app-root--free .pca__title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; color: var(--ov-text-3); }
 .app-root--free .pca__dot { width: 8px; height: 8px; border-radius: 2px; background: var(--pca); }
 .app-root--free .pca__pill { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; color: var(--ov-text-2); border: 1px solid var(--ov-line-strong); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
@@ -914,9 +914,9 @@
   display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--pca);
   box-shadow: 0 0 20px var(--pca-glow);
 }
-.app-root--free .pca__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.app-root--free .pca__headline { font-size: 30px; font-weight: 800; line-height: 1; letter-spacing: 0.01em; color: var(--pca); white-space: nowrap; }
-.app-root--free .pca__sub { font-size: 14px; line-height: 1.25; color: var(--ov-text-2); }
+.app-root--free .pca__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1 1 0; }
+.app-root--free .pca__headline { font-size: 27px; font-weight: 800; line-height: 1.05; letter-spacing: 0.01em; color: var(--pca); overflow-wrap: anywhere; }
+.app-root--free .pca__sub { font-size: 14px; line-height: 1.25; color: var(--ov-text-2); overflow-wrap: anywhere; }
 .app-root--free .pca__exit { display: flex; flex-direction: column; gap: 5px; }
 .app-root--free .pca__exit-labels, .app-root--free .pca__exit-scale { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.12em; color: var(--ov-text-3); }
 .app-root--free .pca__exit-scale { letter-spacing: 0.02em; }
@@ -934,4 +934,34 @@
 .app-root--free .pca__lap[data-sel="1"] .pca__bar { opacity: 1; outline: 2px solid var(--ov-text); outline-offset: 2px; }
 .app-root--free .pca__lap-label { font-size: 10px; color: var(--ov-text-3); font-variant-numeric: tabular-nums; }
 .app-root--free .pca__lap[data-sel="1"] .pca__lap-label { color: var(--ov-text); font-weight: 700; }
-.app-root--free .pca__foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--ov-text-2); border-top: 1px solid var(--ov-line); padding-top: 9px; font-variant-numeric: tabular-nums; }
+.app-root--free .pca__foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ov-text-2); border-top: 1px solid var(--ov-line); padding-top: 9px; font-variant-numeric: tabular-nums; }
+
+/* ---- Standings agrupados por clase ---- */
+.app-root--free .race-standings__table--multi .race-standings__row { grid-template-columns: 34px 30px 62px minmax(0, 1fr) 92px 48px 64px; }
+.app-root--free .race-standings__group { display: flex; flex-direction: column; }
+.app-root--free .race-standings__class {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 8px 0 3px; padding: 4px 10px; border-radius: 6px;
+  border-left: 5px solid var(--class-c, var(--ov-text-3));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--class-c, #888) 38%, transparent), color-mix(in srgb, var(--class-c, #888) 6%, transparent));
+  font-size: 12px; font-weight: 800; letter-spacing: 0.16em; color: #fff;
+}
+.app-root--free .race-standings__group:first-of-type .race-standings__class { margin-top: 2px; }
+.app-root--free .race-standings__class-count { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--ov-text-2); }
+.app-root--free .race-standings__class--0 { --class-c: var(--class-0); }
+.app-root--free .race-standings__class--1 { --class-c: var(--class-1); }
+.app-root--free .race-standings__class--2 { --class-c: var(--class-2); }
+.app-root--free .race-standings__class--3 { --class-c: var(--class-3); }
+.app-root--free .race-standings__class--4 { --class-c: var(--class-4); }
+.app-root--free .race-standings__class--5 { --class-c: var(--class-5); }
+.app-root--free .race-standings__cell--cls { font-weight: 700; text-align: center; }
+.app-root--free .race-standings__cls--0 { color: var(--class-0); }
+.app-root--free .race-standings__cls--1 { color: var(--class-1); }
+.app-root--free .race-standings__cls--2 { color: var(--class-2); }
+.app-root--free .race-standings__cls--3 { color: var(--class-3); }
+.app-root--free .race-standings__cls--4 { color: var(--class-4); }
+.app-root--free .race-standings__cls--5 { color: var(--class-5); }
+
+/* ---- Reloj de sesión: en qualy/práctica las vueltas van en grande bajo el tiempo ---- */
+.app-root--free .race-standings__clock-extra { margin-top: 4px; font-size: 20px; font-weight: 800; letter-spacing: 0.04em; color: var(--ov-text); }
+.app-root--free .race-standings__clock[data-low="1"] .race-standings__clock-extra { color: var(--ov-warn); }

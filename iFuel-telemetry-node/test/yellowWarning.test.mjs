@@ -112,3 +112,31 @@ test("sin velocidad propia suficiente no se calcula el tiempo", () => {
   assert.ok(w.distanceMeters > 0);
   assert.equal(w.timeSeconds, null);
 });
+
+test("el debris se recuerda: vuelta siguiente vuelve a dar distancia aunque el coche ya no esté", () => {
+  const t = createYellowTracker();
+  const upd = (pct, cars, time) => t.update({ sessionFlags: FLAG_DEBRIS, cars, myIdx: 0, myPct: pct, mySpeed: 50, trackLengthMeters: TRACK, baseLapTime: 100, sessionTime: time });
+  const stopped = car(1, 0.3, { speed: 0, surface: 0 });
+  let w = upd(0.2, [car(0, 0.2), stopped], 10);
+  assert.ok(Math.abs(w.distanceMeters - 400) < 0.5);
+  // el coche se retira (ya no está en pista) pero la bandera sigue: se muestra la distancia al punto del debris
+  w = upd(0.25, [car(0, 0.25)], 20);
+  assert.equal(w.active, true);
+  assert.ok(Math.abs(w.distanceMeters - 200) < 0.5);
+  // lo pasas: desaparece
+  w = upd(0.31, [car(0, 0.31)], 30);
+  w = upd(0.35, [car(0, 0.35)], 40);
+  assert.equal(w.active, false);
+  // vuelta siguiente: el punto vuelve a estar por delante (a 480 m) con la bandera aún puesta
+  w = upd(0.18, [car(0, 0.18)], 100);
+  assert.equal(w.active, true);
+  assert.ok(Math.abs(w.distanceMeters - 480) < 0.5);
+});
+
+test("cifras de kilómetros no se muestran: aviso genérico sin distancia", () => {
+  const t = createYellowTracker();
+  // incidente a 0.5 vueltas = 2000 m en TRACK 4000: se muestra; con pista de 13 km sería 6,5 km
+  const w = t.update({ sessionFlags: FLAG_DEBRIS, cars: [car(0, 0.1), car(1, 0.6, { speed: 0, surface: 0 })], myIdx: 0, myPct: 0.1, mySpeed: 50, trackLengthMeters: 13600, baseLapTime: 200, sessionTime: 5 });
+  assert.equal(w.active, true);
+  assert.equal(w.distanceMeters, null);
+});

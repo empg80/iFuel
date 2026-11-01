@@ -17,6 +17,8 @@ const SLOW_FRACTION = 0.35; // por debajo del 35 % de su ritmo normal = trompo, 
 const HOLD_SECONDS = 6; // iRacing apaga el debris tras unos 5 s; con un coche localizado por delante seguimos avisando
 const HOLD_NO_CAR_SECONDS = 1.5; // sin coche localizado no hay nada que "seguir": se apaga casi al soltar la bandera
 const MIN_TIME_SPEED = 10; // m/s: por debajo, "segundos hasta llegar" no significa nada (saliendo de boxes, parado)
+const MAX_SHOW_METERS = 3000; // más lejos que esto la cifra no sirve (Le Mans: kilómetros): solo aviso genérico
+const SPOT_MEMORY_SECONDS = 300; // el debris se queda donde ocurrió el incidente aunque el coche ya no esté
 const PROFILE_BINS = 200; // perfil de velocidad por zona de pista, aprendido de los coches que pasan
 const PROFILE_MIN_SAMPLES = 8;
 const PROFILE_ALPHA = 0.1;
@@ -53,7 +55,8 @@ export function looksLikeIncident(c, trackLengthMeters, fallbackLapTime, zoneSpe
 export function createYellowTracker() {
   let holdUntil = -Infinity;
   let last = null;
-  let passed = false; // ya has pasado el incidente: no se vuelve a avisar hasta que la bandera se apague
+  let passed = false; // ya has pasado el incidente: no se avisa hasta que vuelva a aparecer por delante (siguiente vuelta) o se apague la bandera
+  let spot = null; // último punto de pista donde se localizó el incidente (el debris se queda ahí)
   const profile = new Array(PROFILE_BINS).fill(null).map(() => ({ ema: 0, n: 0 }));
   const binOf = (pct) => Math.min(PROFILE_BINS - 1, Math.max(0, Math.floor(pct * PROFILE_BINS)));
   const zoneSpeedOf = (pct) => {
@@ -66,6 +69,7 @@ export function createYellowTracker() {
       holdUntil = -Infinity;
       last = null;
       passed = false;
+      spot = null;
       for (const b of profile) { b.ema = 0; b.n = 0; }
     },
     /**
@@ -92,9 +96,17 @@ export function createYellowTracker() {
       const held = !flagged && sessionTime <= holdUntil && last != null;
       if (!flagged && !held) {
         last = null;
+        spot = null;
         return INACTIVE;
       }
-      if (passed) return INACTIVE;
+      const fwdOf = (pct) => { let d = pct - myPct; if (d < 0) d += 1; return d; };
+      const spotAhead = spot && sessionTime - spot.seenAt <= SPOT_MEMORY_SECONDS
+        && fwdOf(spot.pct) <= MAX_LAP_FRACTION && fwdOf(spot.pct) * trackLengthMeters >= MIN_METERS_AHEAD;
+      if (passed) {
+        // Con el debris aún en pista, la vuelta siguiente vuelve a aparecer por delante: se avisa otra vez
+        if (spot && spotAhead && fwdOf(spot.pct) * trackLengthMeters > PASSED_METERS) passed = false;
+        else return INACTIVE;
+      }
 
       // Incidente más cercano por delante
       let best = null;
@@ -120,7 +132,14 @@ export function createYellowTracker() {
       nearby.sort((a, b) => a.meters - b.meters);
       const debug = { flags: sessionFlags, nearby: nearby.slice(0, 3) };
       if (best) {
+        spot = { pct: best.pct, seenAt: sessionTime };
         const distanceMeters = bestD * trackLengthMeters;
+        if (distanceMeters > MAX_SHOW_METERS) {
+          // Demasiado lejos para que la cifra sirva: aviso genérico (el incidente sigue recordado)
+          if (flagged) holdUntil = sessionTime + HOLD_NO_CAR_SECONDS;
+          last = { ...INACTIVE, active: true, type: yellow ? "incident" : "debris", debug };
+          return last;
+        }
         last = {
           active: true,
           distanceMeters,
@@ -134,8 +153,23 @@ export function createYellowTracker() {
         return last;
       }
 
+      // El coche ya no está, pero el debris sigue donde estaba: distancia al punto recordado
+      if (spotAhead) {
+        const d = fwdOf(spot.pct) * trackLengthMeters;
+        if (d <= MAX_SHOW_METERS) {
+          last = {
+            active: true,
+            distanceMeters: d,
+            timeSeconds: mySpeed >= MIN_TIME_SPEED ? d / mySpeed : null,
+            carNum: null, classId: null, classPosition: null,
+            type: yellow ? "incident" : "debris",
+            debug,
+          };
+          return last;
+        }
+      }
       // Si hace un momento había un coche localizado muy cerca y ya no está por delante, lo has pasado
-      if (last && last.carNum != null && last.distanceMeters != null && last.distanceMeters < PASSED_METERS) {
+      if (last && last.distanceMeters != null && last.distanceMeters < PASSED_METERS) {
         passed = true;
         last = null;
         return INACTIVE;

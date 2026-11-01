@@ -56,6 +56,17 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.18
+---------------
+- STANDINGS por categorías: un separador con el color y el nombre de cada clase (GTP, LMP2, GT3...) y debajo sus coches.
+  Cada fila muestra la posición general (POS) y la de su clase (CLS). Reglas: la clase del líder primero; 10 primeros de cada
+  clase y, si tú no estás entre ellos, los 3 de delante y los 3 de detrás en tu clase. En una sola clase no hay separadores.
+- En clasificación/práctica las vueltas restantes salen en grande bajo el tiempo (p. ej. 8:00 / 2 LAPS LEFT).
+- DEBRIS: el punto del debris se recuerda. Si el coche ya no está pero la bandera sigue, en la vuelta siguiente vuelve a
+  salir la distancia al llegar (no solo "debris on track"). Las cifras de más de 3 km ya no se muestran (aviso genérico).
+- PIT CLEAR AIR: el texto ya no se sale del cuadro (se ajusta y se parte en líneas).
+  QUÉ MIRAR: en una carrera con debris que dura varias vueltas, ¿vuelve a dar metros/segundos cada vuelta?
+
 NOVEDAD BETA.17
 ---------------
 - Widget de BANDERAS rediseñado como banner de dirección de carrera: baldosa con franjas de precaución y glifo (bandera,

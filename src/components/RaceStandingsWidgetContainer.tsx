@@ -103,7 +103,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
       const pad = (n: number) => String(n).padStart(2, "0");
       const time = h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${m}:${pad(sec)}`;
       // Clasificación/práctica: tiempo Y vueltas (p. ej. 8:00 · 2 LAPS); carrera por tiempo: solo tiempo
-      return { time, cap: hasLaps ? `TIME LEFT · ${lapsText}` : "TIME LEFT", low: t < 300 || (hasLaps && laps <= 1) };
+      return { time, cap: "TIME LEFT", extra: hasLaps ? `${lapsText} LEFT` : undefined, low: t < 300 || (hasLaps && laps <= 1) };
     }
     if (hasLaps) return { time: String(laps), cap: laps === 1 ? "LAP LEFT" : "LAPS LEFT", low: laps <= 2 };
     return null;

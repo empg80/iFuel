@@ -39,3 +39,28 @@ test("sin coche propio (espectador) solo el top por clase", () => {
   const items = filterStandings(mk(30, () => 1), null);
   assert.equal(items.filter((x) => x.kind === "row").length, 10);
 });
+
+import { groupStandings } from "../src/utils/standingsFilter.ts";
+
+test("groupStandings: clases en orden del líder, top 10 por clase y posición de clase", () => {
+  // 30 coches: clase 1 posiciones 1,4,7...; clase 2 posiciones 2,5,8...; clase 3 las demás
+  const rows = mk(30, (i) => (i % 3) + 1);
+  const g = groupStandings(rows, null);
+  assert.deepEqual(g.map((x) => x.classId), [1, 2, 3]);
+  assert.ok(g.every((x) => x.total === 10 && x.items.length === 10));
+  const first = g[1].items[0];
+  assert.equal(first.kind, "row");
+  assert.equal(first.row.position, 2);
+  assert.equal(first.classPos, 1);
+});
+
+test("groupStandings: mis vecinos solo en mi clase y con hueco", () => {
+  const rows = mk(60, (i) => (i % 2) + 1); // yo: coche 49 (clase 1, 25º de su clase)
+  const g = groupStandings(rows, "49");
+  const mine = g.find((x) => x.classId === 1);
+  const cls = mine.items.filter((x) => x.kind === "row").map((x) => x.classPos);
+  assert.deepEqual(cls, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22, 23, 24, 25, 26, 27, 28]);
+  assert.equal(mine.items.filter((x) => x.kind === "gap").length, 1);
+  const other = g.find((x) => x.classId === 2);
+  assert.equal(other.items.length, 10);
+});

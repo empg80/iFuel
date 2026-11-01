@@ -100,7 +100,7 @@ const Rel = () => (
   />
 );
 const Standings = () => (
-  <RaceStandingsWidget clock={{ time: "1:23:45", cap: "TIME LEFT", low: false }} rows={rows} myCarNumber="14" classColorIndexById={classColors} classNames={classNames} />
+  <RaceStandingsWidget clock={{ time: "8:00", cap: "TIME LEFT", extra: "2 LAPS LEFT", low: false }} rows={rows} myCarNumber="14" classColorIndexById={classColors} classNames={classNames} />
 );
 const Yellow = ({ on }: { on: boolean }) => (
   <YellowFlagWidget
@@ -127,6 +127,40 @@ const at = (style: React.CSSProperties, child: React.ReactNode) => (
 );
 
 function Scene({ scene }: { scene: string }) {
+  if (scene === "standings") {
+    const cls = [4011, 4029, 2523];
+    const names = { 4011: "GTP", 4029: "LMP2", 2523: "GT3" };
+    const colors = { 4011: 0, 4029: 3, 2523: 1 };
+    const many = Array.from({ length: 48 }, (_, i) => {
+      const classId = i < 6 ? 4011 : i < 14 ? (i % 2 ? 4029 : 4011) : i < 22 ? 4029 : 2523;
+      return {
+        position: i + 1, carNumber: String(10 + i), classId: classId === 4011 && i > 9 ? 4029 : classId,
+        driverName: `Driver ${i + 1}`, bestLapTime: 200 + i * 0.7, gapToLeader: null, lapsDown: 0,
+        stintLapCount: 5 + (i % 4), lastPitDurationSeconds: i % 3 ? 24.8 : null, pitStops: i % 3, inPit: false, carModel: "x",
+      };
+    });
+    void cls;
+    return (
+      <div className="app-root--free" style={{ padding: 30, background: "#3a4658", minHeight: "100vh", width: 640 }}>
+        <RaceStandingsWidget clock={{ time: "8:00", cap: "TIME LEFT", extra: "2 LAPS LEFT", low: false }} rows={many} myCarNumber="45" classColorIndexById={colors} classNames={names} />
+      </div>
+    );
+  }
+  if (scene === "pca") {
+    const o = (lap: number, trafficScore: number, extra: object = {}) => ({ lap, trafficScore, ...extra });
+    const base = { pitLossSeconds: 45, pitLossMeasured: true, litersNeeded: 46.3, windowStartLap: 8, windowEndLap: 12 };
+    const L = 7;
+    return (
+      <div className="app-root--free" style={{ display: "grid", gridTemplateColumns: "repeat(2, 420px)", gap: 20, padding: 30, background: "#3a4658", minHeight: "100vh", alignItems: "start" }}>
+        <PitClearAirWidget lapNumber={L} pitWindowStartLap={8} pitWindowEndLap={12} data={{ ...base, windowStatus: "window", suggestedLap: 8, nextPitLap: 8, nowScore: 2, options: [o(8, 2, { direct: 1, fastBehind: 1, slowAhead: 2, nearest: { carNum: 42, gapSeconds: -2.1 } }), o(9, 0), o(10, 1)] }} />
+        <PitClearAirWidget lapNumber={L} pitWindowStartLap={8} pitWindowEndLap={12} data={{ ...base, windowStatus: "no-stop", suggestedLap: null, options: [] }} />
+        <PitClearAirWidget lapNumber={L} pitWindowStartLap={8} pitWindowEndLap={12} data={{ ...base, windowStatus: "critical", suggestedLap: 8, options: [o(8, 0)] }} />
+        <PitClearAirWidget lapNumber={L} pitWindowStartLap={8} pitWindowEndLap={12} data={{ ...base, windowStatus: "window", suggestedLap: 10, nextPitLap: 8, nowScore: 3, options: [o(8, 3), o(9, 1), o(10, 0, { nearest: { carNum: 7, gapSeconds: 4.2 } })] }} />
+        <PitClearAirWidget lapNumber={L} pitWindowStartLap={8} pitWindowEndLap={12} data={{ ...base, windowStatus: "extra-stop", suggestedLap: 8, nextPitLap: 8, options: [o(8, 1), o(9, 0)] }} />
+        <PitClearAirWidget lapNumber={L} pitWindowStartLap={null} pitWindowEndLap={null} data={undefined} />
+      </div>
+    );
+  }
   if (scene === "flags") {
     const w = (o: object) => ({ active: true, distanceMeters: null, timeSeconds: null, carNum: null, classId: null, classPosition: null, type: "incident", ...o }) as never;
     return (
