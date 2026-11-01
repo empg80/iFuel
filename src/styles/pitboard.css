@@ -1,0 +1,113 @@
+/* iFuel · pitboard (monitor secundario 1280×800). Todo cuelga de .pb-root */
+.pitboard-layout.pb-root {
+  --pb-bg: #0b0e13;
+  --pb-panel: #121821;
+  --pb-line: #232c3a;
+  --pb-text: #e8edf4;
+  --pb-text-2: #93a1b5;
+  --pb-good: #5fd39a;
+  --pb-warn: #ffb547;
+  --pb-bad: #ff6b6b;
+  --pb-me: #4da3ff;
+  --pb-best: #b68cff;
+  --class-0: #4c9bff; --class-1: #ff9f43; --class-2: #3ddc97;
+  --class-3: #b084f5; --class-4: #ff6b8b; --class-5: #8fa3b8;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 0.9fr) minmax(0, 1.15fr) minmax(0, 0.9fr);
+  grid-template-areas:
+    "head      head  head"
+    "standings ring  relative"
+    "standings fuel  pit"
+    "standings tyres trace";
+  gap: 8px;
+  padding: 10px;
+  background: var(--pb-bg);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--pb-text);
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  position: relative;
+}
+.pb-root .pb-area-head { grid-area: head; }
+.pb-root .pb-area-flag { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 5; width: 540px; max-width: 96%; }
+.pb-root .pb-area-standings { grid-area: standings; min-height: 0; overflow: hidden; }
+.pb-root .pb-area-ring { grid-area: ring; min-height: 0; }
+.pb-root .pb-area-relative { grid-area: relative; min-height: 0; overflow: hidden; }
+.pb-root .pb-area-fuel { grid-area: fuel; min-height: 0; overflow: hidden; }
+.pb-root .pb-area-pit { grid-area: pit; min-height: 0; overflow: hidden; }
+.pb-root .pb-area-tyres { grid-area: tyres; min-height: 0; }
+.pb-root .pb-area-trace { grid-area: trace; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.pb-root .pitboard-widget { padding: 0; }
+
+.pb-panel { background: var(--pb-panel); border: 1px solid var(--pb-line); border-radius: 8px; box-sizing: border-box; }
+.pb-lbl { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--pb-text-2); font-weight: 600; }
+.pb-num { font-family: "Cascadia Mono", "JetBrains Mono", Consolas, monospace; font-weight: 700; }
+.pb-good { color: var(--pb-good); } .pb-bad { color: var(--pb-bad); } .pb-warn { color: var(--pb-warn); }
+.pb-best { color: var(--pb-best); } .pb-dim { opacity: .55; }
+.pb-row-between { display: flex; justify-content: space-between; align-items: baseline; }
+
+/* cabecera */
+.pb-hd { display: flex; align-items: stretch; height: 62px; }
+.pb-hd__cell { display: flex; flex-direction: column; justify-content: center; padding: 0 14px; border-right: 1px solid var(--pb-line); min-width: 0; flex: 1 1 0; }
+.pb-hd__cell b { font-size: 24px; line-height: 1.05; white-space: nowrap; }
+.pb-hd__cell small { font-size: 14px; color: var(--pb-text-2); font-weight: 600; }
+.pb-hd__pos b { color: var(--pb-me); }
+.pb-hd__sectors { display: flex; flex: 1.4 1 0; gap: 4px; padding: 0 12px; align-items: center; }
+.pb-hd__sector { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.pb-hd__sector b { font-size: 19px; line-height: 1.1; }
+
+/* circuito */
+.pb-ring { position: relative; height: 100%; display: flex; align-items: center; justify-content: center; }
+.pb-ring svg { height: 100%; max-height: 100%; width: auto; max-width: 100%; padding: 6px; box-sizing: border-box; }
+.pb-ring__track { fill: none; stroke: #232c3a; stroke-width: 12; }
+.pb-ring__sec { fill: none; stroke-width: 3; }
+.pb-ring__sec--0 { stroke: #b68cff; } .pb-ring__sec--1 { stroke: #5fd39a; } .pb-ring__sec--2 { stroke: #ff9f43; }
+.pb-ring__line { stroke: #e8edf4; stroke-width: 4; }
+.pb-dot { stroke: none; }
+.pb-dot--0 { fill: var(--class-0); } .pb-dot--1 { fill: var(--class-1); } .pb-dot--2 { fill: var(--class-2); }
+.pb-dot--3 { fill: var(--class-3); } .pb-dot--4 { fill: var(--class-4); } .pb-dot--5 { fill: var(--class-5); }
+.pb-dot--me { fill: var(--pb-me); stroke: #fff; stroke-width: 3; }
+.pb-ring__center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; pointer-events: none; }
+.pb-ring__center b { font-size: 26px; }
+.pb-ring__sub { font-size: 12px; color: var(--pb-text-2); }
+
+/* neumáticos */
+.pb-tyres { height: 100%; padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+.pb-tyres__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; min-height: 0; }
+.pb-tyre { background: #0f141c; border: 1px solid var(--pb-line); border-radius: 6px; padding: 4px 8px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.pb-tyre b { font-size: 20px; line-height: 1.1; }
+.pb-tyre__sub { font-size: 11px; color: var(--pb-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-tyres__age { font-size: 11px; color: var(--pb-text-2); }
+
+/* ajustes y pedales */
+.pb-settings { display: flex; gap: 6px; flex: none; }
+.pb-setting { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 44px; }
+.pb-setting b { font-size: 20px; line-height: 1; }
+.pb-trace { flex: 1; min-height: 0; position: relative; padding: 0; overflow: hidden; }
+.pb-trace svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pb-trace__lbl { position: absolute; left: 8px; top: 4px; z-index: 1; }
+.pb-trace__t, .pb-trace__b { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.pb-trace__t { stroke: var(--pb-good); } .pb-trace__b { stroke: var(--pb-bad); }
+
+/* los widgets del tema libre traen anchos fijos: en el pitboard se ajustan a su celda */
+.pb-root .race-standings-widget,
+.pb-root .relative-widget,
+.pb-root .pca,
+.pb-root .fuel-widget,
+.pb-root .yfw {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+.pb-root .race-standings-widget { height: 100%; }
+
+/* los widgets densos se reducen un poco para caber en 1280×800 */
+.pb-root .fuel-widget,
+.pb-root .pca,
+.pb-root .relative-widget { zoom: 0.86; }

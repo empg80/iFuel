@@ -1,3 +1,4 @@
+import type { CarData, PedalTrace, CompactCar } from "./types/car";
 import { planRefuel } from "./utils/refuelPlan";
 import { getSafetyLaps, useSafetyLaps } from "./utils/safetyMargin";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
@@ -67,6 +68,9 @@ type CameraDriverPayload = {
 } | null;
 
 type RawMessage = {
+  carData?: CarData | null;
+  trace?: PedalTrace | null;
+  cars?: CompactCar[];
   fuelLevel: number;
   lap: number;
   lapCompleted: number;
@@ -129,6 +133,11 @@ type LapSample = {
 };
 
 export type IfuelState = {
+  carData?: CarData | null;
+  trace?: PedalTrace | null;
+  cars?: CompactCar[];
+  lapDistPct?: number | null;
+  onPitRoad?: boolean;
   fuel: number;
   fuelMax: number | null;
   fuelCapacity: number | null;
@@ -297,6 +306,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             standings: standingsRaw,
             cameraCarNumber: rawCameraCarNumber,
             playerCarNumber: rawPlayerCarNumber,
+            carData,
+            trace,
+            cars,
             cameraDriver,
             trackName,
             trackLength,
@@ -661,6 +673,11 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             standings,
             cameraCarNumber,
             playerCarNumber,
+            carData: carData ?? null,
+            trace: trace ?? null,
+            cars: cars ?? [],
+            lapDistPct: typeof lapDistPct === "number" ? lapDistPct : null,
+            onPitRoad: !!onPitRoad,
             isReplayPlaying: !!isReplayPlaying,
             cameraDriver: cameraDriver ?? null,
             // Track info

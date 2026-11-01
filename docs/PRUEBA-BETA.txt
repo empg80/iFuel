@@ -56,6 +56,16 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.21
+---------------
+- PITBOARD NUEVO (monitor secundario, pensado para 1280x800): cabecera con posición, tiempo/vueltas, última, mejor,
+  delta y sectores S1-S3; clasificación por clase; circuito en anillo con todos los coches; relativo; combustible;
+  Pit Clear Air; neumáticos; BIAS/TC/ABS y gráfica de acelerador y freno (últimos 8 s).
+- Neumáticos: iRacing solo actualiza desgaste y temperatura al pasar por boxes y no da la presión en caliente.
+  El panel muestra la última lectura y cuántas vueltas hace que se midió.
+- Qué mirar: ¿S1/S2/S3 coinciden con los de iRacing? ¿el delta y los ajustes (BIAS/TC/ABS) aparecen en tu coche?
+  ¿el desgaste de neumáticos está en % coherente (100 = nuevos)? ¿se ve fluida la gráfica de pedales?
+
 NOVEDAD BETA.20
 ---------------
 - El plan respeta tu margen de seguridad: antes toleraba hasta 1 vuelta de déficit con cualquier margen y, con 0,5 vueltas,

@@ -162,6 +162,7 @@ export function createCarTracker() {
         compound: num(vars.PlayerTireCompound),
         tyres: tyres ? { ...tyres, measuredLap: tyresLap, lapsAgo: tyresLap != null ? Math.max(0, lap - tyresLap) : null } : null,
         sectors,
+        sectorStarts: sectorStarts ?? [],
       };
     },
   };

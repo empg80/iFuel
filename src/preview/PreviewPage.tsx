@@ -14,6 +14,8 @@ import { RaceStandingsWidgetContainer } from "../components/RaceStandingsWidgetC
 import { ReplayTowerWidget } from "../components/ReplayTowerWidget";
 import { DriverFocusWidget } from "../components/DriverFocusWidget";
 import { TrackInfoWidget } from "../components/TrackInfoWidget";
+import { PitboardLayout } from "../PitboardLayout";
+import type { IfuelState } from "../useIfuelWebSocket";
 
 const hist = (base: number, n: number) =>
   Array.from({ length: n }, (_, i) => ({
@@ -127,6 +129,37 @@ const at = (style: React.CSSProperties, child: React.ReactNode) => (
 );
 
 function Scene({ scene }: { scene: string }) {
+  if (scene === "pitboard") {
+    const wave = (n: number, f: (i: number) => number) => Array.from({ length: n }, (_, i) => Math.max(0, Math.min(100, Math.round(f(i)))));
+    const state = {
+      fuel: 18.4, fuelMax: 46, fuelCapacity: 46, lapNumber: 12, lapTime: 107.52, fuelLast: 2.78, fuelAvg: 2.78, fuelAvg2: 2.8, fuelAvg5: 2.78, fuelAvg10: 2.77,
+      estLaps: 6.6, estRefuel: 27.5, fuelTime: "11:50", sessionLapsRemainEx: 16, sessionTimeRemain: 1800, airTemp: 24, trackTemp: 31,
+      earliestPitLap: 16, totalStops: 1, stintLaps: [16, 12], lapHistoryLast5: hist(2.78, 5), lapHistoryLast30: hist(2.78, 12),
+      relativeAhead: ahead, relativeBehind: behind, relativeMyPosition: 4, myBestLapTime: 106.91,
+      onTrackAhead: onAhead, onTrackBehind: onBehind, classColorIndexById: classColors, classNames,
+      fuelPlan: { perLap: 2.78, perLapSource: "laps", status: "window", stops: 1, stintLaps: [16, 12], litersToAdd: 27.5, litersNextStop: 27.5, windowStartLap: 14, windowEndLap: 18, remainingLaps: 28 },
+      pitClearAir: { suggestedLap: 16, nowScore: 0, nextPitLap: 16, pitLossSeconds: 45, pitLossMeasured: true, windowStatus: "window", litersNeeded: 27.5, options: [{ lap: 15, trafficScore: 2 }, { lap: 16, trafficScore: 0 }, { lap: 17, trafficScore: 1 }] },
+      standings: rows, playerCarNumber: "14", isReplayPlaying: false, lapDistPct: 0.72, onPitRoad: false,
+      cars: [["7", 0.12, 60, 3, 4011, 0], ["8", 0.31, 60, 3, 4011, 0], ["33", 0.55, 60, 3, 4011, 0], ["62", 0.81, 55, 3, 2523, 0], ["19", 0.93, 55, 3, 2523, 0], ["91", 0.66, 60, 3, 4011, 0]],
+      carData: {
+        delta: -0.18, brakeBias: 54.5, tc1: 4, tc2: 2, abs: 3, compound: 0, sectorStarts: [0, 0.33, 0.66],
+        sectors: [{ time: 34.12, fresh: true, status: "best" }, { time: 41.8, fresh: true, status: "slower" }, { time: 31.6, fresh: false, status: "slower" }],
+        tyres: {
+          wear: { lf: [91, 93, 95], rf: [84, 88, 92], lr: [90, 92, 94], rr: [86, 89, 93] },
+          temp: { lf: [88, 92, 90], rf: [95, 99, 96], lr: [86, 90, 88], rr: [91, 94, 92] },
+          coldPressure: { lf: 165, rf: 165, lr: 158, rr: 158 }, measuredLap: 0, lapsAgo: 12,
+        },
+      },
+      trace: { hz: 20, throttle: wave(160, (i) => 55 + 45 * Math.sin(i / 7)), brake: wave(160, (i) => Math.max(0, 90 * Math.sin(i / 7 + 3.4))) },
+      trackName: "Monza", trackLength: "5.79 km", windSpeed: 3, windDirection: "N", rainChance: 0,
+    } as unknown as IfuelState;
+    return (
+      <div className="app-root app-root--pitboard" style={{ position: "absolute", inset: 0 }}>
+        <PitboardLayout state={state} raceStandingsRows={rows} isConnected={true} sendMessage={() => {}} />
+      </div>
+    );
+  }
+
   if (scene === "standings") {
     const cls = [4011, 4029, 2523];
     const names = { 4011: "GTP", 4029: "LMP2", 2523: "GT3" };
