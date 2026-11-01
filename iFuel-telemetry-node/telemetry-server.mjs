@@ -15,6 +15,7 @@ import {
   resetPitAndStintState,
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
+import { buildPitPasses } from "./pitPasses.mjs";
 import { computeFuelPlan } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
@@ -215,6 +216,8 @@ function startTelemetryLoop(
   const trackCarSpeeds = createCarSpeedTracker();
 
   let lastSessionKey = null;
+  const paceLaps = []; // últimas vueltas limpias (s) para el ritmo de referencia
+  let paceLastLap = null;
   let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
   let sessionCache = { version: -1, data: null };
@@ -325,6 +328,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
         pitLossTracker.reset();
         fuelModel.reset();
         timeWasRunning = false; timeExpired = false;
+        paceLaps.length = 0; paceLastLap = null;
         yellowTracker.reset();
         // Otro coche/sesión: variables específicas del coche pueden cambiar de índice
         if (typeof sdk.resetTelemetryVariableCache === "function") sdk.resetTelemetryVariableCache();
@@ -604,7 +608,18 @@ if (driverIdx >= 0 && carIdxLapDistPct.length > 0) {
 
       // ---------- baseLapTime con fallback (no esperar vuelta completa) ----------
 
+      // Ritmo de referencia: mediana de las últimas vueltas limpias. La última vuelta puede ser una vuelta de boxes
+      // (+30 s) o de bandera amarilla y descuadra los cálculos de "vueltas que quedan" y de tráfico.
+      if (!telemetry.IsReplayPlaying?.value?.[0] && myLap !== paceLastLap) {
+        paceLastLap = myLap;
+        if (myLastLap > 0 && (!(myBestLap > 0) || myLastLap <= myBestLap * 1.06)) {
+          paceLaps.push(myLastLap);
+          if (paceLaps.length > 5) paceLaps.shift();
+        }
+      }
+      const pace = paceLaps.length > 0 ? [...paceLaps].sort((a, b) => a - b)[Math.floor((paceLaps.length - 1) / 2)] : 0;
       let baseLapTime =
+        pace > 0 ? pace :
         myLastLap > 0 ? myLastLap :
         myBestLap > 0 ? myBestLap : 0;
 
@@ -952,6 +967,12 @@ standings.sort((a, b) => a.position - b.position);
           pitPct: Number.isFinite(pitPct) ? pitPct : null,
           safetyLaps: pitStrategyParams.safetyLaps,
           lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime, timeExpired,
+          leader: (() => {
+            if (!leaderEntry || leaderEntry.idx === driverIdx) return null;
+            const lc = cars.find((c) => c.idx === leaderEntry.idx);
+            const lt = carIdxBestLapTime[leaderEntry.idx] > 0 ? carIdxBestLapTime[leaderEntry.idx] : carIdxLastLapTime[leaderEntry.idx];
+            return lc && Number.isFinite(lc.pct) && lc.pct >= 0 && lt > 0 ? { pct: lc.pct, lapTime: lt } : null;
+          })(),
         })
       : null;
     const windowInfo = plan?.window ?? null;
@@ -971,12 +992,10 @@ standings.sort((a, b) => a.position - b.position);
 
     if (windowInfo && windowInfo.passes.length > 0 && (windowInfo.status === "window" || windowInfo.status === "extra-stop" || windowInfo.status === "critical")) {
       const remaining = plan?.remainingLaps ?? 0;
-      const passes = windowInfo.passes.map((p) => {
-        // litros que habría que añadir en ese paso: lo que falta para meta, con el tope del depósito
-        const fuelAtPit = Math.max(0, fuelLevel - p.lapsToPit * fpl);
-        const need = (remaining - p.lapsToPit + pitStrategyParams.safetyLaps) * fpl - fuelAtPit;
-        const liters = Math.max(0, Math.min(need, fuelMax - fuelAtPit));
-        return { ...p, liters, lossSeconds: pitLossTracker.lossFor(liters) ?? pitStrategyParams.pitDeltaSeconds };
+      const passes = buildPitPasses({
+        passes: windowInfo.passes, status: windowInfo.status, fuelLevel, fuelPerLap: fpl, fuelCapacity: fuelMax,
+        remaining, safetyLaps: pitStrategyParams.safetyLaps,
+        lossFor: (liters) => pitLossTracker.lossFor(liters) ?? pitStrategyParams.pitDeltaSeconds,
       });
       pitClearAir = computePitClearAirSuggestion({
         myLap, myPct, cars, myIdx: driverIdx, baseLapTime,
@@ -985,9 +1004,11 @@ standings.sort((a, b) => a.position - b.position);
         pitDeltaSeconds: pitLossSeconds,
       });
       pitClearAir.windowStatus = windowInfo.status;
-      pitClearAir.windowStartLap = windowInfo.startLap;
-      pitClearAir.windowEndLap = windowInfo.endLap;
-      pitClearAir.litersNeeded = windowInfo.litersNeeded;
+      pitClearAir.windowStartLap = passes[0].lap;
+      pitClearAir.windowEndLap = passes.at(-1).lap;
+      pitClearAir.litersNeeded = passes[0].liters; // lo que se repostaría en la primera parada válida
+      // consumo aún poco fiable: medido sobre menos de una vuelta
+      pitClearAir.fuelEstimateLow = fplSource === "measured" && fuelModel.lapsMeasured < 1;
       pitClearAir.pitLossSeconds = pitLossSeconds;
       pitClearAir.pitLossMeasured = measuredPitLoss != null;
     } else if (windowInfo && windowInfo.status === "no-stop") {

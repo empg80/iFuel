@@ -70,3 +70,23 @@ test("lapsToRun: con el reloj agotado solo queda cruzar la meta, aunque el reloj
   const r = lapsToRun({ lapsRemain: 32767, timeRemain: 311, lapTime: 237, myPct: 0.73, timeExpired: true });
   assert.ok(Math.abs(r - 0.27) < 1e-9);
 });
+
+test("carrera por tiempo agotada: si el líder cruza la meta después de ti, te queda una vuelta más", () => {
+  // Monza: reloj a 0 con 0,913 de vuelta; el líder va en 0,30 (pasa por meta después de mí) -> 0,087 + 1
+  const behind = lapsToRun({ lapsRemain: 32767, timeRemain: 0, lapTime: 108, myPct: 0.913, timeExpired: true, leader: { pct: 0.3, lapTime: 107 } });
+  assert.ok(Math.abs(behind - 1.087) < 1e-9);
+  // Le Mans: el líder ya está por delante de mí en la vuelta (pasa antes): termino en mi primer paso por meta
+  const ahead = lapsToRun({ lapsRemain: 32767, timeRemain: 0, lapTime: 200, myPct: 0.57, timeExpired: true, leader: { pct: 0.9, lapTime: 199 } });
+  assert.ok(Math.abs(ahead - 0.43) < 1e-9);
+  // Sin datos del líder (o si soy el líder) no se añade nada
+  assert.ok(Math.abs(lapsToRun({ lapsRemain: 32767, timeRemain: 0, lapTime: 108, myPct: 0.913, timeExpired: true }) - 0.087) < 1e-9);
+});
+
+test("carrera por tiempo en curso: el final cuenta la vuelta extra si el líder cruza la meta después de ti", () => {
+  // 300 s por delante, vuelta de 100 s, estoy en 0,5; el líder en 0,2. Mis pasos por meta: 50, 150, 250, 350 -> primero >=300 es 350
+  // (0,5 + 3 = 3,5 vueltas); el líder cruza en 80, 180, 280, 380 -> primero >=300 es 380, DESPUÉS de mí: +1 vuelta
+  const r = lapsToRun({ lapsRemain: 32767, timeRemain: 300, lapTime: 100, myPct: 0.5, leader: { pct: 0.2, lapTime: 100 } });
+  assert.ok(Math.abs(r - 4.5) < 1e-9);
+  const noLeader = lapsToRun({ lapsRemain: 32767, timeRemain: 300, lapTime: 100, myPct: 0.5 });
+  assert.ok(Math.abs(noLeader - 3.5) < 1e-9);
+});

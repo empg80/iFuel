@@ -13,15 +13,37 @@ const LAP_MODE_MAX = 1000; // SessionLapsRemainEx = 32767 significa "sin límite
  * por línea que quedan hasta que el reloj se agota.
  * @returns {number|null}
  */
-export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired }) {
+/**
+ * Vueltas hasta mi primera línea de meta después de agotarse el reloj, más una vuelta si el líder cruza la línea
+ * DESPUÉS de mí (él recibe la bandera a cuadros y yo todavía tengo que dar otra vuelta).
+ * `leader` = {pct, lapTime} del líder si no soy yo.
+ */
+function timedLaps({ T, pct, lapTime, leader }) {
+  const toLine = (1 - pct) * lapTime;
+  const k = T <= toLine ? 0 : Math.ceil((T - toLine) / lapTime);
+  const mine = (1 - pct) + k;
+  if (!leader || !(leader.lapTime > 0) || !Number.isFinite(leader.pct)) return mine;
+  const tMine = toLine + k * lapTime;
+  const toLineL = (1 - leader.pct) * leader.lapTime;
+  const kL = T <= toLineL ? 0 : Math.ceil((T - toLineL) / leader.lapTime);
+  const tLeader = toLineL + kL * leader.lapTime;
+  return mine + (tMine < tLeader - 0.01 ? 1 : 0);
+}
+
+/**
+ * Vueltas que te quedan por rodar desde donde estás (con la fracción de la vuelta en curso).
+ * Carrera por vueltas: SessionLapsRemainEx cuenta la vuelta en curso entera.
+ * Carrera por tiempo: al agotarse el reloj termina el líder en su siguiente paso por meta; tú terminas en tu primer paso
+ * por meta posterior al suyo (ver timedLaps).
+ * @returns {number|null}
+ */
+export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader }) {
   const pct = Number.isFinite(myPct) ? Math.min(Math.max(myPct, 0), 0.999) : 0;
   if (Number.isFinite(lapsRemain) && lapsRemain > 0 && lapsRemain < LAP_MODE_MAX) return lapsRemain - pct;
-  // El reloj ya llegó a 0: iRacing puede volver a poner un valor raro, pero solo queda llegar a la meta
-  if (timeExpired && !(lapsRemain > 0 && lapsRemain < LAP_MODE_MAX)) return 1 - pct;
+  // El reloj ya llegó a 0: iRacing puede volver a poner un valor raro, pero el final se calcula con T = 0
+  if (timeExpired && lapTime > 0) return timedLaps({ T: 0, pct, lapTime, leader });
   if (Number.isFinite(timeRemain) && timeRemain > 0 && timeRemain < 86400 * 3 && lapTime > 0) {
-    const toLine = (1 - pct) * lapTime; // tiempo hasta cruzar la meta de esta vuelta
-    if (timeRemain <= toLine) return 1 - pct; // el reloj se agota antes de la línea: terminas ahí
-    return (1 - pct) + Math.ceil((timeRemain - toLine) / lapTime);
+    return timedLaps({ T: timeRemain, pct, lapTime, leader });
   }
   return null;
 }
@@ -31,11 +53,11 @@ export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired 
  *   status:string, stops:number|null, stintLaps:number[], window:ReturnType<typeof computePitWindow>|null}}
  */
 export function computeFuelPlan(i) {
-  const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime, timeExpired } = i;
+  const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime, timeExpired, leader } = i;
   const empty = { perLap: fuelPerLap ?? null, litersToAdd: null, status: "unknown", stops: null, stintLaps: [], window: null, remainingLaps: null };
   if (!(fuelPerLap > 0) || !(fuelCapacity > 0)) return empty;
 
-  const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired });
+  const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader });
   if (remaining == null) return empty;
 
   const pct = Number.isFinite(myPct) ? myPct : 0;

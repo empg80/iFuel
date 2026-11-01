@@ -152,3 +152,10 @@ El token de GitHub compartido en la conversación debe revocarse cuando termine 
 ## beta.18
 - M3 (standings por clase) hecho: separadores de clase con color, POS y CLS; falta validar con una sesión multiclase real.
 - Debris con memoria del punto de incidente y límite de 3 km; Pit Clear Air sin desbordes; vueltas de qualy en grande.
+
+
+## Resultado de la prueba beta.18 (entregado en beta.19)
+- Hungaroring (Porsche Cup, 15 vueltas, sin parada) correcto. Monza (BMW M8 GTE, carrera por tiempo): parada vuelta 15->16 (+24,9 L, plan 24,5 L).
+- Fallo: ritmo de referencia = última vuelta (138,9 s con boxes vs ~110 s reales) -> ~2 vueltas de menos; corregido con mediana de vueltas limpias.
+- Fallo: al agotarse el reloj faltaba la vuelta extra si el líder cruza después; corregido (`timedLaps`).
+- Pit clear air: pasos filtrados por hueco en el depósito (`pitPasses.mjs`).

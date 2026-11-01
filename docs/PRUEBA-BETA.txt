@@ -56,6 +56,18 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.19
+---------------
+- ARREGLADO (carreras por tiempo): el plan calculaba las vueltas que quedan con el tiempo de TU ÚLTIMA vuelta. Si esa vuelta
+  incluía boxes (+30 s) salían ~2 vueltas de menos y se te pasaba el aviso de parada/ahorro (en Monza acabaste con 0,02 L).
+  Ahora el ritmo es la mediana de tus últimas vueltas limpias.
+- ARREGLADO: al agotarse el reloj, el plan cuenta también la vuelta extra cuando el líder cruza la meta después que tú
+  (iRacing: el líder termina en su siguiente paso por meta y tú en el tuyo posterior).
+- PIT CLEAR AIR: solo propone paradas en las que los litros a repostar CABEN en el depósito (hueco libre al llegar a boxes);
+  la ventana y los litros salen de esos pasos. Si el consumo solo está medido con menos de una vuelta, el widget lo indica
+  ("Estimating fuel use…").
+  QUÉ MIRAR: en una carrera por tiempo con una parada, que los litros del plan y las vueltas restantes cuadren con la realidad.
+
 NOVEDAD BETA.18
 ---------------
 - STANDINGS por categorías: un separador con el color y el nombre de cada clase (GTP, LMP2, GT3...) y debajo sus coches.

@@ -118,6 +118,7 @@ export const PitClearAirWidget = ({
     }
   }
 
+  if (data?.fuelEstimateLow && footLeft) footLeft = "Estimating fuel use…";
   const showLaps = laps.length > 0;
 
   return (

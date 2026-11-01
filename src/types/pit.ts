@@ -28,5 +28,7 @@ export type PitClearAirData = {
   windowStartLap?: number | null;
   windowEndLap?: number | null;
   litersNeeded?: number | null;
+  /** Consumo medido sobre menos de una vuelta: la estrategia aún es una estimación */
+  fuelEstimateLow?: boolean;
   nextPitLap?: number;
 } | null;
