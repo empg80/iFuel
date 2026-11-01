@@ -90,3 +90,11 @@ test("carrera por tiempo en curso: el final cuenta la vuelta extra si el líder 
   const noLeader = lapsToRun({ lapsRemain: 32767, timeRemain: 300, lapTime: 100, myPct: 0.5 });
   assert.ok(Math.abs(noLeader - 3.5) < 1e-9);
 });
+
+test("la tolerancia de margen corto depende del margen elegido (mitad del margen)", () => {
+  const base = { fuelPerLap: 2.9, fuelCapacity: 46, myLap: 25, myPct: 0.64, pitPct: 0.98, timeRemain: -1, lapTime: 237, lapsRemain: 2 };
+  // 1,36 vueltas por rodar. Con margen 1: faltan 0,16 vueltas para el margen entero -> tolerado (< 0,5)
+  assert.equal(computeFuelPlan({ ...base, safetyLaps: 1, fuelLevel: 6.4 }).status, "no-stop");
+  // Con margen 0,5 y 4,6 L (1,59 vueltas): el margen pide 1,86 vueltas, faltan 0,27 > 0,25 -> ya no se tolera
+  assert.notEqual(computeFuelPlan({ ...base, safetyLaps: 0.5, fuelLevel: 4.6 }).status, "no-stop");
+});

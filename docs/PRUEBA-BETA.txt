@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.20
+---------------
+- El plan respeta tu margen de seguridad: antes toleraba hasta 1 vuelta de déficit con cualquier margen y, con 0,5 vueltas,
+  podía decir "sin parada" con la reserva ya a cero (Monza). Ahora tolera como mucho la mitad del margen que hayas elegido.
+  Recomendado: margen de 1 vuelta en carreras por tiempo con pista cambiante.
+
 NOVEDAD BETA.19
 ---------------
 - ARREGLADO (carreras por tiempo): el plan calculaba las vueltas que quedan con el tiempo de TU ÚLTIMA vuelta. Si esa vuelta
