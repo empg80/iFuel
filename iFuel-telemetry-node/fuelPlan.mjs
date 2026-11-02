@@ -92,3 +92,18 @@ export function computeFuelPlan(i) {
 
   return { perLap: fuelPerLap, litersToAdd, status: window.status, stops, stintLaps, window, remainingLaps: remaining };
 }
+
+/**
+ * Reloj de sesión agotado ("solo queda cruzar la meta"). El reloj también cuenta hacia atrás ANTES
+ * de la salida (cuenta atrás de parrilla): ese 0 no es el final. Solo cuenta cuando la sesión está
+ * en marcha (SessionState >= 4: 4 en carrera, 5 bandera a cuadros, 6 enfriamiento); antes de eso
+ * se reinicia. `sessionState` null = desconocido (se asume en marcha).
+ * @returns {{timeWasRunning:boolean,timeExpired:boolean}}
+ */
+export function updateTimeLatch({ timeWasRunning, timeExpired }, { timeRemain, sessionState = null, replay = false }) {
+  if (replay) return { timeWasRunning, timeExpired };
+  if (sessionState != null && sessionState < 4) return { timeWasRunning: false, timeExpired: false };
+  if (timeRemain > 1) return { timeWasRunning: true, timeExpired };
+  if (timeWasRunning && timeRemain >= 0 && timeRemain <= 1) return { timeWasRunning, timeExpired: true };
+  return { timeWasRunning, timeExpired };
+}

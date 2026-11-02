@@ -98,3 +98,31 @@ test("la tolerancia de margen corto depende del margen elegido (mitad del margen
   // Con margen 0,5 y 4,6 L (1,59 vueltas): el margen pide 1,86 vueltas, faltan 0,27 > 0,25 -> ya no se tolera
   assert.notEqual(computeFuelPlan({ ...base, safetyLaps: 0.5, fuelLevel: 4.6 }).status, "no-stop");
 });
+
+import { updateTimeLatch } from "../fuelPlan.mjs";
+test("la cuenta atrás de parrilla no cuenta como fin de carrera (Le Mans, beta.23)", () => {
+  let s = { timeWasRunning: false, timeExpired: false };
+  // cuenta atrás previa a la salida: SessionState 3 (parade/gridding), T llega a 0
+  for (const T of [118, 50, 12, 0.5, -1]) s = updateTimeLatch(s, { timeRemain: T, sessionState: 3 });
+  assert.equal(s.timeExpired, false);
+  // arranca la carrera
+  s = updateTimeLatch(s, { timeRemain: 2697, sessionState: 4 });
+  assert.equal(s.timeExpired, false);
+  assert.equal(s.timeWasRunning, true);
+  // llega a 0 en carrera: ahora sí
+  s = updateTimeLatch(s, { timeRemain: 0.4, sessionState: 4 });
+  assert.equal(s.timeExpired, true);
+  // valores raros tras el 0 no lo desactivan
+  s = updateTimeLatch(s, { timeRemain: 311, sessionState: 5 });
+  assert.equal(s.timeExpired, true);
+});
+test("sin SessionState (desconocido) conserva el comportamiento anterior", () => {
+  let s = { timeWasRunning: false, timeExpired: false };
+  s = updateTimeLatch(s, { timeRemain: 100 });
+  s = updateTimeLatch(s, { timeRemain: 0.2 });
+  assert.equal(s.timeExpired, true);
+});
+test("en replay no cambia nada", () => {
+  const s0 = { timeWasRunning: true, timeExpired: false };
+  assert.deepEqual(updateTimeLatch(s0, { timeRemain: 0, sessionState: 4, replay: true }), s0);
+});

@@ -2,7 +2,7 @@
 import clsx from "clsx";
 import type { RaceStandingsWidgetProps } from "../types/standings";
 import { formatLapTimeSeconds } from "../utils/relativeFormat";
-import { groupStandings } from "../utils/standingsFilter";
+import { fitStandings } from "../utils/standingsFilter";
 
 function formatPit(sec: number | null): string {
   if (sec == null) return "--.-";
@@ -15,9 +15,10 @@ export function RaceStandingsWidget({
   classColorIndexById,
   classNames,
   clock,
+  maxRows,
 }: RaceStandingsWidgetProps) {
   // Top 10 de cada clase + 3 por delante y 3 por detrás de ti si no estás entre ellos
-  const groups = groupStandings(rows, myCarNumber);
+  const groups = fitStandings(rows, myCarNumber, maxRows);
   const multi = groups.length > 1;
 
   return (

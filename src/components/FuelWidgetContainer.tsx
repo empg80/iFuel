@@ -285,11 +285,8 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
           <div className="label">Esperando datos de iRacing...</div>
         </div>
       ) : (
-        isPitboard ? (
-          <FuelWidget {...fuelWidgetProps} />
-        ) : (
-          <FuelWidgetOverlay {...fuelWidgetProps} detail={fuelDetail} />
-        )
+        // En el pitboard siempre la versión compacta: el espacio es fijo y lo demás ya está en otros paneles
+        <FuelWidgetOverlay {...fuelWidgetProps} detail={isPitboard ? "compact" : fuelDetail} />
       )}
 
       <div

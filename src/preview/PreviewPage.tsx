@@ -131,15 +131,20 @@ const at = (style: React.CSSProperties, child: React.ReactNode) => (
 function Scene({ scene }: { scene: string }) {
   if (scene === "pitboard") {
     const wave = (n: number, f: (i: number) => number) => Array.from({ length: n }, (_, i) => Math.max(0, Math.min(100, Math.round(f(i)))));
+    const names47 = ["Alonso Pérez", "Marcus Eriksen-Larsen", "Jean-Baptiste Dubois", "Kimi Tanaka", "Pablo Ruiz", "Liam O Connor", "Sergio Hernández"];
+    const big: StandingsRow[] = Array.from({ length: 47 }, (_, i) => ({
+      position: i + 1, carNumber: String(i === 32 ? 8 : i + 20), classId: i % 3 === 0 ? 4029 : 4011, driverName: names47[i % names47.length] + " " + (i + 1),
+      bestLapTime: 232 + i * 0.4, gapToLeader: null, lapsDown: 0, stintLapCount: 5, lastPitDurationSeconds: null, pitStops: 0, inPit: false, carModel: "GTP",
+    }));
     const state = {
-      fuel: 18.4, fuelMax: 46, fuelCapacity: 46, lapNumber: 12, lapTime: 107.52, fuelLast: 2.78, fuelAvg: 2.78, fuelAvg2: 2.8, fuelAvg5: 2.78, fuelAvg10: 2.77,
+      fuel: 18.4, fuelMax: 52, fuelCapacity: 52, lapNumber: 12, lapTime: 107.52, fuelLast: 2.78, fuelAvg: 2.78, fuelAvg2: 2.8, fuelAvg5: 2.78, fuelAvg10: 2.77,
       estLaps: 6.6, estRefuel: 27.5, fuelTime: "11:50", sessionLapsRemainEx: 16, sessionTimeRemain: 1800, airTemp: 24, trackTemp: 31,
       earliestPitLap: 16, totalStops: 1, stintLaps: [16, 12], lapHistoryLast5: hist(2.78, 5), lapHistoryLast30: hist(2.78, 12),
       relativeAhead: ahead, relativeBehind: behind, relativeMyPosition: 4, myBestLapTime: 106.91,
-      onTrackAhead: onAhead, onTrackBehind: onBehind, classColorIndexById: classColors, classNames,
+      onTrackAhead: onAhead, onTrackBehind: onBehind, classColorIndexById: { 4011: 0, 4029: 1 }, classNames: { 4011: "GTP", 4029: "LMP2" },
       fuelPlan: { perLap: 2.78, perLapSource: "laps", status: "window", stops: 1, stintLaps: [16, 12], litersToAdd: 27.5, litersNextStop: 27.5, windowStartLap: 14, windowEndLap: 18, remainingLaps: 28 },
       pitClearAir: { suggestedLap: 16, nowScore: 0, nextPitLap: 16, pitLossSeconds: 45, pitLossMeasured: true, windowStatus: "window", litersNeeded: 27.5, options: [{ lap: 15, trafficScore: 2 }, { lap: 16, trafficScore: 0 }, { lap: 17, trafficScore: 1 }] },
-      standings: rows, playerCarNumber: "14", isReplayPlaying: false, lapDistPct: 0.72, onPitRoad: false,
+      standings: big, playerCarNumber: "8", isReplayPlaying: false, lapDistPct: 0.72, onPitRoad: false,
       cars: [["7", 0.12, 60, 3, 4011, 0], ["8", 0.31, 60, 3, 4011, 0], ["33", 0.55, 60, 3, 4011, 0], ["62", 0.81, 55, 3, 2523, 0], ["19", 0.93, 55, 3, 2523, 0], ["91", 0.66, 60, 3, 4011, 0]],
       carData: {
         delta: -0.18, brakeBias: 54.5, tc1: 4, tc2: 2, abs: 3, compound: 0, sectorStarts: [0, 0.33, 0.66],
@@ -155,7 +160,7 @@ function Scene({ scene }: { scene: string }) {
     } as unknown as IfuelState;
     return (
       <div className="app-root app-root--pitboard" style={{ position: "absolute", inset: 0 }}>
-        <PitboardLayout state={state} raceStandingsRows={rows} isConnected={true} sendMessage={() => {}} />
+        <PitboardLayout state={state} raceStandingsRows={big} isConnected={true} sendMessage={() => {}} />
       </div>
     );
   }

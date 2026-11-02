@@ -113,3 +113,33 @@ export function groupStandings<T extends FilterableRow>(
     return { classId, total: list.length, items };
   });
 }
+
+/** Filas que ocupa una tabla agrupada: una cabecera por clase (si hay varias) más sus filas y huecos. */
+export function groupedRowCount<T extends FilterableRow>(groups: ClassGroup<T>[]): number {
+  const headers = groups.length > 1 ? groups.length : 0;
+  return headers + groups.reduce((n, g) => n + g.items.length, 0);
+}
+
+/**
+ * Como groupStandings, pero reduce cuántos coches se enseñan (10, 8, 6, 5, 4, 3, 2, 1 por clase y menos
+ * vecinos) hasta que la tabla cabe en `maxRows` filas. Tu coche siempre se mantiene.
+ */
+export function fitStandings<T extends FilterableRow>(
+  rows: T[],
+  myCarNumber: string | null | undefined,
+  maxRows: number | null | undefined,
+): ClassGroup<T>[] {
+  const full = groupStandings(rows, myCarNumber);
+  if (maxRows == null || !Number.isFinite(maxRows) || groupedRowCount(full) <= maxRows) return full;
+  const steps: { topPerClass: number; around: number }[] = [
+    { topPerClass: 8, around: 3 }, { topPerClass: 6, around: 2 }, { topPerClass: 5, around: 2 },
+    { topPerClass: 4, around: 2 }, { topPerClass: 3, around: 1 }, { topPerClass: 2, around: 1 },
+    { topPerClass: 1, around: 1 }, { topPerClass: 1, around: 0 },
+  ];
+  let best = full;
+  for (const opts of steps) {
+    best = groupStandings(rows, myCarNumber, opts);
+    if (groupedRowCount(best) <= maxRows) break;
+  }
+  return best;
+}

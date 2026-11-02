@@ -108,6 +108,5 @@
 .pb-root .race-standings-widget { height: 100%; }
 
 /* los widgets densos se reducen un poco para caber en 1280×800 */
-.pb-root .fuel-widget,
 .pb-root .pca,
 .pb-root .relative-widget { zoom: 0.86; }

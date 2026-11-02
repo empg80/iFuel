@@ -56,6 +56,14 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.24
+---------------
+- ARREGLADO (combustible sin plan en carreras por tiempo, p. ej. Le Mans): la cuenta atrás de la parrilla llegaba a 0 y
+  iFuel creía que la carrera había terminado ("solo queda cruzar la meta"): quedaban ~0,5 vueltas y nunca avisaba de paradas.
+  Ahora el fin de carrera solo cuenta con la sesión en marcha.
+- Pitboard: la clasificación se recorta a las filas que caben (siempre apareces tú, aunque vayas en la cola de la parrilla).
+  El combustible usa la versión compacta para no cortarse.
+
 NOVEDAD BETA.23
 ---------------
 - ARREGLADO (cierre de iFuel al abrir iRacing o unirte a una sesión, beta.21 y 22): iFuel pedía variables que tu coche no

@@ -16,7 +16,7 @@ import {
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { buildPitPasses } from "./pitPasses.mjs";
-import { computeFuelPlan } from "./fuelPlan.mjs";
+import { computeFuelPlan, updateTimeLatch } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
@@ -70,7 +70,7 @@ const TELEMETRY_VARS = [
   "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
-  "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
+  "SessionState", "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
   ...CAR_VARS,
 ];
 
@@ -975,10 +975,10 @@ standings.sort((a, b) => a.position - b.position);
       fuelLevel, lap: myLap, lapDistPct: myPct, onPitRoad: !!carIdxOnPitRoad[driverIdx],
       inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
     });
-    if (!telemetry.IsReplayPlaying?.value?.[0]) {
-      if (sessionTimeRemain > 1) timeWasRunning = true;
-      else if (timeWasRunning && sessionTimeRemain >= 0 && sessionTimeRemain <= 1) timeExpired = true;
-    }
+    ({ timeWasRunning, timeExpired } = updateTimeLatch(
+      { timeWasRunning, timeExpired },
+      { timeRemain: sessionTimeRemain, sessionState: telemetry.SessionState?.value?.[0] ?? null, replay: !!telemetry.IsReplayPlaying?.value?.[0] },
+    ));
     const fpl = pitStrategyParams.fuelPerLap ?? measuredFuelPerLap;
     const fplSource = pitStrategyParams.fuelPerLap != null ? "laps" : measuredFuelPerLap != null ? "measured" : null;
     const pitPct = Number(driverInfo.DriverPitTrkPct);

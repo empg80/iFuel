@@ -21,5 +21,7 @@ export type RaceStandingsWidgetProps = {
   myCarNumber: string;
   classColorIndexById: Record<number, number>;
   classNames?: Record<number, string>;
+  /** Máximo de filas que caben (pitboard): recorta coches para que la tabla no se corte */
+  maxRows?: number | null;
   clock?: { time: string; cap: string; extra?: string; low: boolean } | null;
 };

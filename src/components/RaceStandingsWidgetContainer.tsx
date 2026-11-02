@@ -32,6 +32,10 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
     loadWidgetPosition(POS_KEY_STANDINGS, { x: 440, y: 40 }),
   );
 
+  // Pitboard: la tabla se recorta a las filas que caben en su celda (así nunca se corta por abajo)
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [maxRows, setMaxRows] = useState<number | null>(null);
+
   const draggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -65,6 +69,18 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
+  }, [isPitboard]);
+
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!isPitboard || !el || typeof ResizeObserver === "undefined") return;
+    const ROW_H = 30; // fila de la tabla (incluye separaciones de clase y huecos)
+    const OVERHEAD = 120; // título, reloj y cabecera de columnas
+    const update = () => setMaxRows(Math.max(4, Math.floor((el.clientHeight - OVERHEAD) / ROW_H)));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [isPitboard]);
 
   const handleMouseDown = useCallback(
@@ -127,6 +143,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
             }
       }
       onMouseDown={handleMouseDown}
+      ref={boxRef}
     >
       <div
         style={
@@ -141,6 +158,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
           classColorIndexById={classColorIndexById}
           classNames={state?.classNames}
           clock={clock}
+          maxRows={isPitboard ? maxRows : null}
         />
 
         <div

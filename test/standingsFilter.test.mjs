@@ -64,3 +64,18 @@ test("groupStandings: mis vecinos solo en mi clase y con hueco", () => {
   const other = g.find((x) => x.classId === 2);
   assert.equal(other.items.length, 10);
 });
+
+import { fitStandings, groupedRowCount } from "../src/utils/standingsFilter.ts";
+test("fitStandings: 47 coches, 2 clases y yo en mitad de la clase caben en 22 filas y yo salgo", () => {
+  const rows = Array.from({ length: 47 }, (_, i) => ({ position: i + 1, carNumber: String(i + 1), classId: i % 2 ? 4029 : 4011 }));
+  const me = "31"; // detrás en la clase 4011
+  const groups = fitStandings(rows, me, 22);
+  assert.ok(groupedRowCount(groups) <= 22, `filas=${groupedRowCount(groups)}`);
+  const shown = groups.flatMap((g) => g.items).filter((x) => x.kind === "row").map((x) => x.row.carNumber);
+  assert.ok(shown.includes(me));
+});
+test("fitStandings sin límite o con espacio de sobra no recorta", () => {
+  const rows = Array.from({ length: 30 }, (_, i) => ({ position: i + 1, carNumber: String(i + 1), classId: 1 }));
+  assert.equal(groupedRowCount(fitStandings(rows, "5", null)), 10);
+  assert.equal(groupedRowCount(fitStandings(rows, "5", 40)), 10);
+});
