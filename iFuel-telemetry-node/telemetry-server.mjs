@@ -226,6 +226,7 @@ function startTelemetryLoop(
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
   let sessionCache = { version: -1, data: null };
   let noDataSince = null;
+  let lastDataAt = 0; // último tick con datos válidos del sim (el muestreador de pedales no lee sin él)
   let checkingSim = false;
   let lastErrorLogAt = 0;
 
@@ -251,6 +252,7 @@ function startTelemetryLoop(
       return;
     }
     noDataSince = null;
+    lastDataAt = Date.now();
 
     const telemetry = readTelemetry(sdk);
 
@@ -1151,6 +1153,8 @@ standings.sort((a, b) => a.position - b.position);
     const fast = setInterval(() => {
       if (timer._destroyed) return clearInterval(fast);
       if (wss.clients.size === 0) return;
+      // sin datos recientes (iRacing cargando una sesión, memoria compartida cambiando) no se toca el SDK
+      if (Date.now() - lastDataAt > 400) return;
       try {
         trace.push(sdk.getTelemetryVariable("ThrottleRaw")?.value?.[0], sdk.getTelemetryVariable("BrakeRaw")?.value?.[0]);
       } catch { /* ignorar un fallo puntual de lectura */ }
