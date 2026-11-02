@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.22
+---------------
+- ARREGLADO: al pulsar "Join session" en iRacing la beta.21 podía cerrarse. El muestreador de pedales leía el SDK
+  mientras iRacing recargaba su memoria compartida; ahora solo lee cuando hay datos válidos recientes.
+
 NOVEDAD BETA.21
 ---------------
 - PITBOARD NUEVO (monitor secundario, pensado para 1280x800): cabecera con posición, tiempo/vueltas, última, mejor,
