@@ -56,6 +56,10 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.25
+---------------
+- Pitboard: la clasificación ya no repite tiempo y vueltas (están en la cabecera) y gana espacio para más coches.
+
 NOVEDAD BETA.24
 ---------------
 - ARREGLADO (combustible sin plan en carreras por tiempo, p. ej. Le Mans): la cuenta atrás de la parrilla llegaba a 0 y

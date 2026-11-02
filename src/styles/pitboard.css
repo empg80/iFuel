@@ -110,3 +110,6 @@
 /* los widgets densos se reducen un poco para caber en 1280×800 */
 .pb-root .pca,
 .pb-root .relative-widget { zoom: 0.86; }
+
+/* la cabecera del pitboard ya da tiempo y vueltas: la clasificación gana ese espacio para más filas */
+.pb-root .race-standings__head { display: none; }

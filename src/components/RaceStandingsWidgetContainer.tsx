@@ -74,8 +74,8 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
   useEffect(() => {
     const el = boxRef.current;
     if (!isPitboard || !el || typeof ResizeObserver === "undefined") return;
-    const ROW_H = 30; // fila de la tabla (incluye separaciones de clase y huecos)
-    const OVERHEAD = 120; // título, reloj y cabecera de columnas
+    const ROW_H = 27; // fila de la tabla (incluye separaciones de clase y huecos)
+    const OVERHEAD = 56; // cabecera de columnas y márgenes (el reloj y las vueltas ya salen en la cabecera del pitboard)
     const update = () => setMaxRows(Math.max(4, Math.floor((el.clientHeight - OVERHEAD) / ROW_H)));
     update();
     const ro = new ResizeObserver(update);
@@ -157,7 +157,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
           myCarNumber={myCarNumber}
           classColorIndexById={classColorIndexById}
           classNames={state?.classNames}
-          clock={clock}
+          clock={isPitboard ? null : clock}
           maxRows={isPitboard ? maxRows : null}
         />
 
