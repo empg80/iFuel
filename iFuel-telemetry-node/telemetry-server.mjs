@@ -112,11 +112,25 @@ function openRecorder(file) {
   };
 }
 
+// Lectura SEGURA de una variable. En irsdk-node, pedir una variable que el coche actual no tiene
+// (p. ej. dcTractionControl2, LFwearL) cuelga un puntero nulo en el código nativo y cierra el
+// proceso de golpe: el envoltorio JS guarda el índice -1 en su caché porque solo trata `null` como
+// "no existe". Por eso se comprueba el índice antes y se lee por número, nunca por nombre.
+export function safeTelemetryVariable(sdk, name) {
+  const native = sdk?._sdk;
+  if (native && typeof native.getTelemetryVariableIndex === "function") {
+    const idx = native.getTelemetryVariableIndex(name);
+    if (typeof idx !== "number" || idx < 0) return null;
+    return sdk.getTelemetryVariable(idx);
+  }
+  return sdk.getTelemetryVariable(name); // SDK simulado (tests) o sin acceso al índice
+}
+
 function readTelemetry(sdk) {
   if (typeof sdk.getTelemetryVariable !== "function") return sdk.getTelemetry();
   const telemetry = {};
   for (const name of TELEMETRY_VARS) {
-    const variable = sdk.getTelemetryVariable(name);
+    const variable = safeTelemetryVariable(sdk, name);
     if (variable) telemetry[name] = variable;
   }
   return telemetry;
@@ -1156,7 +1170,7 @@ standings.sort((a, b) => a.position - b.position);
       // sin datos recientes (iRacing cargando una sesión, memoria compartida cambiando) no se toca el SDK
       if (Date.now() - lastDataAt > 400) return;
       try {
-        trace.push(sdk.getTelemetryVariable("ThrottleRaw")?.value?.[0], sdk.getTelemetryVariable("BrakeRaw")?.value?.[0]);
+        trace.push(safeTelemetryVariable(sdk, "ThrottleRaw")?.value?.[0], safeTelemetryVariable(sdk, "BrakeRaw")?.value?.[0]);
       } catch { /* ignorar un fallo puntual de lectura */ }
     }, Math.round(1000 / trace.hz));
     fast.unref?.();
@@ -1398,10 +1412,10 @@ if (origin && !allowedOrigins.has(origin)) {
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, `ifuel-sdk-snapshot-${timestamp()}.json`);
     const session = diag.session ?? {};
-    const sessionNum = diag.sdk?.getTelemetryVariable?.("SessionNum")?.value?.[0];
+    const sessionNum = (diag.sdk ? safeTelemetryVariable(diag.sdk, "SessionNum") : null)?.value?.[0];
     const telemetry = {};
     for (const name of SNAPSHOT_VARS) {
-      const variable = diag.sdk?.getTelemetryVariable?.(name);
+      const variable = diag.sdk ? safeTelemetryVariable(diag.sdk, name) : null;
       telemetry[name] = variable ? Array.from(variable.value ?? []).slice(0, 64) : null;
     }
     const snapshot = {

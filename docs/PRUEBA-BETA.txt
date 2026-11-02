@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.23
+---------------
+- ARREGLADO (cierre de iFuel al abrir iRacing o unirte a una sesión, beta.21 y 22): iFuel pedía variables que tu coche no
+  tiene (p. ej. un segundo control de tracción) y la librería de iRacing cerraba el programa de golpe sin dejar error.
+  Ahora comprueba que la variable existe antes de leerla.
+
 NOVEDAD BETA.22
 ---------------
 - ARREGLADO: al pulsar "Join session" en iRacing la beta.21 podía cerrarse. El muestreador de pedales leía el SDK
