@@ -15,12 +15,10 @@
 
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 0.9fr) minmax(0, 1.15fr) minmax(0, 0.9fr);
+  grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     "head      head  head"
-    "standings ring  relative"
-    "standings fuel  pit"
-    "standings tyres trace";
+    "standings mid   right";
   gap: 8px;
   padding: 10px;
   background: var(--pb-bg);
@@ -36,12 +34,13 @@
 .pb-root .pb-area-head { grid-area: head; }
 .pb-root .pb-area-flag { position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 5; width: 540px; max-width: 96%; }
 .pb-root .pb-area-standings { grid-area: standings; min-height: 0; overflow: hidden; }
-.pb-root .pb-area-ring { grid-area: ring; min-height: 0; }
-.pb-root .pb-area-relative { grid-area: relative; min-height: 0; overflow: hidden; }
-.pb-root .pb-area-fuel { grid-area: fuel; min-height: 0; overflow: hidden; }
-.pb-root .pb-area-pit { grid-area: pit; min-height: 0; overflow: hidden; }
-.pb-root .pb-area-tyres { grid-area: tyres; min-height: 0; }
-.pb-root .pb-area-trace { grid-area: trace; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+/* columnas centrales independientes: lo que tiene altura propia la conserva y el resto reparte el sobrante */
+.pb-root .pb-col { display: flex; flex-direction: column; gap: 8px; min-height: 0; min-width: 0; }
+.pb-root .pb-col--mid { grid-area: mid; }
+.pb-root .pb-col--right { grid-area: right; }
+.pb-root .pb-area-ring { flex: 1 1 0; min-height: 120px; }
+.pb-root .pb-area-fuel, .pb-root .pb-area-tyres, .pb-root .pb-area-relative, .pb-root .pb-area-pit { flex: none; }
+.pb-root .pb-area-trace { flex: 1 1 0; min-height: 90px; display: flex; flex-direction: column; gap: 8px; }
 .pb-root .pitboard-widget { padding: 0; }
 
 .pb-panel { background: var(--pb-panel); border: 1px solid var(--pb-line); border-radius: 8px; box-sizing: border-box; }
@@ -109,7 +108,21 @@
 
 /* los widgets densos se reducen un poco para caber en 1280×800 */
 .pb-root .pca,
-.pb-root .relative-widget { zoom: 0.86; }
+.pb-root .relative-widget { zoom: 0.8; }
+/* la insignia de clase (p. ej. "GTE CLASS") no debe pisar el número de coche */
+.pb-root .relative-widget .class-badge { max-width: 5.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: none; }
 
 /* la cabecera del pitboard ya da tiempo y vueltas: la clasificación gana ese espacio para más filas */
 .pb-root .race-standings__head { display: none; }
+
+/* en el pitboard stint y última parada ya salen en otros paneles: se cambian por el gap al de delante */
+.pb-root .race-standings__cell--stint,
+.pb-root .race-standings__cell--pit,
+.pb-root .race-standings__h-stint,
+.pb-root .race-standings__h-pit { display: none; }
+.app-root--free.pb-root .race-standings__row { grid-template-columns: 34px 62px minmax(0, 1fr) 92px 64px; }
+.app-root--free.pb-root .race-standings__table--multi .race-standings__row { grid-template-columns: 34px 30px 62px minmax(0, 1fr) 92px 64px; }
+
+/* el contenedor ocupa toda su celda: así la altura medida es la disponible y no la del contenido */
+.pb-root .pb-area-standings { display: flex; flex-direction: column; }
+.pb-root .standings-widget-container { flex: 1 1 0; min-height: 0; height: 100%; }

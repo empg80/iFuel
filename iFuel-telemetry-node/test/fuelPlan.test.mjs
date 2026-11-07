@@ -126,3 +126,13 @@ test("en replay no cambia nada", () => {
   const s0 = { timeWasRunning: true, timeExpired: false };
   assert.deepEqual(updateTimeLatch(s0, { timeRemain: 0, sessionState: 4, replay: true }), s0);
 });
+
+test("sesión por vueltas terminada (lapsRemain 0): sin parada ni FUEL CRITICAL (beta.26)", () => {
+  assert.equal(lapsToRun({ lapsRemain: 0, timeRemain: 178, lapTime: 61, myPct: 0.4 }), 0);
+  const p = computeFuelPlan({ fuelLevel: 1.3, fuelPerLap: 2.22, fuelCapacity: 60, myLap: 3, myPct: 0.4, pitPct: 0.9, safetyLaps: 0.5,
+    lapsRemain: 0, timeRemain: 178, lapTime: 61, timeExpired: false });
+  assert.equal(p.status, "no-stop");
+  assert.equal(p.stops, 0);
+  assert.equal(p.litersToAdd, 0);
+  assert.equal(p.remainingLaps, 0);
+});

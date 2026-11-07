@@ -56,6 +56,13 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.26
+---------------
+- Pitboard: la clasificación enseña el GAP al coche de delante de tu clase (sustituye a STINT y LAST PIT).
+- Pitboard: si todos los coches caben en la tabla se ven todos (antes solo los 10 primeros de cada clase).
+- Pitboard: columnas centrales reorganizadas para que ningún panel se corte; la insignia de clase ya no pisa el número.
+- ARREGLADO: al terminar una carrera por vueltas aparecía un FUEL CRITICAL falso (quedaban 0 vueltas pero se calculaba como carrera por tiempo).
+
 NOVEDAD BETA.25
 ---------------
 - Pitboard: la clasificación ya no repite tiempo y vueltas (están en la cabecera) y gana espacio para más coches.

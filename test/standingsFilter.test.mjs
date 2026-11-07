@@ -77,5 +77,11 @@ test("fitStandings: 47 coches, 2 clases y yo en mitad de la clase caben en 22 fi
 test("fitStandings sin límite o con espacio de sobra no recorta", () => {
   const rows = Array.from({ length: 30 }, (_, i) => ({ position: i + 1, carNumber: String(i + 1), classId: 1 }));
   assert.equal(groupedRowCount(fitStandings(rows, "5", null)), 10);
-  assert.equal(groupedRowCount(fitStandings(rows, "5", 40)), 10);
+  assert.equal(groupedRowCount(fitStandings(rows, "5", 40)), 30); // caben todos
+  assert.equal(groupedRowCount(fitStandings(rows, "5", 20)), 10);
+});
+test("fitStandings: 13 coches de una clase caben en 17 filas y se ven todos (beta.26)", () => {
+  const rows = Array.from({ length: 13 }, (_, i) => ({ position: i + 1, carNumber: String(i + 1), classId: 1 }));
+  assert.equal(groupedRowCount(fitStandings(rows, "12", 17)), 13);
+  assert.ok(groupedRowCount(fitStandings(rows, "12", 8)) <= 8);
 });

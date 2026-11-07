@@ -40,6 +40,8 @@ function timedLaps({ T, pct, lapTime, leader }) {
 export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader }) {
   const pct = Number.isFinite(myPct) ? Math.min(Math.max(myPct, 0), 0.999) : 0;
   if (Number.isFinite(lapsRemain) && lapsRemain > 0 && lapsRemain < LAP_MODE_MAX) return lapsRemain - pct;
+  // Sesión por vueltas ya terminada (bandera a cuadros): no queda nada por correr
+  if (lapsRemain === 0) return 0;
   // El reloj ya llegó a 0: iRacing puede volver a poner un valor raro, pero el final se calcula con T = 0
   if (timeExpired && lapTime > 0) return timedLaps({ T: 0, pct, lapTime, leader });
   if (Number.isFinite(timeRemain) && timeRemain > 0 && timeRemain < 86400 * 3 && lapTime > 0) {
@@ -59,6 +61,9 @@ export function computeFuelPlan(i) {
 
   const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader });
   if (remaining == null) return empty;
+  if (remaining <= 0) {
+    return { perLap: fuelPerLap, litersToAdd: 0, status: "no-stop", stops: 0, stintLaps: [], window: null, remainingLaps: 0, lapsToFinish: 0 };
+  }
 
   const pct = Number.isFinite(myPct) ? myPct : 0;
   const window = computePitWindow({

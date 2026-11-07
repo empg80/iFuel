@@ -63,38 +63,42 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
           isConnected={isConnected}
         />
       </div>
-      <div className="pb-area-ring">
-        <TrackRing
-          cars={state?.cars ?? []}
-          myPct={state?.lapDistPct ?? null}
-          classColorIndexById={state?.classColorIndexById}
-          sectorStarts={car?.sectorStarts}
-          trackTemp={state?.trackTemp ?? null}
-          airTemp={state?.airTemp ?? null}
-          rainChance={state?.rainChance ?? null}
-        />
+      <div className="pb-col pb-col--mid">
+        <div className="pb-area-ring">
+          <TrackRing
+            cars={state?.cars ?? []}
+            myPct={state?.lapDistPct ?? null}
+            classColorIndexById={state?.classColorIndexById}
+            sectorStarts={car?.sectorStarts}
+            trackTemp={state?.trackTemp ?? null}
+            airTemp={state?.airTemp ?? null}
+            rainChance={state?.rainChance ?? null}
+          />
+        </div>
+        <div className="pb-area-fuel pitboard-widget">
+          <FuelWidgetContainer variant="pitboard" state={state} isConnected={isConnected} sendMessage={sendMessage} />
+        </div>
+        <div className="pb-area-tyres">
+          <TyresPanel tyres={car?.tyres ?? null} compound={car?.compound ?? null} />
+        </div>
       </div>
-      <div className="pb-area-relative pitboard-widget">
-        <RelativeWidgetContainer variant="pitboard" state={state} isConnected={isConnected} />
-      </div>
-      <div className="pb-area-fuel pitboard-widget">
-        <FuelWidgetContainer variant="pitboard" state={state} isConnected={isConnected} sendMessage={sendMessage} />
-      </div>
-      <div className="pb-area-pit pitboard-widget">
-        <PitClearAirWidgetContainer
-          variant="pitboard"
-          pitClearAir={state?.pitClearAir ?? null}
-          isConnected={isConnected}
-          lapNumber={state?.lapNumber ?? null}
-          earliestPitLap={state?.earliestPitLap ?? null}
-        />
-      </div>
-      <div className="pb-area-tyres">
-        <TyresPanel tyres={car?.tyres ?? null} compound={car?.compound ?? null} />
-      </div>
-      <div className="pb-area-trace">
-        <CarSettings car={car} />
-        <PedalTraceChart trace={state?.trace ?? null} />
+      <div className="pb-col pb-col--right">
+        <div className="pb-area-relative pitboard-widget">
+          <RelativeWidgetContainer variant="pitboard" state={state} isConnected={isConnected} />
+        </div>
+        <div className="pb-area-pit pitboard-widget">
+          <PitClearAirWidgetContainer
+            variant="pitboard"
+            pitClearAir={state?.pitClearAir ?? null}
+            isConnected={isConnected}
+            lapNumber={state?.lapNumber ?? null}
+            earliestPitLap={state?.earliestPitLap ?? null}
+          />
+        </div>
+        <div className="pb-area-trace">
+          <CarSettings car={car} />
+          <PedalTraceChart trace={state?.trace ?? null} />
+        </div>
       </div>
     </div>
   );

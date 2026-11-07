@@ -134,7 +134,7 @@ function Scene({ scene }: { scene: string }) {
     const names47 = ["Alonso Pérez", "Marcus Eriksen-Larsen", "Jean-Baptiste Dubois", "Kimi Tanaka", "Pablo Ruiz", "Liam O Connor", "Sergio Hernández"];
     const big: StandingsRow[] = Array.from({ length: 47 }, (_, i) => ({
       position: i + 1, carNumber: String(i === 32 ? 8 : i + 20), classId: i % 3 === 0 ? 4029 : 4011, driverName: names47[i % names47.length] + " " + (i + 1),
-      bestLapTime: 232 + i * 0.4, gapToLeader: null, lapsDown: 0, stintLapCount: 5, lastPitDurationSeconds: null, pitStops: 0, inPit: false, carModel: "GTP",
+      bestLapTime: 232 + i * 0.4, gapToLeader: i * 2.37, lapsDown: 0, stintLapCount: 5, lastPitDurationSeconds: null, pitStops: 0, inPit: false, carModel: "GTP",
     }));
     const state = {
       fuel: 18.4, fuelMax: 52, fuelCapacity: 52, lapNumber: 12, lapTime: 107.52, fuelLast: 2.78, fuelAvg: 2.78, fuelAvg2: 2.8, fuelAvg5: 2.78, fuelAvg10: 2.77,

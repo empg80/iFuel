@@ -74,7 +74,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
   useEffect(() => {
     const el = boxRef.current;
     if (!isPitboard || !el || typeof ResizeObserver === "undefined") return;
-    const ROW_H = 27; // fila de la tabla (incluye separaciones de clase y huecos)
+    const ROW_H = 26; // fila de la tabla (incluye separaciones de clase y huecos)
     const OVERHEAD = 56; // cabecera de columnas y márgenes (el reloj y las vueltas ya salen en la cabecera del pitboard)
     const update = () => setMaxRows(Math.max(4, Math.floor((el.clientHeight - OVERHEAD) / ROW_H)));
     update();
@@ -148,7 +148,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
       <div
         style={
           isPitboard
-            ? undefined
+            ? { height: "100%" }
             : { transform: `scale(${standingsScale ?? 1})` }
         }
       >

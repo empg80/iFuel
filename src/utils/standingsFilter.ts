@@ -130,9 +130,13 @@ export function fitStandings<T extends FilterableRow>(
   maxRows: number | null | undefined,
 ): ClassGroup<T>[] {
   const full = groupStandings(rows, myCarNumber);
-  if (maxRows == null || !Number.isFinite(maxRows) || groupedRowCount(full) <= maxRows) return full;
+  if (maxRows == null || !Number.isFinite(maxRows)) return full;
+  // Si caben todos los coches se enseñan todos (sin el recorte a 10 por clase)
+  const everyone = groupStandings(rows, myCarNumber, { topPerClass: rows.length || 1 });
+  if (groupedRowCount(everyone) <= maxRows) return everyone;
+  if (groupedRowCount(full) <= maxRows) return full;
   const steps: { topPerClass: number; around: number }[] = [
-    { topPerClass: 8, around: 3 }, { topPerClass: 6, around: 2 }, { topPerClass: 5, around: 2 },
+    { topPerClass: 9, around: 3 }, { topPerClass: 8, around: 3 }, { topPerClass: 7, around: 3 }, { topPerClass: 6, around: 2 }, { topPerClass: 5, around: 2 },
     { topPerClass: 4, around: 2 }, { topPerClass: 3, around: 1 }, { topPerClass: 2, around: 1 },
     { topPerClass: 1, around: 1 }, { topPerClass: 1, around: 0 },
   ];

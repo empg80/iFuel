@@ -1,8 +1,21 @@
 // components/RaceStandingsWidget.tsx
 import clsx from "clsx";
-import type { RaceStandingsWidgetProps } from "../types/standings";
+import type { RaceStandingsWidgetProps, StandingsRow } from "../types/standings";
 import { formatLapTimeSeconds } from "../utils/relativeFormat";
 import { fitStandings } from "../utils/standingsFilter";
+
+/** Distancia al coche de delante de la misma clase: "+1.234", "+1L" si va doblado, "—" para el primero. */
+function formatInterval(row: StandingsRow, ahead: StandingsRow | undefined): string {
+  if (!ahead) return "—";
+  if (row.lapsDown !== ahead.lapsDown) {
+    const d = row.lapsDown - ahead.lapsDown;
+    return d > 0 ? `+${d}L` : "—";
+  }
+  if (row.gapToLeader == null || ahead.gapToLeader == null) return "--";
+  const g = row.gapToLeader - ahead.gapToLeader;
+  if (!(g >= 0)) return "--";
+  return `+${g < 100 ? g.toFixed(1) : Math.round(g)}`;
+}
 
 function formatPit(sec: number | null): string {
   if (sec == null) return "--.-";
@@ -20,6 +33,12 @@ export function RaceStandingsWidget({
   // Top 10 de cada clase + 3 por delante y 3 por detrás de ti si no estás entre ellos
   const groups = fitStandings(rows, myCarNumber, maxRows);
   const multi = groups.length > 1;
+  const classLists = new Map<number, StandingsRow[]>();
+  for (const r of [...rows].sort((a, b) => a.position - b.position)) {
+    const l = classLists.get(r.classId) ?? [];
+    l.push(r);
+    classLists.set(r.classId, l);
+  }
 
   return (
     <div className="widget race-standings-widget">
@@ -40,8 +59,9 @@ export function RaceStandingsWidget({
           <span>#</span>
           <span>DRIVER</span>
           <span>BEST LAP</span>
-          <span>STINT</span>
-          <span>LAST PIT</span>
+          <span>GAP</span>
+          <span className="race-standings__h-stint">STINT</span>
+          <span className="race-standings__h-pit">LAST PIT</span>
         </div>
 
         {groups.map((g) => {
@@ -66,6 +86,8 @@ export function RaceStandingsWidget({
                   );
                 }
                 const row = item.row;
+                // Coche de delante en su clase (aunque no se muestre, p. ej. tras un hueco)
+                const ahead = item.classPos > 1 ? classLists.get(g.classId)?.[item.classPos - 2] : undefined;
                 const isMe = row.carNumber === myCarNumber;
                 return (
                   <div
@@ -92,6 +114,7 @@ export function RaceStandingsWidget({
                     <span className="race-standings__cell race-standings__cell--best">
                       {formatLapTimeSeconds(row.bestLapTime)}
                     </span>
+                    <span className="race-standings__cell race-standings__cell--gap">{formatInterval(row, ahead)}</span>
                     <span className="race-standings__cell race-standings__cell--stint">{row.stintLapCount}</span>
                     <span className="race-standings__cell race-standings__cell--pit">
                       {formatPit(row.lastPitDurationSeconds)}
