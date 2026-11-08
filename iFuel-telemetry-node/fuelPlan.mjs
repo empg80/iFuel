@@ -37,7 +37,9 @@ function timedLaps({ T, pct, lapTime, leader }) {
  * por meta posterior al suyo (ver timedLaps).
  * @returns {number|null}
  */
-export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader }) {
+export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader, finished }) {
+  // Ya cruzaste la meta con la bandera a cuadros: no queda nada por correr
+  if (finished) return 0;
   const pct = Number.isFinite(myPct) ? Math.min(Math.max(myPct, 0), 0.999) : 0;
   if (Number.isFinite(lapsRemain) && lapsRemain > 0 && lapsRemain < LAP_MODE_MAX) return lapsRemain - pct;
   // Sesión por vueltas ya terminada (bandera a cuadros): no queda nada por correr
@@ -55,11 +57,11 @@ export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired,
  *   status:string, stops:number|null, stintLaps:number[], window:ReturnType<typeof computePitWindow>|null}}
  */
 export function computeFuelPlan(i) {
-  const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime, timeExpired, leader } = i;
+  const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime, timeExpired, leader, finished } = i;
   const empty = { perLap: fuelPerLap ?? null, litersToAdd: null, status: "unknown", stops: null, stintLaps: [], window: null, remainingLaps: null };
   if (!(fuelPerLap > 0) || !(fuelCapacity > 0)) return empty;
 
-  const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader });
+  const remaining = lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader, finished });
   if (remaining == null) return empty;
   if (remaining <= 0) {
     return { perLap: fuelPerLap, litersToAdd: 0, status: "no-stop", stops: 0, stintLaps: [], window: null, remainingLaps: 0, lapsToFinish: 0 };
@@ -111,4 +113,17 @@ export function updateTimeLatch({ timeWasRunning, timeExpired }, { timeRemain, s
   if (timeRemain > 1) return { timeWasRunning: true, timeExpired };
   if (timeWasRunning && timeRemain >= 0 && timeRemain <= 1) return { timeWasRunning, timeExpired: true };
   return { timeWasRunning, timeExpired };
+}
+
+/**
+ * Detecta que el líder ya recibió la bandera a cuadros: con el reloj agotado, el líder cruza la meta (su % pasa de
+ * ~1 a ~0) o SessionState pasa a 5. A partir de ahí tu final es TU siguiente cruce, sin la vuelta extra por "cruzar
+ * antes que el líder" (iRacing además reinicia SessionTimeRemain a otro valor tras el 0, así que no sirve para esto).
+ * @returns {{finished:boolean, pct:number|null}}
+ */
+export function updateLeaderFinished({ finished, pct }, { timeExpired, leaderPct, sessionState = null }) {
+  if (!timeExpired) return { finished: false, pct: Number.isFinite(leaderPct) ? leaderPct : null };
+  if (finished) return { finished, pct: Number.isFinite(leaderPct) ? leaderPct : pct };
+  const wrapped = pct != null && Number.isFinite(leaderPct) && pct > 0.8 && leaderPct < 0.2;
+  return { finished: wrapped || (sessionState != null && sessionState >= 5), pct: Number.isFinite(leaderPct) ? leaderPct : pct };
 }

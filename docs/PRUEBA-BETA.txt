@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.27
+---------------
+- ARREGLADO (carreras por tiempo): tras agotarse el reloj iRacing reinicia el tiempo restante a otro valor y el líder ya habia cruzado la meta,
+  pero iFuel seguia contando una vuelta extra ("cruzas antes que el líder") y, al terminar tú, pedia combustible o parada
+  con la carrera ya acabada. Ahora detecta que el líder ya terminó y que tú ya has recibido la bandera a cuadros.
+
 NOVEDAD BETA.26
 ---------------
 - Pitboard: la clasificación enseña el GAP al coche de delante de tu clase (sustituye a STINT y LAST PIT).

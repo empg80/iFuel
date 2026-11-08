@@ -16,7 +16,7 @@ import {
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { buildPitPasses } from "./pitPasses.mjs";
-import { computeFuelPlan, updateTimeLatch } from "./fuelPlan.mjs";
+import { computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
@@ -238,6 +238,7 @@ function startTelemetryLoop(
   let paceLastLap = null;
   let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
+  let leaderState = { finished: false, pct: null }; // el líder ya cruzó la meta tras agotarse el reloj
   let sessionCache = { version: -1, data: null };
   let noDataSince = null;
   let lastDataAt = 0; // último tick con datos válidos del sim (el muestreador de pedales no lee sin él)
@@ -347,7 +348,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
         resetPitAndStintState();
         pitLossTracker.reset();
         fuelModel.reset();
-        timeWasRunning = false; timeExpired = false;
+        timeWasRunning = false; timeExpired = false; leaderState = { finished: false, pct: null };
         paceLaps.length = 0; paceLastLap = null;
         yellowTracker.reset();
         carTracker.reset();
@@ -979,6 +980,14 @@ standings.sort((a, b) => a.position - b.position);
       { timeWasRunning, timeExpired },
       { timeRemain: sessionTimeRemain, sessionState: telemetry.SessionState?.value?.[0] ?? null, replay: !!telemetry.IsReplayPlaying?.value?.[0] },
     ));
+    {
+      const lc = leaderEntry && leaderEntry.idx !== driverIdx ? cars.find((c) => c.idx === leaderEntry.idx) : null;
+      leaderState = updateLeaderFinished(leaderState, {
+        timeExpired, leaderPct: lc?.pct ?? null, sessionState: telemetry.SessionState?.value?.[0] ?? null,
+      });
+    }
+    // bandera a cuadros ya mostrada a mi coche tras agotarse el reloj: he terminado
+    const iFinished = timeExpired && (sessionFlags & 0x1) === 1;
     const fpl = pitStrategyParams.fuelPerLap ?? measuredFuelPerLap;
     const fplSource = pitStrategyParams.fuelPerLap != null ? "laps" : measuredFuelPerLap != null ? "measured" : null;
     const pitPct = Number(driverInfo.DriverPitTrkPct);
@@ -988,9 +997,9 @@ standings.sort((a, b) => a.position - b.position);
           fuelLevel, fuelPerLap: fpl, fuelCapacity: fuelMax, myLap, myPct,
           pitPct: Number.isFinite(pitPct) ? pitPct : null,
           safetyLaps: pitStrategyParams.safetyLaps,
-          lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime, timeExpired,
+          lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime, timeExpired, finished: iFinished,
           leader: (() => {
-            if (!leaderEntry || leaderEntry.idx === driverIdx) return null;
+            if (!leaderEntry || leaderEntry.idx === driverIdx || leaderState.finished) return null;
             const lc = cars.find((c) => c.idx === leaderEntry.idx);
             const lt = carIdxBestLapTime[leaderEntry.idx] > 0 ? carIdxBestLapTime[leaderEntry.idx] : carIdxLastLapTime[leaderEntry.idx];
             return lc && Number.isFinite(lc.pct) && lc.pct >= 0 && lt > 0 ? { pct: lc.pct, lapTime: lt } : null;

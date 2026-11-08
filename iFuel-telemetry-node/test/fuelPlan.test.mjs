@@ -99,7 +99,7 @@ test("la tolerancia de margen corto depende del margen elegido (mitad del margen
   assert.notEqual(computeFuelPlan({ ...base, safetyLaps: 0.5, fuelLevel: 4.6 }).status, "no-stop");
 });
 
-import { updateTimeLatch } from "../fuelPlan.mjs";
+import { updateTimeLatch , updateLeaderFinished } from "../fuelPlan.mjs";
 test("la cuenta atrás de parrilla no cuenta como fin de carrera (Le Mans, beta.23)", () => {
   let s = { timeWasRunning: false, timeExpired: false };
   // cuenta atrás previa a la salida: SessionState 3 (parade/gridding), T llega a 0
@@ -135,4 +135,25 @@ test("sesión por vueltas terminada (lapsRemain 0): sin parada ni FUEL CRITICAL 
   assert.equal(p.stops, 0);
   assert.equal(p.litersToAdd, 0);
   assert.equal(p.remainingLaps, 0);
+});
+
+test("updateLeaderFinished: el líder cruza la meta tras agotarse el reloj (beta.27)", () => {
+  let st = { finished: false, pct: null };
+  st = updateLeaderFinished(st, { timeExpired: false, leaderPct: 0.4 });
+  assert.equal(st.finished, false);
+  st = updateLeaderFinished(st, { timeExpired: true, leaderPct: 0.9 });
+  assert.equal(st.finished, false);
+  st = updateLeaderFinished(st, { timeExpired: true, leaderPct: 0.01 });
+  assert.equal(st.finished, true);
+  st = updateLeaderFinished(st, { timeExpired: true, leaderPct: 0.5 }); // se mantiene
+  assert.equal(st.finished, true);
+  assert.equal(updateLeaderFinished({ finished: false, pct: 0.3 }, { timeExpired: true, leaderPct: 0.35, sessionState: 5 }).finished, true);
+});
+
+test("carrera por tiempo: líder ya acabó -> sin vuelta extra; yo acabé -> 0 (beta.27)", () => {
+  const base = { lapsRemain: 32767, timeRemain: 173, lapTime: 118, myPct: 0.65, timeExpired: true };
+  // el líder (pct 0.12) cruzaría DESPUÉS de mí si aún no hubiera terminado => +1
+  assert.ok(Math.abs(lapsToRun({ ...base, leader: { pct: 0.12, lapTime: 115 } }) - 1.35) < 0.01);
+  assert.ok(Math.abs(lapsToRun({ ...base, leader: null }) - 0.35) < 0.01);
+  assert.equal(lapsToRun({ ...base, finished: true }), 0);
 });
