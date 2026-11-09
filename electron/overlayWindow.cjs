@@ -29,6 +29,7 @@ function buildMainWindowOptions({ overlay, bounds, isDev, preloadPath, iconPath 
     webSecurity: true,
     devTools: isDev, // DevTools sólo en desarrollo
     backgroundThrottling: false, // que el overlay no se congele cuando el juego tiene el foco
+    autoplayPolicy: "no-user-gesture-required", // el spotter suena sin que nadie haya hecho clic
     preload: preloadPath,
   };
 

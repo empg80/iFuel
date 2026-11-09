@@ -240,6 +240,7 @@ function startTelemetryLoop(
   let paceLastLap = null;
   let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
+  let lastCarLeftRight = null; // último valor de CarLeftRight enviado al spotter
   const pitDecision = createPitDecisionStabilizer(); // evita que la recomendación de Pit Clear Air parpadee
   let leaderState = { finished: false, pct: null }; // el líder ya cruzó la meta tras agotarse el reloj
   let sessionCache = { version: -1, data: null };
@@ -1190,6 +1191,13 @@ standings.sort((a, b) => a.position - b.position);
       if (Date.now() - lastDataAt > 400) return;
       try {
         trace.push(safeTelemetryVariable(sdk, "ThrottleRaw")?.value?.[0], safeTelemetryVariable(sdk, "BrakeRaw")?.value?.[0]);
+        // Spotter: se envía en el mismo instante en que cambia (no espera al ciclo de 4 Hz)
+        const lr = safeTelemetryVariable(sdk, "CarLeftRight")?.value?.[0];
+        if (Number.isFinite(lr) && lr !== lastCarLeftRight) {
+          lastCarLeftRight = lr;
+          const msg = JSON.stringify({ type: "spotter", carLeftRight: lr, t: Date.now() });
+          wss.clients.forEach((c) => { if (c.readyState === 1) c.send(msg); });
+        }
       } catch { /* ignorar un fallo puntual de lectura */ }
     }, Math.round(1000 / trace.hz));
     fast.unref?.();

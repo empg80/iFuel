@@ -14,7 +14,7 @@ const ZONES = ["L", "M", "R"]; // izquierda / medio / derecha de la banda
 
 // Variables del SDK que lee este módulo (el servidor las añade a TELEMETRY_VARS)
 export const CAR_VARS = [
-  "LapDeltaToBestLap", "LapDeltaToBestLap_OK", "PlayerTireCompound", "ThrottleRaw", "BrakeRaw",
+  "LapDeltaToBestLap", "LapDeltaToBestLap_OK", "PlayerTireCompound", "ThrottleRaw", "BrakeRaw", "CarLeftRight",
   "dcBrakeBias", "dcTractionControl", "dcTractionControl2", "dcABS",
   ...CORNERS.flatMap((c) => [
     `${c}coldPressure`,

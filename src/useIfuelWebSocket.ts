@@ -31,6 +31,7 @@ type OnTrackCar = {
   classPosition?: number | null;
 } | null;
 
+import { emitSpotter } from "./spotter/bus";
 import type { FastTraffic } from "./types/fastTraffic";
 type YellowWarning = {
   active: boolean;
@@ -281,7 +282,12 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
 
       socket.onmessage = (event) => {
         try {
-          const msg: RawMessage = JSON.parse(event.data);
+          const raw = JSON.parse(event.data);
+          if (raw && raw.type === "spotter") {
+            if (Number.isFinite(raw.carLeftRight)) emitSpotter(raw.carLeftRight);
+            return; // mensaje rápido del spotter: no es una lectura de telemetría completa
+          }
+          const msg: RawMessage = raw;
           const {
             fuelLevel,
             lap,

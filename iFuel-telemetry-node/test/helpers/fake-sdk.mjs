@@ -39,6 +39,7 @@ export function createFakeSdk(overrides = {}) {
     CarIdxBestLapTime: v([88, 89, 90, 91]), CarIdxLastLapTime: v([89, 90, 91, 92]),
     CarIdxClass: v([4000, 4000, 4000, 4000]),
     TrackTemp: v([30]), AirTemp: v([22]),
+    CarLeftRight: v([st.carLeftRight ?? 1]),
     ...(st.estTimes ? { CarIdxEstTime: v(st.estTimes) } : {}),
   });
 

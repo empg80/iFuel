@@ -15,6 +15,13 @@ declare global {
     /** Nivel de detalle del widget de combustible en el overlay. */
     fuelDetail?: "compact" | "full";
 
+    spotterEnabled?: boolean;
+    spotterTones?: boolean;
+    spotterVoice?: boolean;
+    spotterAlerts?: boolean;
+    spotterVolume?: number;
+    spotterTestNonce?: number;
+
     fuelScale?: number;
     relativeScale?: number;
     pitClearScale?: number;

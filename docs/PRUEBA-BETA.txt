@@ -56,6 +56,18 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.30
+---------------
+- NUEVO: spotter de audio (menú Spotter de la bandeja/ventana). Con el spotter de iRacing apagado:
+  * Lateral: pitido estéreo por el lado del coche + voz "Izquierda / Derecha / Tres anchos / Dos a la izquierda / Libre".
+    Se lee CarLeftRight a 20 Hz y se envía al momento (no espera al ciclo de 4 Hz).
+  * Avisos de voz: clase rápida por detrás (número y clase), amarilla / escombros / coche parado con metros,
+    combustible crítico, ventana de parada abierta y "Entra a boxes esta vuelta".
+  * Menú: activar, tonos, voz lateral, avisos, volumen (30/50/80/100 %) y "Test sound".
+  * No suena en boxes, garaje ni replay.
+  Prueba: pulsa Spotter > Test sound (izquierda, derecha y voz). Luego en pista dime si el aviso llega a tiempo,
+  si la voz en español suena bien (usa la voz de Windows es-ES) y si algo molesta.
+
 NOVEDAD BETA.29
 ---------------
 - Pit Clear Air estable: la vuelta recomendada ya no parpadea. Solo cambia si otra es mejor por 1 coche o más de forma

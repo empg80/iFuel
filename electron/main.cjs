@@ -106,6 +106,7 @@ function createReplayWindow() {
       webSecurity: true,
       devTools: isDev,
       backgroundThrottling: false,
+      autoplayPolicy: "no-user-gesture-required",
       preload: path.join(__dirname, "preload.cjs"),
     },
   });
@@ -168,6 +169,12 @@ const DEFAULT_OVERLAY_STATE = {
 
   fuelDetail: "compact", // "compact" (datos clave) | "full" (todos los datos) en el widget de combustible
   overlayMode: true, // ventana transparente, siempre encima y click-through (solo layout "free")
+  spotterEnabled: true, // spotter de audio (lateral + avisos)
+  spotterTones: true,
+  spotterVoice: true,
+  spotterAlerts: true,
+  spotterVolume: 0.8,
+  spotterTestNonce: 0,
   overlayDisplayId: null, // monitor donde se dibuja el overlay (null = principal)
 };
 
@@ -201,6 +208,13 @@ function validateOverlayState(candidate) {
     if (typeof v !== "number" || !Number.isFinite(v) || v < 0.5 || v > 3) {
       return false;
     }
+  }
+
+  for (const key of ["spotterEnabled", "spotterTones", "spotterVoice", "spotterAlerts"]) {
+    if (typeof candidate[key] !== "boolean") return false;
+  }
+  if (typeof candidate.spotterVolume !== "number" || !(candidate.spotterVolume >= 0.1 && candidate.spotterVolume <= 1)) {
+    return false;
   }
 
   if (
@@ -348,6 +362,11 @@ const allowedKeys = new Set([
   "overlayMode",
   "overlayDisplayId",
   "fuelDetail",
+  "spotterEnabled",
+  "spotterTones",
+  "spotterVoice",
+  "spotterAlerts",
+  "spotterVolume",
 ]);
 
 
@@ -607,6 +626,47 @@ function buildMenuTemplate() {
           click: (item) => {
             overlayState.fuelSettingsVisible = item.checked;
             saveOverlayState();
+            sendOverlayState();
+          },
+        },
+      ],
+    },
+    {
+      label: "Spotter",
+      submenu: [
+        ...[
+          ["spotterEnabled", "Enable audio spotter"],
+          ["spotterTones", "Side tones (stereo beep)"],
+          ["spotterVoice", "Side voice (Izquierda / Derecha / Libre)"],
+          ["spotterAlerts", "Voice alerts (fast class, yellow/debris, fuel, box)"],
+        ].map(([key, label]) => ({
+          label,
+          type: "checkbox",
+          checked: overlayState[key],
+          click: (item) => {
+            overlayState[key] = item.checked;
+            saveOverlayState();
+            sendOverlayState();
+          },
+        })),
+        { type: "separator" },
+        {
+          label: "Volume",
+          submenu: [0.3, 0.5, 0.8, 1].map((v) => ({
+            label: `${Math.round(v * 100)}%`,
+            type: "radio",
+            checked: Math.abs(overlayState.spotterVolume - v) < 0.01,
+            click: () => {
+              overlayState.spotterVolume = v;
+              saveOverlayState();
+              sendOverlayState();
+            },
+          })),
+        },
+        {
+          label: "Test sound",
+          click: () => {
+            overlayState.spotterTestNonce = (overlayState.spotterTestNonce || 0) + 1;
             sendOverlayState();
           },
         },

@@ -254,3 +254,17 @@ test("tras cerrarse iRacing no se vuelve a leer el SDK parado (volcado/estado) y
     assert.equal(s.sdk.state.touchedAfterStop, 0, "no se toca el SDK despues de stopSDK()");
   } finally { await s.close(); }
 });
+
+test("spotter: CarLeftRight se envía al instante como mensaje propio, solo al cambiar", async () => {
+  const s = await boot({ carLeftRight: 2 });
+  try {
+    const m = await s.waitFor((x) => x.type === "spotter", 3000);
+    assert.ok(m, "llega el mensaje del spotter");
+    assert.equal(m.carLeftRight, 2);
+    s.sdk.state.carLeftRight = 1;
+    const m2 = await s.waitFor((x) => x.type === "spotter" && x.carLeftRight === 1, 3000);
+    assert.ok(m2, "avisa de que queda libre");
+    await sleep(600);
+    assert.equal(s.messages.filter((x) => x.type === "spotter").length, 2, "sin repetir mientras no cambia");
+  } finally { await s.close(); }
+});
