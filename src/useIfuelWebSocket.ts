@@ -31,6 +31,7 @@ type OnTrackCar = {
   classPosition?: number | null;
 } | null;
 
+import type { FastTraffic } from "./types/fastTraffic";
 type YellowWarning = {
   active: boolean;
   distanceMeters: number | null;
