@@ -4,12 +4,15 @@ import { useOverlayState } from "../contexts/useOverlayState";
 import { onSpotter } from "./bus";
 import { calloutFor, CLEAR_HOLD_MS } from "./logic";
 import { alertsFor, initialAlertMemory, type AlertMemory } from "./alerts";
+import { getPhrases, setPhrases } from "./phrases";
 import { DEFAULT_SPOTTER, playTone, speak, type SpotterSettings } from "./engine";
 
 /** Spotter de audio: lateral (CarLeftRight a 20 Hz) y avisos de voz del estado. */
 export function useSpotter(state: IfuelState | null) {
-  const overlay = useOverlayState() as Partial<SpotterSettings> & { spotterTestNonce?: number };
-  const cfg: SpotterSettings = { ...DEFAULT_SPOTTER, ...Object.fromEntries(Object.entries(overlay).filter(([k]) => k.startsWith("spotter") && k !== "spotterTestNonce")) };
+  const overlay = useOverlayState() as Partial<SpotterSettings> & { spotterTestNonce?: number; spotterMuted?: string[] };
+  const cfg: SpotterSettings = { ...DEFAULT_SPOTTER, ...Object.fromEntries(Object.entries(overlay).filter(([k]) => k.startsWith("spotter") && k !== "spotterTestNonce" && k !== "spotterMuted")) };
+  const mutedRef = useRef<string[]>([]);
+  mutedRef.current = overlay.spotterMuted ?? [];
   const cfgRef = useRef(cfg);
   cfgRef.current = cfg;
   const stateRef = useRef(state);
@@ -22,6 +25,13 @@ export function useSpotter(state: IfuelState | null) {
     const s = stateRef.current;
     return !s || !!s.isReplayPlaying || !!s.onPitRoad;
   };
+
+  // frases personalizadas (spotter-frases.json)
+  useEffect(() => {
+    const api = window.ifuelOverlay;
+    void api?.getSpotterPhrases?.().then(setPhrases).catch(() => {});
+    return api?.onSpotterPhrases?.(setPhrases);
+  }, []);
 
   useEffect(() => {
     return onSpotter((v) => {
@@ -54,6 +64,9 @@ export function useSpotter(state: IfuelState | null) {
       pitSuggestedLap: state.pitClearAir?.suggestedLap ?? null,
       pitNextLap: state.pitClearAir?.nextPitLap ?? null,
       pitLocked: !!(state.pitClearAir as { locked?: boolean } | null)?.locked,
+      lastLap: ((state.sessionFlags ?? 0) & 0x2) !== 0 || state.sessionLapsRemainEx === 1,
+      checkered: ((state.sessionFlags ?? 0) & 0x1) !== 0,
+      muted: mutedRef.current,
       nowMs: Date.now(),
     });
     memRef.current = r.mem;
@@ -69,6 +82,6 @@ export function useSpotter(state: IfuelState | null) {
     const k = cfgRef.current;
     playTone("left", k.spotterVolume);
     setTimeout(() => playTone("right", k.spotterVolume), 350);
-    setTimeout(() => speak("Spotter activo. Izquierda. Derecha. Libre.", k.spotterVolume, true), 800);
+    setTimeout(() => speak(getPhrases().test, k.spotterVolume, true), 800);
   }, [testNonce]);
 }

@@ -1,6 +1,12 @@
 // Avisos de voz derivados del estado (clase rápida, amarilla/debris, combustible, box). Función pura:
 // recibe el estado anterior que devolvió ella misma y el estado actual, y dice qué locutar.
 
+import { fill, getPhrases } from "./phrases.ts";
+
+/** Avisos que se pueden silenciar uno a uno desde el menú. */
+export const ALERT_IDS = ["clear", "fastClass", "yellow", "fuel", "window", "box", "lastLap", "checkered"] as const;
+export type AlertId = (typeof ALERT_IDS)[number];
+
 export type AlertInput = {
   fastTraffic?: { carNum: string | null; classId: number | null; catchInSeconds: number } | null;
   classNames?: Record<number, string>;
@@ -10,6 +16,9 @@ export type AlertInput = {
   pitSuggestedLap?: number | null;
   pitNextLap?: number | null;
   pitLocked?: boolean;
+  lastLap?: boolean;
+  checkered?: boolean;
+  muted?: string[];
   nowMs: number;
 };
 
@@ -20,10 +29,12 @@ export type AlertMemory = {
   fuelCritical: boolean;
   windowOpen: boolean;
   boxLap: number | null;
+  lastLap: boolean;
+  checkered: boolean;
 };
 
 export const initialAlertMemory = (): AlertMemory => ({
-  fastCar: null, fastAt: -1e9, yellowKey: null, fuelCritical: false, windowOpen: false, boxLap: null,
+  fastCar: null, fastAt: -1e9, yellowKey: null, fuelCritical: false, windowOpen: false, boxLap: null, lastLap: false, checkered: false,
 });
 
 const FAST_REPEAT_MS = 40000;
@@ -35,12 +46,16 @@ function roundMeters(m: number): number {
 export function alertsFor(mem: AlertMemory, i: AlertInput): { say: string[]; mem: AlertMemory } {
   const say: string[] = [];
   const next: AlertMemory = { ...mem };
+  const P = getPhrases();
+  const on = (id: AlertId) => !i.muted?.includes(id);
 
   const ft = i.fastTraffic;
   if (ft && ft.carNum != null) {
     if (ft.carNum !== mem.fastCar || i.nowMs - mem.fastAt > FAST_REPEAT_MS) {
       const cls = ft.classId != null ? i.classNames?.[ft.classId] : null;
-      say.push(`${cls ? cls : "Clase rápida"} por detrás, número ${ft.carNum}`);
+      if (on("fastClass")) {
+        say.push(cls ? fill(P.fastClass, { clase: cls, numero: ft.carNum }) : fill(P.fastClassNoName, { numero: ft.carNum }));
+      }
       next.fastCar = ft.carNum;
       next.fastAt = i.nowMs;
     }
@@ -52,26 +67,33 @@ export function alertsFor(mem: AlertMemory, i: AlertInput): { say: string[]; mem
   if (y?.active) {
     const key = `${y.type ?? "y"}:${y.carNum ?? ""}`;
     if (key !== mem.yellowKey) {
-      const what = y.type === "debris" ? "Escombros" : y.type === "incident" ? "Coche parado" : "Amarilla";
-      const dist = y.distanceMeters != null && y.distanceMeters > 0 ? ` a ${roundMeters(y.distanceMeters)} metros` : "";
-      say.push(`${what}${dist}`);
+      const what = y.type === "debris" ? P.debris : y.type === "incident" ? P.incident : P.yellow;
+      const dist = y.distanceMeters != null && y.distanceMeters > 0 ? fill(P.distance, { metros: roundMeters(y.distanceMeters) }) : "";
+      if (on("yellow")) say.push(`${what}${dist}`);
       next.yellowKey = key;
     }
   } else next.yellowKey = null;
 
   const crit = i.fuelStatus === "critical";
-  if (crit && !mem.fuelCritical) say.push("Combustible crítico");
+  if (crit && !mem.fuelCritical && on("fuel")) say.push(P.fuelCritical);
   next.fuelCritical = crit;
 
   const open = i.windowStatus === "window" || i.windowStatus === "extra-stop";
-  if (open && !mem.windowOpen) say.push("Ventana de parada abierta");
+  if (open && !mem.windowOpen && on("window")) say.push(P.windowOpen);
   next.windowOpen = open;
 
   if (i.pitLocked && i.pitSuggestedLap != null && i.pitSuggestedLap === i.pitNextLap && i.pitNextLap !== mem.boxLap) {
-    say.push("Entra a boxes esta vuelta");
+    if (on("box")) say.push(P.boxNow);
     next.boxLap = i.pitNextLap;
   } else if (!i.pitLocked && mem.boxLap != null && i.pitNextLap !== mem.boxLap) {
     next.boxLap = null;
   }
+
+  const last = !!i.lastLap;
+  if (last && !mem.lastLap && on("lastLap")) say.push(P.lastLap);
+  next.lastLap = last;
+  const chk = !!i.checkered;
+  if (chk && !mem.checkered && on("checkered")) say.push(P.checkered);
+  next.checkered = chk;
   return { say, mem: next };
 }

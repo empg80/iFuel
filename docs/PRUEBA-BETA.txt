@@ -56,6 +56,15 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.31
+---------------
+- Spotter: "Tres en línea" (antes "Tres anchos"), "Debris" (antes "Escombros") y avisos nuevos "Última vuelta"
+  (bandera blanca o última vuelta del límite) y "Bandera a cuadros".
+- Menú Spotter > "Voice alerts to say": activa o silencia cada aviso por separado.
+- Menú Spotter > "Edit phrases": abre spotter-frases.json (carpeta de datos de iFuel); cambia cualquier frase,
+  guarda y se aplica solo en unos segundos. Huecos: {clase} {numero} {metros}. Si el archivo tiene un error se usan
+  las frases por defecto.
+
 NOVEDAD BETA.30
 ---------------
 - NUEVO: spotter de audio (menú Spotter de la bandeja/ventana). Con el spotter de iRacing apagado:

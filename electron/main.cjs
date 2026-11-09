@@ -174,6 +174,7 @@ const DEFAULT_OVERLAY_STATE = {
   spotterVoice: true,
   spotterAlerts: true,
   spotterVolume: 0.8,
+  spotterMuted: [], // avisos de voz silenciados uno a uno
   spotterTestNonce: 0,
   overlayDisplayId: null, // monitor donde se dibuja el overlay (null = principal)
 };
@@ -213,6 +214,7 @@ function validateOverlayState(candidate) {
   for (const key of ["spotterEnabled", "spotterTones", "spotterVoice", "spotterAlerts"]) {
     if (typeof candidate[key] !== "boolean") return false;
   }
+  if (!Array.isArray(candidate.spotterMuted) || !candidate.spotterMuted.every((x) => typeof x === "string")) return false;
   if (typeof candidate.spotterVolume !== "number" || !(candidate.spotterVolume >= 0.1 && candidate.spotterVolume <= 1)) {
     return false;
   }
@@ -271,6 +273,46 @@ function saveOverlayState() {
     console.error("Error saving overlayState:", err);
   }
 }
+
+
+// ---- Frases del spotter: spotter-frases.json en la carpeta de datos del usuario (editable) ----
+const SPOTTER_PHRASES_DEFAULT = {
+  left: "Izquierda",
+  right: "Derecha",
+  both: "Tres en línea",
+  twoLeft: "Dos a la izquierda",
+  twoRight: "Dos a la derecha",
+  clear: "Libre",
+  fastClass: "{clase} por detrás, número {numero}",
+  fastClassNoName: "Clase rápida por detrás, número {numero}",
+  debris: "Debris",
+  incident: "Coche parado",
+  yellow: "Amarilla",
+  distance: " a {metros} metros",
+  fuelCritical: "Combustible crítico",
+  windowOpen: "Ventana de parada abierta",
+  boxNow: "Entra a boxes esta vuelta",
+  lastLap: "Última vuelta",
+  checkered: "Bandera a cuadros",
+  test: "Spotter activo. Izquierda. Derecha. Libre.",
+};
+const spotterPhrasesPath = path.join(app.getPath("userData"), "spotter-frases.json");
+
+function readSpotterPhrases() {
+  try {
+    if (!fs.existsSync(spotterPhrasesPath)) {
+      fs.writeFileSync(spotterPhrasesPath, JSON.stringify(SPOTTER_PHRASES_DEFAULT, null, 2), "utf8");
+    }
+    return JSON.parse(fs.readFileSync(spotterPhrasesPath, "utf8"));
+  } catch (err) {
+    console.warn("[iFuel] spotter-frases.json no se pudo leer (se usan las frases por defecto):", err.message);
+    return {};
+  }
+}
+function pushSpotterPhrases() {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("spotter:phrases", readSpotterPhrases());
+}
+ipcMain.handle("spotter:get-phrases", () => readSpotterPhrases());
 
 let overlayState = loadOverlayState() || { ...DEFAULT_OVERLAY_STATE };
 
@@ -367,6 +409,7 @@ const allowedKeys = new Set([
   "spotterVoice",
   "spotterAlerts",
   "spotterVolume",
+  "spotterMuted",
 ]);
 
 
@@ -649,6 +692,37 @@ function buildMenuTemplate() {
             sendOverlayState();
           },
         })),
+        {
+          label: "Voice alerts to say",
+          submenu: [
+            ["clear", "Libre (side clear)"],
+            ["fastClass", "Fast class behind"],
+            ["yellow", "Yellow / debris / stopped car"],
+            ["fuel", "Fuel critical"],
+            ["window", "Pit window open"],
+            ["box", "Box this lap"],
+            ["lastLap", "Last lap"],
+            ["checkered", "Checkered flag"],
+          ].map(([id, label]) => ({
+            label,
+            type: "checkbox",
+            checked: !overlayState.spotterMuted.includes(id),
+            click: (item) => {
+              const set = new Set(overlayState.spotterMuted);
+              if (item.checked) set.delete(id); else set.add(id);
+              overlayState.spotterMuted = [...set];
+              saveOverlayState();
+              sendOverlayState();
+            },
+          })),
+        },
+        {
+          label: "Edit phrases (opens spotter-frases.json)",
+          click: () => {
+            readSpotterPhrases(); // crea el archivo si no existe
+            shell.openPath(spotterPhrasesPath);
+          },
+        },
         { type: "separator" },
         {
           label: "Volume",
@@ -720,6 +794,8 @@ function createMenu() {
 function recreateMainWindow() {
   const old = mainWindow;
   mainWindow = null; // así el 'closed' de la ventana vieja no cuenta como "última ventana cerrada"
+  readSpotterPhrases(); // crea spotter-frases.json con los valores por defecto la primera vez
+  fs.watchFile(spotterPhrasesPath, { interval: 1500 }, () => pushSpotterPhrases());
   createWindow();
   if (old && !old.isDestroyed()) old.destroy();
 }

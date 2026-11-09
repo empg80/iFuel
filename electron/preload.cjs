@@ -31,6 +31,15 @@ contextBridge.exposeInMainWorld("ifuelOverlay", {
     ipcRenderer.send("overlay:mouse-capture", !!capture);
   },
 
+  /** Frases del spotter (spotter-frases.json del usuario) y aviso cuando se editan. */
+  getSpotterPhrases: () => ipcRenderer.invoke("spotter:get-phrases"),
+  onSpotterPhrases(callback) {
+    if (typeof callback !== "function") return () => {};
+    const listener = (_e, phrases) => callback(phrases);
+    ipcRenderer.on("spotter:phrases", listener);
+    return () => ipcRenderer.removeListener("spotter:phrases", listener);
+  },
+
   getState: () => ipcRenderer.invoke("overlay:get-state"),
 
   /**

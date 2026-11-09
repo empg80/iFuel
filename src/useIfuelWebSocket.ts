@@ -155,6 +155,7 @@ export type IfuelState = {
   estRefuel: number | null;
   fuelTime: string;
   sessionLapsRemainEx: number | null;
+  sessionFlags?: number;
   sessionTimeRemain: number | null;
 
   airTemp: number | null;
@@ -662,6 +663,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             estRefuel,
             fuelTime: fuelTimeStr,
             sessionLapsRemainEx: sessionLapsRemainEx ?? null,
+            sessionFlags: sessionFlags ?? 0,
             sessionTimeRemain: sessionTimeRemain ?? null,
             airTemp: airTemp ?? null,
             trackTemp: trackTemp ?? null,

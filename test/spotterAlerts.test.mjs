@@ -14,7 +14,7 @@ test("clase rápida: avisa una vez por coche y repite pasados 40 s", () => {
 });
 test("amarilla/debris con distancia redondeada, una sola vez", () => {
   let r = alertsFor(initialAlertMemory(), { yellow: { active: true, type: "debris", distanceMeters: 327, carNum: null }, nowMs: 0 });
-  assert.deepEqual(r.say, ["Escombros a 350 metros"]);
+  assert.deepEqual(r.say, ["Debris a 350 metros"]);
   r = alertsFor(r.mem, { yellow: { active: true, type: "debris", distanceMeters: 250, carNum: null }, nowMs: 100 });
   assert.deepEqual(r.say, []);
   r = alertsFor(r.mem, { yellow: null, nowMs: 200 });
@@ -29,5 +29,13 @@ test("combustible crítico, ventana abierta y box esta vuelta (solo en el flanco
   r = alertsFor(r.mem, { windowStatus: "window", pitLocked: true, pitSuggestedLap: 9, pitNextLap: 9, nowMs: 2 });
   assert.deepEqual(r.say, ["Entra a boxes esta vuelta"]);
   r = alertsFor(r.mem, { windowStatus: "window", pitLocked: true, pitSuggestedLap: 9, pitNextLap: 9, nowMs: 3 });
+  assert.deepEqual(r.say, []);
+});
+test("última vuelta y bandera a cuadros avisan una vez; se pueden silenciar", () => {
+  let r = alertsFor(initialAlertMemory(), { lastLap: true, nowMs: 0 });
+  assert.deepEqual(r.say, ["Última vuelta"]);
+  r = alertsFor(r.mem, { lastLap: true, checkered: true, nowMs: 1 });
+  assert.deepEqual(r.say, ["Bandera a cuadros"]);
+  r = alertsFor(initialAlertMemory(), { lastLap: true, muted: ["lastLap"], nowMs: 0 });
   assert.deepEqual(r.say, []);
 });

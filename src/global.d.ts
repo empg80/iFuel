@@ -20,6 +20,7 @@ declare global {
     spotterVoice?: boolean;
     spotterAlerts?: boolean;
     spotterVolume?: number;
+    spotterMuted?: string[];
     spotterTestNonce?: number;
 
     fuelScale?: number;
@@ -37,6 +38,8 @@ declare global {
       callback: (state: IfuelOverlayState) => void,
     ): () => void;
     setMouseCapture?(capture: boolean): void;
+    getSpotterPhrases?(): Promise<unknown>;
+    onSpotterPhrases?(callback: (phrases: unknown) => void): () => void;
   }
 
   interface Window {
