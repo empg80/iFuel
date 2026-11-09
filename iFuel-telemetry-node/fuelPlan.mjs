@@ -4,6 +4,8 @@
 
 import { computePitWindow } from "./pitWindow.mjs";
 
+// Más de ~25 h = "tiempo ilimitado" (práctica/test: iRacing pone 2 o 7 días); la 24 h de Daytona/Le Mans no llega a esto
+const UNLIMITED_TIME = 90000;
 const LAP_MODE_MAX = 1000; // SessionLapsRemainEx = 32767 significa "sin límite de vueltas"
 
 /**
@@ -46,7 +48,7 @@ export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired,
   if (lapsRemain === 0) return 0;
   // El reloj ya llegó a 0: iRacing puede volver a poner un valor raro, pero el final se calcula con T = 0
   if (timeExpired && lapTime > 0) return timedLaps({ T: 0, pct, lapTime, leader });
-  if (Number.isFinite(timeRemain) && timeRemain > 0 && timeRemain < 86400 * 3 && lapTime > 0) {
+  if (Number.isFinite(timeRemain) && timeRemain > 0 && timeRemain <= UNLIMITED_TIME && lapTime > 0) {
     return timedLaps({ T: timeRemain, pct, lapTime, leader });
   }
   return null;

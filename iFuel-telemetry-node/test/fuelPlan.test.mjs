@@ -157,3 +157,8 @@ test("carrera por tiempo: líder ya acabó -> sin vuelta extra; yo acabé -> 0 (
   assert.ok(Math.abs(lapsToRun({ ...base, leader: null }) - 0.35) < 0.01);
   assert.equal(lapsToRun({ ...base, finished: true }), 0);
 });
+
+test("tiempo ilimitado (práctica, 2 días): sin plan de paradas (beta.29)", () => {
+  assert.equal(lapsToRun({ lapsRemain: 32767, timeRemain: 172800, lapTime: 119, myPct: 0.2 }), null);
+  assert.ok(lapsToRun({ lapsRemain: 32767, timeRemain: 85000, lapTime: 119, myPct: 0.2 }) > 0); // 24 h reales sí
+});

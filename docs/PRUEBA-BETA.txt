@@ -56,6 +56,16 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.29
+---------------
+- Pit Clear Air estable: la vuelta recomendada ya no parpadea. Solo cambia si otra es mejor por 1 coche o más de forma
+  sostenida (6 s), el tráfico se suaviza en el tiempo y, cerca de la entrada a boxes, la decisión se bloquea
+  (si pone BOX NEXT LAP, se mantiene).
+- Margen de combustible (+/-) y demás botones: ahora se pueden pulsar con los widgets bloqueados, sin entrar en el
+  modo de mover widgets (el overlay solo captura el ratón mientras está sobre un botón).
+- Combustible en detalle completo: en sesiones de tiempo ilimitado (práctica/test) ya no calcula cientos de paradas,
+  y la lista de stints muestra como máximo 5 vueltas.
+
 NOVEDAD BETA.28
 ---------------
 - NUEVO (multiclase): aviso "CLASE #N te alcanza en X s" cuando un coche de otra clase y más rápido viene detrás

@@ -26,6 +26,11 @@ contextBridge.exposeInMainWorld("ifuelOverlay", {
    * Opcional: obtener el estado completo actual desde React
    * (usa ipcMain.handle('overlay:get-state') en main.cjs).
    */
+  /** Ratón sobre un control (botón, selector…) con el overlay en click-through: captura los clics solo ahí. */
+  setMouseCapture(capture) {
+    ipcRenderer.send("overlay:mouse-capture", !!capture);
+  },
+
   getState: () => ipcRenderer.invoke("overlay:get-state"),
 
   /**

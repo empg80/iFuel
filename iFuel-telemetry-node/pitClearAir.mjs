@@ -95,6 +95,8 @@ export function computePitClearAirSuggestion({
     return {
       suggestedLap: sorted[0].lap,
       options: sorted.slice(0, 3),
+      all: opts.map((o) => ({ lap: o.lap, weighted: o.weighted, trafficScore: o.trafficScore, direct: o.direct,
+        fastBehind: o.fastBehind, slowAhead: o.slowAhead, nearest: o.nearest, lossSeconds: o.lossSeconds })),
       nowScore: now.trafficScore, // si entras en el próximo paso por tu box
       nowFastBehind: now.fastBehind,
       nowSlowAhead: now.slowAhead,

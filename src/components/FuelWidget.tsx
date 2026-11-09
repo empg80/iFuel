@@ -76,9 +76,11 @@ export const FuelWidget = React.memo(function FuelWidget(props: FuelWidgetProps)
 
   const stintLapsText = useMemo(() => {
     if (!stintLaps || stintLaps.length === 0) return "--";
-    return stintLaps
+    const shown = stintLaps
+      .slice(0, 5)
       .map((lap, idx) => (idx === 0 ? `L${lap}` : ` · L${lap}`))
       .join("");
+    return stintLaps.length > 5 ? `${shown} …` : shown;
   }, [stintLaps]);
 
   return (

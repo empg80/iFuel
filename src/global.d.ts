@@ -29,6 +29,7 @@ declare global {
     onOverlayStateChanged(
       callback: (state: IfuelOverlayState) => void,
     ): () => void;
+    setMouseCapture?(capture: boolean): void;
   }
 
   interface Window {

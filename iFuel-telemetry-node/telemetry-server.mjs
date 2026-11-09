@@ -19,6 +19,7 @@ import { buildPitPasses } from "./pitPasses.mjs";
 import { computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
+import { createPitDecisionStabilizer } from "./pitDecision.mjs";
 import { computeFastTraffic } from "./fastTraffic.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
 import { createCarTracker, createTraceBuffer, CAR_VARS } from "./carData.mjs";
@@ -239,6 +240,7 @@ function startTelemetryLoop(
   let paceLastLap = null;
   let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
+  const pitDecision = createPitDecisionStabilizer(); // evita que la recomendación de Pit Clear Air parpadee
   let leaderState = { finished: false, pct: null }; // el líder ya cruzó la meta tras agotarse el reloj
   let sessionCache = { version: -1, data: null };
   let noDataSince = null;
@@ -349,7 +351,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
         resetPitAndStintState();
         pitLossTracker.reset();
         fuelModel.reset();
-        timeWasRunning = false; timeExpired = false; leaderState = { finished: false, pct: null };
+        pitDecision.reset(); timeWasRunning = false; timeExpired = false; leaderState = { finished: false, pct: null };
         paceLaps.length = 0; paceLastLap = null;
         yellowTracker.reset();
         carTracker.reset();
@@ -1044,7 +1046,9 @@ standings.sort((a, b) => a.position - b.position);
       pitClearAir.fuelEstimateLow = fplSource === "measured" && fuelModel.lapsMeasured < 1;
       pitClearAir.pitLossSeconds = pitLossSeconds;
       pitClearAir.pitLossMeasured = measuredPitLoss != null;
+      pitClearAir = pitDecision.stabilize(pitClearAir, { lapsToNextPit: passes[0].lapsToPit });
     } else if (windowInfo && windowInfo.status === "no-stop") {
+      pitDecision.reset();
       pitClearAir = { suggestedLap: null, options: [], nowScore: null, nowNearest: null, windowStatus: "no-stop",
         windowStartLap: null, windowEndLap: null, pitLossSeconds, pitLossMeasured: measuredPitLoss != null };
     } else if (

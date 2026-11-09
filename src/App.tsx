@@ -3,6 +3,7 @@ import React from "react";
 import { useIfuelWebSocket } from "./useIfuelWebSocket";
 import { useOverlayState } from "./contexts/useOverlayState";
 import { useApplyPitBoardLayout } from "./contexts/useApplyPitBoardLayout";
+import { useClickableControls } from "./contexts/useClickableControls";
 import { FreeLayout } from "./FreeLayout";
 import { PitboardLayout } from "./PitboardLayout";
 
@@ -14,6 +15,7 @@ const App: React.FC = () => {
   const mode = layoutMode ?? "free";
 
   useApplyPitBoardLayout();
+  useClickableControls();
 
   // Fallback mientras no haya estado de telemetría
   if (!state) {

@@ -86,7 +86,9 @@ export const FuelWidgetOverlay = React.memo(function FuelWidgetOverlay(
 
   const stintLapsText = useMemo(() => {
     if (!stintLaps || stintLaps.length === 0) return "--";
-    return stintLaps.map((lap) => `L${lap}`).join(" · ");
+    // máx. 5 entradas: con muchas paradas posibles la lista desbordaba el widget
+    const shown = stintLaps.slice(0, 5).map((lap) => `L${lap}`).join(" · ");
+    return stintLaps.length > 5 ? `${shown} …` : shown;
   }, [stintLaps]);
 
   const dash = (v: number) => (v > 0 ? formatFuel(v, 2) : "--");

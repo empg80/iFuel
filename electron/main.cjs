@@ -314,6 +314,13 @@ async function stopTelemetryServerInElectron() {
 }
 
 // (opcional/futuro) IPC seguro para leer/actualizar estado desde el renderer
+// Overlay bloqueado = click-through; el renderer avisa cuando el ratón está sobre un botón para dejarlo pulsar.
+ipcMain.on("overlay:mouse-capture", (event, capture) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return;
+  if (!windowIsOverlay || !overlayState.widgetsLocked) return;
+  mainWindow.setIgnoreMouseEvents(!capture, { forward: true });
+});
+
 ipcMain.handle("overlay:get-state", () => {
   return overlayState;
 });
