@@ -5,11 +5,11 @@ import { useSyncExternalStore } from "react";
 const KEY = "ifuel-safety-laps";
 const DEFAULT_LAPS = 1;
 const MIN = 0;
-const MAX = 3;
+const MAX = 5;
 
 function clamp(v: number): number {
   if (!Number.isFinite(v)) return DEFAULT_LAPS;
-  return Math.min(MAX, Math.max(MIN, Math.round(v * 2) / 2));
+  return Math.min(MAX, Math.max(MIN, Math.round(v * 4) / 4));
 }
 
 function read(): number {

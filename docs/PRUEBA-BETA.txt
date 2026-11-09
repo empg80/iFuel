@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.32
+---------------
+- Margen de seguridad de combustible: ahora de 0 a 5 vueltas en pasos de 0,25 (antes de 0,5 en 0,5 hasta 3).
+  El valor guardado se conserva.
+
 NOVEDAD BETA.31
 ---------------
 - Spotter: "Tres en línea" (antes "Tres anchos"), "Debris" (antes "Escombros") y avisos nuevos "Última vuelta"

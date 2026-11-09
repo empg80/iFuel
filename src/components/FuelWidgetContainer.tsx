@@ -72,9 +72,9 @@ const FuelSettingsPanel = React.memo(function FuelSettingsPanel() {
   return (
     <div className="fuel-settings">
       <span className="fuel-settings__label">SAFETY MARGIN</span>
-      <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps - 0.5)} aria-label="Less margin">−</button>
-      <span className="fuel-settings__value">{laps.toFixed(1)} laps</span>
-      <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps + 0.5)} aria-label="More margin">+</button>
+      <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps - 0.25)} aria-label="Less margin">−</button>
+      <span className="fuel-settings__value">{laps.toFixed(2)} laps</span>
+      <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps + 0.25)} aria-label="More margin">+</button>
     </div>
   );
 });
