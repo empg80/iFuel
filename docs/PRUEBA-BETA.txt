@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.28
+---------------
+- NUEVO (multiclase): aviso "CLASE #N te alcanza en X s" cuando un coche de otra clase y más rápido viene detrás
+  (con el color de su clase). Aparece arriba en el layout free y sobre el anillo en el pitboard. Prueba en una carrera
+  multiclase y dime si avisa a tiempo y si molesta (avisa si te alcanza en menos de 60 s).
+
 NOVEDAD BETA.27
 ---------------
 - ARREGLADO (carreras por tiempo): tras agotarse el reloj iRacing reinicia el tiempo restante a otro valor y el líder ya habia cruzado la meta,

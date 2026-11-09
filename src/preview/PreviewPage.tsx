@@ -144,6 +144,7 @@ function Scene({ scene }: { scene: string }) {
       onTrackAhead: onAhead, onTrackBehind: onBehind, classColorIndexById: { 4011: 0, 4029: 1 }, classNames: { 4011: "GTP", 4029: "LMP2" },
       fuelPlan: { perLap: 2.78, perLapSource: "laps", status: "window", stops: 1, stintLaps: [16, 12], litersToAdd: 27.5, litersNextStop: 27.5, windowStartLap: 14, windowEndLap: 18, remainingLaps: 28 },
       pitClearAir: { suggestedLap: 16, nowScore: 0, nextPitLap: 16, pitLossSeconds: 45, pitLossMeasured: true, windowStatus: "window", litersNeeded: 27.5, options: [{ lap: 15, trafficScore: 2 }, { lap: 16, trafficScore: 0 }, { lap: 17, trafficScore: 1 }] },
+      fastTraffic: { carNum: "7", classId: 4029, gapSeconds: 6.2, catchInSeconds: 24, count: 2 },
       standings: big, playerCarNumber: "8", isReplayPlaying: false, lapDistPct: 0.72, onPitRoad: false,
       cars: [["7", 0.12, 60, 3, 4011, 0], ["8", 0.31, 60, 3, 4011, 0], ["33", 0.55, 60, 3, 4011, 0], ["62", 0.81, 55, 3, 2523, 0], ["19", 0.93, 55, 3, 2523, 0], ["91", 0.66, 60, 3, 4011, 0]],
       carData: {

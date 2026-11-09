@@ -19,6 +19,7 @@ import { buildPitPasses } from "./pitPasses.mjs";
 import { computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
+import { computeFastTraffic } from "./fastTraffic.mjs";
 import { createYellowTracker } from "./yellowWarning.mjs";
 import { createCarTracker, createTraceBuffer, CAR_VARS } from "./carData.mjs";
 
@@ -414,6 +415,7 @@ const carSpeeds = trackCarSpeeds({
 let relative = { myPosition: null, ahead: null, behind: null };
 let relativeOnTrack = { ahead: null, behind: null };
 let yellowWarning = null;
+let fastTraffic = null; // M1: coche de otra clase más rápido que te alcanza
 let pitClearAir = { suggestedLap: null, options: [], nowScore: null, nowNearest: null, pitLossSeconds: null, pitLossMeasured: false };
 let standings = [];
 // coches en el mundo, formato compacto [número, %vuelta, velocidad m/s, superficie, clase, boxes]:
@@ -1087,6 +1089,9 @@ standings.sort((a, b) => a.position - b.position);
         baseLapTime,
         sessionTime,
       });
+      fastTraffic = computeFastTraffic({
+        myIdx: driverIdx, myClassId: carIdxClass[driverIdx] ?? null, myPct, myPace: baseLapTime, cars,
+      });
     }
 
     const bestLapTime = driverIdx >= 0 && carIdxBestLapTime[driverIdx] > 0
@@ -1135,6 +1140,7 @@ standings.sort((a, b) => a.position - b.position);
   cars: carsCompact,
   fuelPlan,
   yellowWarning,
+  fastTraffic,
   pitClearAir,
   standings,
   cameraCarNumber,

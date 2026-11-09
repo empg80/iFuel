@@ -5,6 +5,7 @@ import type { StandingsRow } from "./types/standings";
 import { useOverlayState } from "./contexts/useOverlayState";
 import { FuelWidgetContainer } from "./components/FuelWidgetContainer";
 import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContainer";
+import { FastTrafficBanner } from "./components/FastTrafficBanner";
 import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
 import { PitClearAirWidgetContainer } from "./components/PitClearAirWidgetContainer";
 import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
@@ -61,6 +62,7 @@ export const FreeLayout: React.FC<FreeLayoutProps> = ({
         sendMessage={sendMessage}
       />
       <RelativeWidgetContainer state={state} isConnected={isConnected} />
+      <FastTrafficBanner state={state} />
       <YellowFlagWidgetContainer state={state} isConnected={isConnected} />
 
       {layoutMode !== "replay" && (

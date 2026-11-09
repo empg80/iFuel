@@ -159,3 +159,9 @@ El token de GitHub compartido en la conversación debe revocarse cuando termine 
 - Fallo: ritmo de referencia = última vuelta (138,9 s con boxes vs ~110 s reales) -> ~2 vueltas de menos; corregido con mediana de vueltas limpias.
 - Fallo: al agotarse el reloj faltaba la vuelta extra si el líder cruza después; corregido (`timedLaps`).
 - Pit clear air: pasos filtrados por hueco en el depósito (`pitPasses.mjs`).
+
+
+## Estado a beta.28 (2026-11-09)
+Hecho desde beta.19 y validado por Kike en iRacing: K1 (anillo de pista con sectores y coches), K2 (pitboard DNR 1280x800), N1 (delta), N4 (traza acelerador/freno), neumáticos (último dato de boxes), ajustes del coche (BIAS/TC/ABS), M3 (standings por clase con GAP al de delante), fix de arranque (variables del SDK ausentes en el coche), fix de fin de carrera por tiempo y por vueltas (beta.24, 26, 27).
+Hecho en beta.28, pendiente de validar en carrera multiclase: **M1** aviso de clase más rápida que te alcanza por detrás (`fastTraffic.mjs`, banner con color de clase, en free y pitboard).
+Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en C2, C6 (segundos de aire limpio), M4 (relative tintado por clase), M5 (final por clase), N3 (widgets como fuente de navegador para OBS), E3 (instalador y firma).

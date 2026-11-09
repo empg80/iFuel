@@ -36,7 +36,7 @@
 .pb-root .pb-area-standings { grid-area: standings; min-height: 0; overflow: hidden; }
 /* columnas centrales independientes: lo que tiene altura propia la conserva y el resto reparte el sobrante */
 .pb-root .pb-col { display: flex; flex-direction: column; gap: 8px; min-height: 0; min-width: 0; }
-.pb-root .pb-col--mid { grid-area: mid; }
+.pb-root .pb-col--mid { grid-area: mid; position: relative; }
 .pb-root .pb-col--right { grid-area: right; }
 .pb-root .pb-area-ring { flex: 1 1 0; min-height: 120px; }
 .pb-root .pb-area-fuel, .pb-root .pb-area-tyres, .pb-root .pb-area-relative, .pb-root .pb-area-pit { flex: none; }

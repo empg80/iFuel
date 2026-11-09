@@ -98,6 +98,7 @@ type RawMessage = {
   fuelPlan?: FuelPlan | null;
 
   yellowWarning?: YellowWarning;
+  fastTraffic?: FastTraffic | null;
   pitClearAir?: PitClearAir;
   standings?: StandingsRowPayload[];
   cameraCarNumber?: string | number | null;
@@ -176,6 +177,7 @@ export type IfuelState = {
   fuelPlan?: FuelPlan | null;
 
   yellowWarning?: YellowWarning;
+  fastTraffic?: FastTraffic | null;
   pitClearAir?: PitClearAir;
   standings?: StandingsRow[];
   cameraCarNumber?: string | null;
@@ -302,6 +304,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             classNames,
             fuelPlan,
             yellowWarning,
+            fastTraffic,
             pitClearAir,
             standings: standingsRaw,
             cameraCarNumber: rawCameraCarNumber,
@@ -669,6 +672,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             classColorIndexById: classColorIndexById ?? undefined,
             classNames: classNames ?? undefined,
             yellowWarning: yellowWarning ?? null,
+            fastTraffic: fastTraffic ?? null,
             pitClearAir: pitClearAir ?? null,
             standings,
             cameraCarNumber,

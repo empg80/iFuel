@@ -2,6 +2,7 @@
 import React from "react";
 import type { IfuelState } from "./useIfuelWebSocket";
 import type { StandingsRow } from "./types/standings";
+import { FastTrafficBanner } from "./components/FastTrafficBanner";
 import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
 import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
 import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContainer";
@@ -64,6 +65,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
         />
       </div>
       <div className="pb-col pb-col--mid">
+        <FastTrafficBanner state={state} variant="pitboard" />
         <div className="pb-area-ring">
           <TrackRing
             cars={state?.cars ?? []}
