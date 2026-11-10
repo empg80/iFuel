@@ -1,4 +1,5 @@
 import type { Side } from "./logic";
+import { isNaturalVoice, speakNatural, stopNatural } from "./natural";
 
 export type SpotterSettings = {
   spotterEnabled: boolean; // spotter lateral (tonos / voz)
@@ -6,10 +7,11 @@ export type SpotterSettings = {
   spotterVoice: boolean; // palabras del spotter lateral
   spotterAlerts: boolean; // avisos de voz: clase rápida, amarilla, combustible, box
   spotterVolume: number; // 0.1 .. 1
+  spotterVoiceName: string; // "claude" | "dave" | "system"
 };
 
 export const DEFAULT_SPOTTER: SpotterSettings = {
-  spotterEnabled: true, spotterTones: true, spotterVoice: true, spotterAlerts: true, spotterVolume: 0.8,
+  spotterEnabled: true, spotterTones: true, spotterVoice: true, spotterAlerts: true, spotterVolume: 0.8, spotterVoiceName: "claude",
 };
 
 let ctx: AudioContext | null = null;
@@ -57,10 +59,11 @@ function pickVoice(): SpeechSynthesisVoice | null {
 }
 
 /** Habla en español. `interrupt` corta lo que esté sonando (el spotter lateral manda sobre los avisos). */
-export function speak(text: string, volume: number, interrupt = false) {
+export function speak(text: string, volume: number, interrupt = false, voiceName = "system") {
+  if (isNaturalVoice(voiceName) && speakNatural(text, voiceName, volume, interrupt)) return;
   const synth = window.speechSynthesis;
   if (!synth) return;
-  if (interrupt) synth.cancel();
+  if (interrupt) { synth.cancel(); stopNatural(); }
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "es-ES";
   const v = pickVoice();

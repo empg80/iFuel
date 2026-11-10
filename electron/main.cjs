@@ -174,6 +174,7 @@ const DEFAULT_OVERLAY_STATE = {
   spotterVoice: true,
   spotterAlerts: true,
   spotterVolume: 0.8,
+  spotterVoiceName: "claude", // claude | dave (voces naturales pregrabadas) | system (voz de Windows)
   spotterMuted: [], // avisos de voz silenciados uno a uno
   spotterTestNonce: 0,
   overlayDisplayId: null, // monitor donde se dibuja el overlay (null = principal)
@@ -215,6 +216,7 @@ function validateOverlayState(candidate) {
     if (typeof candidate[key] !== "boolean") return false;
   }
   if (!Array.isArray(candidate.spotterMuted) || !candidate.spotterMuted.every((x) => typeof x === "string")) return false;
+  if (!["claude", "dave", "system"].includes(candidate.spotterVoiceName)) return false;
   if (typeof candidate.spotterVolume !== "number" || !(candidate.spotterVolume >= 0.1 && candidate.spotterVolume <= 1)) {
     return false;
   }
@@ -410,6 +412,7 @@ const allowedKeys = new Set([
   "spotterAlerts",
   "spotterVolume",
   "spotterMuted",
+  "spotterVoiceName",
 ]);
 
 
@@ -722,6 +725,23 @@ function buildMenuTemplate() {
             readSpotterPhrases(); // crea el archivo si no existe
             shell.openPath(spotterPhrasesPath);
           },
+        },
+        {
+          label: "Voice",
+          submenu: [
+            ["claude", "Claude (natural, Latin American)"],
+            ["dave", "Dave (natural, Spain)"],
+            ["system", "Windows system voice"],
+          ].map(([id, label]) => ({
+            label,
+            type: "radio",
+            checked: overlayState.spotterVoiceName === id,
+            click: () => {
+              overlayState.spotterVoiceName = id;
+              saveOverlayState();
+              sendOverlayState();
+            },
+          })),
         },
         { type: "separator" },
         {

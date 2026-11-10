@@ -11,6 +11,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'", // React usa atributos style
   "img-src 'self' data:",
   "font-src 'self' data:",
+  "media-src 'self'",
   "connect-src ws://127.0.0.1:7071",
   "object-src 'none'",
   "base-uri 'none'",

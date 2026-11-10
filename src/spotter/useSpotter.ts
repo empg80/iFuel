@@ -5,6 +5,7 @@ import { onSpotter } from "./bus";
 import { calloutFor, CLEAR_HOLD_MS } from "./logic";
 import { alertsFor, initialAlertMemory, type AlertMemory } from "./alerts";
 import { getPhrases, setPhrases } from "./phrases";
+import { isNaturalVoice, preloadVoice } from "./natural";
 import { DEFAULT_SPOTTER, playTone, speak, type SpotterSettings } from "./engine";
 
 /** Spotter de audio: lateral (CarLeftRight a 20 Hz) y avisos de voz del estado. */
@@ -26,6 +27,10 @@ export function useSpotter(state: IfuelState | null) {
     return !s || !!s.isReplayPlaying || !!s.onPitRoad;
   };
 
+  useEffect(() => {
+    if (isNaturalVoice(cfg.spotterVoiceName)) preloadVoice(cfg.spotterVoiceName);
+  }, [cfg.spotterVoiceName]);
+
   // frases personalizadas (spotter-frases.json)
   useEffect(() => {
     const api = window.ifuelOverlay;
@@ -44,7 +49,7 @@ export function useSpotter(state: IfuelState | null) {
         const k = cfgRef.current;
         if (!k.spotterEnabled || silent()) return;
         if (k.spotterTones) playTone(c.side, k.spotterVolume);
-        if (k.spotterVoice) speak(c.text, k.spotterVolume, true);
+        if (k.spotterVoice) speak(c.text, k.spotterVolume, true, k.spotterVoiceName);
       };
       if (c.kind === "clear") clearTimer.current = setTimeout(fire, CLEAR_HOLD_MS);
       else fire();
@@ -71,7 +76,7 @@ export function useSpotter(state: IfuelState | null) {
     });
     memRef.current = r.mem;
     if (!k.spotterAlerts || !k.spotterEnabled || silent()) return;
-    for (const t of r.say) speak(t, k.spotterVolume, false);
+    for (const t of r.say) speak(t, k.spotterVolume, false, k.spotterVoiceName);
   }, [state]);
 
   // "Probar sonido" del menú
@@ -82,6 +87,6 @@ export function useSpotter(state: IfuelState | null) {
     const k = cfgRef.current;
     playTone("left", k.spotterVolume);
     setTimeout(() => playTone("right", k.spotterVolume), 350);
-    setTimeout(() => speak(getPhrases().test, k.spotterVolume, true), 800);
+    setTimeout(() => speak(getPhrases().test, k.spotterVolume, true, k.spotterVoiceName), 800);
   }, [testNonce]);
 }

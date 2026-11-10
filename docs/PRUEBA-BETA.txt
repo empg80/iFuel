@@ -56,6 +56,14 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.33 - VOCES NATURALES DEL SPOTTER
+  - Menú Spotter > Voice: "Claude" (latino, por defecto), "Dave" (España) o "Windows system voice".
+  - Son frases pregrabadas (Piper, offline). Si editas una frase con palabras no grabadas,
+    esa frase se dice con la voz de Windows automáticamente.
+  - Prueba "Test sound" con cada voz y dinos cuál prefieres y si algo suena cortado/raro
+    (números de coche, clases, "por detrás").
+  - Créditos: voz Claude (es_MX, CC0), voz Dave (es_ES, Apache-2.0), modelos Piper.
+
 NOVEDAD BETA.32
 ---------------
 - Margen de seguridad de combustible: ahora de 0 a 5 vueltas en pasos de 0,25 (antes de 0,5 en 0,5 hasta 3).

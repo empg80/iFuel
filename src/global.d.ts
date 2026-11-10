@@ -21,6 +21,7 @@ declare global {
     spotterAlerts?: boolean;
     spotterVolume?: number;
     spotterMuted?: string[];
+    spotterVoiceName?: string;
     spotterTestNonce?: number;
 
     fuelScale?: number;
