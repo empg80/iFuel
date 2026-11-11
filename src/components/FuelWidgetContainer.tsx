@@ -255,6 +255,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
     earliestPitLap: earliestPitLap,
     totalStops: totalStops,
     stintLaps: stintLaps,
+    saving: state?.fuelPlan?.saving ?? null,
     lapHistoryLast5: lapHistoryLast5,
     lapHistoryLast30: lapHistoryLast30,
     sessionLabel: sessionLabel,

@@ -162,3 +162,20 @@ test("tiempo ilimitado (práctica, 2 días): sin plan de paradas (beta.29)", () 
   assert.equal(lapsToRun({ lapsRemain: 32767, timeRemain: 172800, lapTime: 119, myPct: 0.2 }), null);
   assert.ok(lapsToRun({ lapsRemain: 32767, timeRemain: 85000, lapTime: 119, myPct: 0.2 }) > 0); // 24 h reales sí
 });
+
+import { fuelSaving } from "../fuelPlan.mjs";
+test("fuelSaving: una vuelta más con el depósito actual", () => {
+  const r = fuelSaving({ fuelLevel: 20, fuelPerLap: 2.0, remaining: 50, stops: 2 });
+  assert.equal(r.mode, "extra-lap");
+  assert.equal(r.targetLaps, 11);
+  assert.ok(Math.abs(r.savePerLap - (2 - 20 / 11)) < 1e-9);
+});
+test("fuelSaving: evitar parada si falta poco", () => {
+  const r = fuelSaving({ fuelLevel: 20, fuelPerLap: 2.0, remaining: 10.5, stops: 1 });
+  assert.equal(r.mode, "avoid-stop");
+  assert.ok(r.realistic);
+});
+test("fuelSaving: sin datos o ya llegas -> null", () => {
+  assert.equal(fuelSaving({ fuelLevel: 20, fuelPerLap: 0, remaining: 5, stops: 0 }), null);
+  assert.equal(fuelSaving({ fuelLevel: 20, fuelPerLap: 2, remaining: 5, stops: 0 }), null);
+});

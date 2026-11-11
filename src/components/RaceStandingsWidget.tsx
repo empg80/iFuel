@@ -17,6 +17,13 @@ function formatInterval(row: StandingsRow, ahead: StandingsRow | undefined): str
   return `+${g < 100 ? g.toFixed(1) : Math.round(g)}`;
 }
 
+const PENALTY: Record<string, { txt: string; cls: string; title: string }> = {
+  black: { txt: "⚑ NEGRA", cls: "black", title: "Bandera negra (sanción)" },
+  dq: { txt: "DQ", cls: "black", title: "Descalificado" },
+  repair: { txt: "⚑ NARANJA", cls: "repair", title: "Bandera naranja: reparar" },
+  warn: { txt: "⚑ AVISO", cls: "warn", title: "Bandera negra y blanca: aviso" },
+};
+
 function formatPit(sec: number | null): string {
   if (sec == null) return "--.-";
   return sec.toFixed(1);
@@ -58,6 +65,8 @@ export function RaceStandingsWidget({
           {multi && <span>CLS</span>}
           <span>#</span>
           <span>DRIVER</span>
+          <span>iR</span>
+          <span>INC</span>
           <span>BEST LAP</span>
           <span>GAP</span>
           <span className="race-standings__h-stint">STINT</span>
@@ -109,7 +118,19 @@ export function RaceStandingsWidget({
                     </span>
                     <span className="race-standings__cell race-standings__cell--driver">
                       {isMe && <span className="race-standings__me-mark" aria-hidden="true">▶</span>}
-                      {row.driverName}
+                      <span className="race-standings__name">{row.driverName}</span>
+                      {row.inPit && <span className="race-standings__tag race-standings__tag--pit" title="En boxes">PIT</span>}
+                      {row.penalty && (
+                        <span className={clsx("race-standings__tag", `race-standings__tag--${PENALTY[row.penalty].cls}`)} title={PENALTY[row.penalty].title}>
+                          {PENALTY[row.penalty].txt}
+                        </span>
+                      )}
+                    </span>
+                    <span className="race-standings__cell race-standings__cell--ir">
+                      {row.iRating != null ? (row.iRating >= 1000 ? `${(row.iRating / 1000).toFixed(1)}k` : row.iRating) : "–"}
+                    </span>
+                    <span className={clsx("race-standings__cell race-standings__cell--inc", (row.incidents ?? 0) >= 12 && "is-high")}>
+                      {row.incidents ?? "–"}x
                     </span>
                     <span className="race-standings__cell race-standings__cell--best">
                       {formatLapTimeSeconds(row.bestLapTime)}

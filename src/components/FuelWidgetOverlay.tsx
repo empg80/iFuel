@@ -1,3 +1,4 @@
+import { FuelSavingLine } from "./FuelSavingLine";
 import React, { useMemo } from "react";
 import type { FuelWidgetProps } from "./FuelWidget";
 import { FuelHistoryMiniChart } from "./FuelHistoryMiniChart";
@@ -59,6 +60,7 @@ export const FuelWidgetOverlay = React.memo(function FuelWidgetOverlay(
     earliestPitLap,
     totalStops,
     stintLaps,
+    saving,
     lapHistoryLast5,
     lapHistoryLast30,
     sessionLabel,
@@ -184,6 +186,8 @@ export const FuelWidgetOverlay = React.memo(function FuelWidgetOverlay(
             />
             <Stat label="STINTS" value={stintLapsText} align="right" />
           </div>
+
+          <FuelSavingLine saving={saving} />
 
           {lapHistoryLast30 && lapHistoryLast30.length > 0 && (
             <FuelHistogramMini history={lapHistoryLast30} />

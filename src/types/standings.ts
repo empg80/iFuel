@@ -14,6 +14,9 @@ export type StandingsRow = {
   pitStops: number;
   inPit: boolean;
   carModel: string;
+  iRating: number | null;
+  incidents: number | null;
+  penalty: "black" | "dq" | "repair" | "warn" | null;
 };
 
 export type RaceStandingsWidgetProps = {

@@ -56,6 +56,18 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.34 - PITBOARD REDISEÑADO Y MÁS DATOS
+  - Pitboard reorganizado en 3 zonas: Standings | Estrategia (fuel, pit clear air, neumáticos) | Rivales y pista.
+  - Panel de batalla nuevo: coche, hueco y tendencia (verde = bien, rojo = mal) de delante y detrás, carril de huecos
+    y los coches de delante/detrás en pista. (Solo en pitboard; el widget del layout libre no cambia aún.)
+  - Standings (libre y pitboard): etiqueta PIT, bandera negra/naranja/aviso, iRating (2.5k) e incidentes (3x).
+  - Qualy: la cabecera muestra tiempo restante además de vueltas.
+  - Fuel: línea "Ahorra X L/v y llegas sin parar / haces N vueltas".
+  Pendiente (siguiente tanda): mejores tiempos y consumo guardados por circuito/coche, widget del tiempo (lluvia),
+  pitlane helper, nuevo widget de batalla en el layout libre.
+  PRUEBA: en carrera comprueba que las banderas negra/naranja se ven en un coche sancionado y que el
+  número de incidentes cuadra con iRacing.
+
 NOVEDAD BETA.33 - VOCES NATURALES DEL SPOTTER
   - Menú Spotter > Voice: "Claude" (latino, por defecto), "Dave" (España) o "Windows system voice".
   - Son frases pregrabadas (Piper, offline). Si editas una frase con palabras no grabadas,

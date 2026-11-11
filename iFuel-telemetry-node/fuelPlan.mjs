@@ -129,3 +129,27 @@ export function updateLeaderFinished({ finished, pct }, { timeExpired, leaderPct
   const wrapped = pct != null && Number.isFinite(leaderPct) && pct > 0.8 && leaderPct < 0.2;
   return { finished: wrapped || (sessionState != null && sessionState >= 5), pct: Number.isFinite(leaderPct) ? leaderPct : pct };
 }
+
+/**
+ * Ahorro de combustible: cuántos litros/vuelta hay que ahorrar para
+ *  - "avoid-stop": llegar a meta sin parar (si falta poco: ahorro ≤ 8 % del consumo), o
+ *  - "extra-lap": hacer UNA vuelta más con el combustible actual.
+ * @returns {{mode:"avoid-stop"|"extra-lap", targetLaps:number, perLapNeeded:number, savePerLap:number, savePct:number, realistic:boolean}|null}
+ */
+export function fuelSaving({ fuelLevel, fuelPerLap, remaining, stops }) {
+  if (!(fuelPerLap > 0) || !(fuelLevel > 0)) return null;
+  const lapsOnFuel = fuelLevel / fuelPerLap;
+  let mode, target;
+  if (stops > 0 && remaining > 0 && remaining > lapsOnFuel && remaining <= lapsOnFuel * 1.12) {
+    mode = "avoid-stop";
+    target = remaining;
+  } else {
+    mode = "extra-lap";
+    target = Math.floor(lapsOnFuel) + 1;
+    if (stops === 0 && remaining > 0 && lapsOnFuel >= remaining) return null; // ya llegas
+  }
+  const needed = fuelLevel / target;
+  const save = fuelPerLap - needed;
+  const pct = save / fuelPerLap;
+  return { mode, targetLaps: target, perLapNeeded: needed, savePerLap: save, savePct: pct, realistic: pct <= 0.08 };
+}

@@ -41,7 +41,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
         <PitboardHeader
           position={myRow?.position ?? null}
           totalCars={raceStandingsRows.length || null}
-          timeRemain={timed ? (state?.sessionTimeRemain ?? null) : null}
+          timeRemain={state?.sessionTimeRemain != null && state.sessionTimeRemain > 0 && state.sessionTimeRemain < 90000 ? state.sessionTimeRemain : null}
           lapsRemain={!timed ? remain : null}
           lap={lap}
           lapsTotal={lapsTotal}
@@ -65,28 +65,9 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
         />
       </div>
       <div className="pb-col pb-col--mid">
-        <FastTrafficBanner state={state} variant="pitboard" />
-        <div className="pb-area-ring">
-          <TrackRing
-            cars={state?.cars ?? []}
-            myPct={state?.lapDistPct ?? null}
-            classColorIndexById={state?.classColorIndexById}
-            sectorStarts={car?.sectorStarts}
-            trackTemp={state?.trackTemp ?? null}
-            airTemp={state?.airTemp ?? null}
-            rainChance={state?.rainChance ?? null}
-          />
-        </div>
+        <div className="pb-sec">Estrategia</div>
         <div className="pb-area-fuel pitboard-widget">
           <FuelWidgetContainer variant="pitboard" state={state} isConnected={isConnected} sendMessage={sendMessage} />
-        </div>
-        <div className="pb-area-tyres">
-          <TyresPanel tyres={car?.tyres ?? null} compound={car?.compound ?? null} />
-        </div>
-      </div>
-      <div className="pb-col pb-col--right">
-        <div className="pb-area-relative pitboard-widget">
-          <RelativeWidgetContainer variant="pitboard" state={state} isConnected={isConnected} />
         </div>
         <div className="pb-area-pit pitboard-widget">
           <PitClearAirWidgetContainer
@@ -95,6 +76,27 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
             isConnected={isConnected}
             lapNumber={state?.lapNumber ?? null}
             earliestPitLap={state?.earliestPitLap ?? null}
+          />
+        </div>
+        <div className="pb-area-tyres">
+          <TyresPanel tyres={car?.tyres ?? null} compound={car?.compound ?? null} />
+        </div>
+      </div>
+      <div className="pb-col pb-col--right">
+        <div className="pb-sec">Rivales y pista</div>
+        <div className="pb-area-relative pitboard-widget">
+          <RelativeWidgetContainer variant="pitboard" state={state} isConnected={isConnected} />
+        </div>
+        <div className="pb-area-ring">
+          <FastTrafficBanner state={state} variant="pitboard" />
+          <TrackRing
+            cars={state?.cars ?? []}
+            myPct={state?.lapDistPct ?? null}
+            classColorIndexById={state?.classColorIndexById}
+            sectorStarts={car?.sectorStarts}
+            trackTemp={state?.trackTemp ?? null}
+            airTemp={state?.airTemp ?? null}
+            rainChance={state?.rainChance ?? null}
           />
         </div>
         <div className="pb-area-trace">

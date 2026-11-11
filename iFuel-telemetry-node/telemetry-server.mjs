@@ -1,4 +1,5 @@
 // telemetry-server.mjs
+import { penaltyFromFlags } from "./penalty.mjs";
 import { relativeGapSeconds } from "./relativeGap.mjs";
 import { computeStandingsGaps } from "./standingsGaps.mjs";
 import { WebSocketServer } from "ws";
@@ -16,7 +17,7 @@ import {
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { buildPitPasses } from "./pitPasses.mjs";
-import { computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
+import { fuelSaving, computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createPitDecisionStabilizer } from "./pitDecision.mjs";
@@ -69,7 +70,7 @@ const defaultCreateSdk = async () => {
 const TELEMETRY_VARS = [
   "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition", "CarIdxEstTime",
   "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct", "CarIdxLastLapTime",
-  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
+  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxSessionFlags", "PlayerCarMyIncidentCount", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
   "SessionState", "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
@@ -377,6 +378,8 @@ const carIdxLap = telemetry.CarIdxLap?.value ?? [];
 const carIdxEstTime = telemetry.CarIdxEstTime?.value ?? [];
 const carIdxLastLapTime = telemetry.CarIdxLastLapTime?.value ?? [];
 const carIdxBestLapTime = telemetry.CarIdxBestLapTime?.value ?? [];
+const carIdxSessionFlags = telemetry.CarIdxSessionFlags?.value ?? [];
+const myIncidentCount = telemetry.PlayerCarMyIncidentCount?.value?.[0] ?? null;
 
 // multi‑class
 const carIdxClass = telemetry.CarIdxClass?.value ?? [];
@@ -926,6 +929,9 @@ standings.push({
   pitStops,
   inPit,
   carModel,
+  iRating: driver?.IRating > 0 ? driver.IRating : null,
+  incidents: idx === driverIdx && myIncidentCount != null ? myIncidentCount : (driver?.CurDriverIncidentCount ?? null),
+  penalty: penaltyFromFlags(carIdxSessionFlags[idx] ?? 0),
 });
 
 
@@ -1021,6 +1027,7 @@ standings.sort((a, b) => a.position - b.position);
         litersNextStop: plan.litersToAdd == null ? null : Math.min(plan.litersToAdd, Math.max(0, fuelMax - fuelAtPit)),
         windowStartLap: windowInfo?.startLap ?? null, windowEndLap: windowInfo?.endLap ?? null,
         remainingLaps: plan.remainingLaps,
+        saving: fuelSaving({ fuelLevel, fuelPerLap: fpl, remaining: plan.remainingLaps ?? 0, stops: plan.stops ?? 0 }),
       };
     } else {
       fuelPlan = { perLap: fpl ?? null, perLapSource: fplSource, status: "unknown", stops: null, stintLaps: [], litersToAdd: null, litersNextStop: null, windowStartLap: null, windowEndLap: null, remainingLaps: null };

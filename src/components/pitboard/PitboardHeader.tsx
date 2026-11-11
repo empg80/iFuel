@@ -27,7 +27,9 @@ export const PitboardHeader: React.FC<Props> = ({ position, totalCars, timeRemai
   return (
     <div className="pb-panel pb-hd">
       {cell("Pos", <>{position ?? "–"}{totalCars ? <small>/{totalCars}</small> : null}</>, "pb-hd__pos")}
-      {lapsRemain != null ? cell("Restan", <>{lapsRemain}<small> v</small></>) : cell("Tiempo", clockStr(timeRemain))}
+      {timeRemain != null && cell("Tiempo", clockStr(timeRemain))}
+      {lapsRemain != null && cell("Restan", <>{lapsRemain}<small> v</small></>)}
+      {timeRemain == null && lapsRemain == null && cell("Tiempo", "–")}
       {cell("Vuelta", <>{lap ?? "–"}{lapsTotal ? <small>/{lapsTotal}</small> : null}</>)}
       {cell("Última", lapStr(lastLap))}
       {cell("Mejor", lapStr(bestLap), "pb-best")}

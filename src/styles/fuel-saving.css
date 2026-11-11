@@ -1,0 +1,2 @@
+.fuel-saving { margin: 6px 0 2px; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--ov-text-2, #bbb); background: rgba(255,255,255,0.06); }
+.fuel-saving.is-realistic { color: #7ee787; background: rgba(46,160,67,0.15); }

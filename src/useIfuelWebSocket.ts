@@ -57,6 +57,9 @@ type StandingsRowPayload = {
   pitStops: number;
   inPit: boolean;
   carModel?: string;
+  iRating?: number | null;
+  incidents?: number | null;
+  penalty?: "black" | "dq" | "repair" | "warn" | null;
 };
 
 type CameraDriverPayload = {
@@ -127,6 +130,15 @@ export type FuelPlan = {
   windowStartLap: number | null;
   windowEndLap: number | null;
   remainingLaps: number | null;
+  saving?: FuelSaving | null;
+};
+export type FuelSaving = {
+  mode: "avoid-stop" | "extra-lap";
+  targetLaps: number;
+  perLapNeeded: number;
+  savePerLap: number;
+  savePct: number;
+  realistic: boolean;
 };
 
 type LapSample = {
@@ -639,6 +651,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               pitStops: car.pitStops ?? 0,
               inPit: !!car.inPit,
               carModel: car.carModel ?? "",
+              iRating: car.iRating ?? null,
+              incidents: car.incidents ?? null,
+              penalty: car.penalty ?? null,
             })) ?? [];
 
           // Ventana, paradas y vueltas de parada: las del servidor, para que coincidan con el pit clear air

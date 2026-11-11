@@ -1,5 +1,7 @@
 import React, { useMemo } from "react";
 import { FuelHistoryMiniChart } from "./FuelHistoryMiniChart";
+import { FuelSavingLine } from "./FuelSavingLine";
+import type { FuelSaving } from "../useIfuelWebSocket";
 import { FuelHistogramMini } from "./FuelHistogramMini";
 import type { LapHistoryItem } from "../types/telemetry";
 import {
@@ -28,6 +30,7 @@ export type FuelWidgetProps = {
   earliestPitLap?: number | null;
   totalStops?: number | null;
   stintLaps?: number[];
+  saving?: FuelSaving | null;
   lapHistoryLast5?: LapHistoryItem[];
   lapHistoryLast30?: LapHistoryItem[];
 
@@ -54,6 +57,7 @@ export const FuelWidget = React.memo(function FuelWidget(props: FuelWidgetProps)
     earliestPitLap,
     totalStops,
     stintLaps,
+    saving,
     lapHistoryLast5,
     lapHistoryLast30,
     sessionLabel,
@@ -213,6 +217,8 @@ export const FuelWidget = React.memo(function FuelWidget(props: FuelWidgetProps)
           <div className="value">{stintLapsText}</div>
         </div>
       </div>
+
+      <FuelSavingLine saving={saving} />
 
       {lapHistoryLast30 && lapHistoryLast30.length > 0 && (
         <>

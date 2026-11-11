@@ -1,5 +1,6 @@
 // RelativeWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { BattlePanel } from "./pitboard/BattlePanel";
 import { RelativeWidget } from "./StandingBattleWidget";
 import { loadWidgetPosition, clampPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
@@ -127,7 +128,19 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
         STND {isConnected ? "ON" : "OFF"}
       </div>
 
-      {state && hasRelative ? (
+      {state && hasRelative && isPitboard ? (
+        <BattlePanel
+          ahead={ahead}
+          behind={behind}
+          myPosition={myPos}
+          myLastLap={state.lapTime}
+          myBestLap={state.myBestLapTime ?? null}
+          onTrackAhead={onTrackAhead}
+          onTrackBehind={onTrackBehind}
+          classColorIndexById={classColorIndexById}
+          classNames={classNames}
+        />
+      ) : state && hasRelative ? (
         <RelativeWidget
           ahead={ahead}
           behind={behind}
