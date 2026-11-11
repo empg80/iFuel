@@ -42,6 +42,7 @@ type YellowWarning = {
   carNum: number | string | null;
   classId: number | null;
   classPosition: number | null;
+  type?: "incident" | "debris" | null;
 } | null;
 
 type PitClearAir = PitClearAirData;
