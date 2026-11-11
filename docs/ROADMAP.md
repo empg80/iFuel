@@ -171,3 +171,7 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 > Tras beta.36: pitboard v2 (franja de avisos, plan de parada, radar grande) y fuente Barlow en el pitboard. En el árbol (sin beta aún): el battle nuevo también en el layout libre. Pendiente: aplicar lo que salga del report de la 36; C1, regla de la serie (C2), C6, M4, M5, N3, E3.
 
 > Beta.38: layout libre con los datos del pitboard (widgets Driver, Weather, Tyres/car), clic en Fuel alterna compacto/completo, C6 completo. Pendiente: C1, regla de la serie (C2), M4, M5, N3, E3.
+
+## Anotado tras beta.38 (pendiente para beta.39)
+- Botón o widget en el layout libre para pasar al pitboard (desde el pitboard ya es fácil volver al libre; al revés hoy hay que ir por el menú).
+- Recordar posición, tamaño y monitor de la ventana del pitboard entre aperturas (ahora hay que moverla cada vez al monitor de arriba).
