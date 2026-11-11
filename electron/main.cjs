@@ -156,6 +156,9 @@ const DEFAULT_OVERLAY_STATE = {
   yellowVisible: true,
   pitClearAirVisible: true,
   standingsVisible: true,
+  driverVisible: true,
+  weatherVisible: true,
+  carVisible: false,
   widgetsLocked: true,
   fuelSettingsVisible: false,
   replayVisible: false, // ventana de broadcast apagada por defecto
@@ -165,6 +168,9 @@ const DEFAULT_OVERLAY_STATE = {
   pitClearScale: 1,
   yellowScale: 1,
   standingsScale: 1,
+  driverScale: 1,
+  weatherScale: 1,
+  carScale: 1,
   layoutMode: "free",
 
   fuelDetail: "compact", // "compact" (datos clave) | "full" (todos los datos) en el widget de combustible
@@ -189,6 +195,9 @@ function validateOverlayState(candidate) {
     "yellowVisible",
     "pitClearAirVisible",
     "standingsVisible",
+    "driverVisible",
+    "weatherVisible",
+    "carVisible",
     "widgetsLocked",
     "fuelSettingsVisible",
     "replayVisible",
@@ -200,6 +209,9 @@ function validateOverlayState(candidate) {
     "pitClearScale",
     "yellowScale",
     "standingsScale",
+    "driverScale",
+    "weatherScale",
+    "carScale",
   ];
 
   for (const key of boolKeys) {
@@ -397,6 +409,9 @@ const allowedKeys = new Set([
   "yellowVisible",
   "pitClearAirVisible",
   "standingsVisible",
+  "driverVisible",
+  "weatherVisible",
+  "carVisible",
   "widgetsLocked",
   "fuelSettingsVisible",
   "fuelScale",
@@ -404,6 +419,9 @@ const allowedKeys = new Set([
   "pitClearScale",
   "yellowScale",
   "standingsScale",
+  "driverScale",
+  "weatherScale",
+  "carScale",
   "layoutMode",
   "replayVisible",
   "overlayMode",
@@ -558,6 +576,36 @@ function buildMenuTemplate() {
           },
         },
         {
+          label: "Show Driver (pos / incidents / laps)",
+          type: "checkbox",
+          checked: overlayState.driverVisible,
+          click: (item) => {
+            overlayState.driverVisible = item.checked;
+            saveOverlayState();
+            sendOverlayState();
+          },
+        },
+        {
+          label: "Show Weather",
+          type: "checkbox",
+          checked: overlayState.weatherVisible,
+          click: (item) => {
+            overlayState.weatherVisible = item.checked;
+            saveOverlayState();
+            sendOverlayState();
+          },
+        },
+        {
+          label: "Show Tyres / car settings",
+          type: "checkbox",
+          checked: overlayState.carVisible,
+          click: (item) => {
+            overlayState.carVisible = item.checked;
+            saveOverlayState();
+            sendOverlayState();
+          },
+        },
+        {
           label: "Show Yellow Flag",
           type: "checkbox",
           checked: overlayState.yellowVisible,
@@ -657,6 +705,9 @@ function buildMenuTemplate() {
 
         // Escala Pit Clear
         scaleMenu("Pit Clear size", "pitClearScale"),
+        scaleMenu("Driver size", "driverScale"),
+        scaleMenu("Weather size", "weatherScale"),
+        scaleMenu("Tyres / car size", "carScale"),
 
         { type: "separator" },
         {

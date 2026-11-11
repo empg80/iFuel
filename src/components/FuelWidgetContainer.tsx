@@ -9,7 +9,7 @@ import { FuelWidget } from "./FuelWidget";
 import { FuelWidgetOverlay } from "./FuelWidgetOverlay";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
-import { useSafetyLaps, setSafetyLaps } from "../utils/safetyMargin";
+import { useSafetyLaps, setSafetyLaps, useClearAirSeconds, setClearAirSeconds } from "../utils/safetyMargin";
 import { loadWidgetPosition, clampPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
@@ -69,12 +69,17 @@ const emptyState: IfuelState = {
 // Ajustes del widget de combustible: margen de seguridad (vueltas extra que se reservan al calcular litros)
 const FuelSettingsPanel = React.memo(function FuelSettingsPanel() {
   const laps = useSafetyLaps();
+  const clearAir = useClearAirSeconds();
   return (
     <div className="fuel-settings">
       <span className="fuel-settings__label">SAFETY MARGIN</span>
       <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps - 0.25)} aria-label="Less margin">−</button>
       <span className="fuel-settings__value">{laps.toFixed(2)} laps</span>
       <button type="button" className="fuel-settings__btn" onClick={() => setSafetyLaps(laps + 0.25)} aria-label="More margin">+</button>
+      <span className="fuel-settings__label">CLEAR AIR</span>
+      <button type="button" className="fuel-settings__btn" onClick={() => setClearAirSeconds(clearAir - 1)} aria-label="Less clear air seconds">−</button>
+      <span className="fuel-settings__value">±{clearAir} s</span>
+      <button type="button" className="fuel-settings__btn" onClick={() => setClearAirSeconds(clearAir + 1)} aria-label="More clear air seconds">+</button>
     </div>
   );
 });
@@ -148,9 +153,24 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
     };
   }, [isPitboard]);
 
+  // Clic (sin arrastrar) sobre el widget: alterna entre compacto y completo
+  const downPosRef = useRef<{ x: number; y: number } | null>(null);
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (isPitboard) return;
+      const d = downPosRef.current;
+      if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 4) return; // fue un arrastre
+      const target = e.target as HTMLElement;
+      if (target.closest("button, input, select, textarea, a")) return;
+      void window.ifuelOverlay?.updateState?.({ fuelDetail: fuelDetail === "full" ? "compact" : "full" });
+    },
+    [isPitboard, fuelDetail],
+  );
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (isPitboard) return;
+      downPosRef.current = { x: e.clientX, y: e.clientY };
       if (widgetsLocked) return;
 
       const target = e.target as HTMLElement;
@@ -280,6 +300,9 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
             }
       }
       onMouseDown={handleMouseDown}
+      onClick={handleClick}
+      data-clickable={isPitboard ? undefined : ""}
+      title={isPitboard ? undefined : "Clic: compacto / completo"}
     >
       {!hasState ? (
         <div className="fuel-widget">

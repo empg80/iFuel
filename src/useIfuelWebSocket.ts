@@ -1,6 +1,6 @@
 import type { CarData, PedalTrace, CompactCar } from "./types/car";
 import { planRefuel } from "./utils/refuelPlan";
-import { getSafetyLaps, useSafetyLaps } from "./utils/safetyMargin";
+import { getSafetyLaps, useSafetyLaps, useClearAirSeconds } from "./utils/safetyMargin";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import type { PitClearAirData } from "./types/pit";
 import type { StandingsRow } from "./types/standings";
@@ -791,6 +791,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
   const fuelPerLapRounded =
     fuelPerLapSrc && fuelPerLapSrc > 0 ? Math.round(fuelPerLapSrc * 100) / 100 : null;
   const pitSafetyLaps = useSafetyLaps();
+  const clearAirSeconds = useClearAirSeconds();
 
   useEffect(() => {
     if (!isConnected) return;
@@ -799,8 +800,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
       type: "updatePitStrategy",
       fuelPerLap: fuelPerLapRounded,
       safetyLaps: pitSafetyLaps,
+      clearAirSeconds,
     });
-  }, [fuelPerLapRounded, pitSafetyLaps, isConnected, sendMessage]);
+  }, [fuelPerLapRounded, pitSafetyLaps, clearAirSeconds, isConnected, sendMessage]);
 
   const raceStandingsRows: StandingsRow[] = useMemo(
     () => state?.standings ?? [],

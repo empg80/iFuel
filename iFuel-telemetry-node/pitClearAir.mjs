@@ -1,7 +1,7 @@
 // iFuel-telemetry-node/pitClearAir.mjs
 // Sugiere en qué vuelta entrar a boxes para salir con el menor tráfico posible.
 
-const CLEAR_AIR_SECONDS = 3; // ±3 s alrededor de tu salida cuentan como tráfico
+export const DEFAULT_CLEAR_AIR_SECONDS = 3; // ±3 s alrededor de tu salida cuentan como tráfico (ajustable)
 // Multiclase: un coche mucho más rápido que viene detrás te alcanzará y uno más lento por delante tendrás que
 // adelantarlo, aunque no esté pegado a tu salida. Cuentan la mitad que un coche pegado, si lo encuentras
 // dentro de CATCH_LAPS vueltas.
@@ -14,7 +14,7 @@ const CATCH_WEIGHT = 0.5;
  * Tu posición al salir es la que tendrías en pista habiendo perdido `pitDeltaSeconds`;
  * los rivales que siguen rodando avanzan todo el tiempo (rodar + parada).
  */
-function trafficAtExit({ lapsToGo, myPct, pitPct, cars, myIdx, baseLapTime, pitDeltaSeconds }) {
+function trafficAtExit({ lapsToGo, myPct, pitPct, cars, myIdx, baseLapTime, pitDeltaSeconds, clearAirSeconds = DEFAULT_CLEAR_AIR_SECONDS }) {
   // lapsToGo = vueltas (fraccionarias) hasta pasar por tu box. Con pitPct conocido sales cerca de tu box;
   // sin él (compatibilidad) se usa tu posición actual avanzada ese tiempo.
   const timeUntilPitIn = lapsToGo * baseLapTime;
@@ -43,7 +43,7 @@ function trafficAtExit({ lapsToGo, myPct, pitPct, cars, myIdx, baseLapTime, pitD
     if (dPct < -0.5) dPct += 1;
 
     const gapSeconds = dPct * baseLapTime; // + = el rival queda por delante de tu salida
-    if (Math.abs(gapSeconds) <= CLEAR_AIR_SECONDS) {
+    if (Math.abs(gapSeconds) <= clearAirSeconds) {
       direct++;
     } else {
       // Ritmo de cada coche: mejor vuelta (limpia) si existe, si no la última
@@ -76,13 +76,14 @@ export function computePitClearAirSuggestion({
   // info de fuel / carrera
   lapsRemainForRace,
   maxStintLapsFromFull,
+  clearAirSeconds = DEFAULT_CLEAR_AIR_SECONDS,
 }) {
   const empty = { suggestedLap: null, options: [], nowScore: null, nowNearest: null };
   if (Array.isArray(passes) && passes.length > 0 && Number.isFinite(baseLapTime) && baseLapTime > 0) {
     const opts = passes.map((p) => {
       const loss = Number.isFinite(p.lossSeconds) && p.lossSeconds > 0 ? p.lossSeconds : pitDeltaSeconds;
       const { trafficScore, weighted, direct, fastBehind, slowAhead, nearest } = trafficAtExit({
-        lapsToGo: p.lapsToPit, myPct, pitPct, cars, myIdx, baseLapTime, pitDeltaSeconds: loss,
+        lapsToGo: p.lapsToPit, myPct, pitPct, cars, myIdx, baseLapTime, pitDeltaSeconds: loss, clearAirSeconds,
       });
       return { lap: p.lap, trafficScore, weighted, direct, fastBehind, slowAhead, nearest, lossSeconds: loss };
     });
@@ -90,7 +91,7 @@ export function computePitClearAirSuggestion({
     const first = passes[0];
     const now = trafficAtExit({
       lapsToGo: first.lapsToPit, myPct, pitPct, cars, myIdx, baseLapTime,
-      pitDeltaSeconds: opts[0].lossSeconds,
+      pitDeltaSeconds: opts[0].lossSeconds, clearAirSeconds,
     });
     return {
       suggestedLap: sorted[0].lap,
@@ -134,7 +135,7 @@ export function computePitClearAirSuggestion({
     }
 
     const { trafficScore, nearest } = trafficAtExit({
-      lapsToGo, myPct, cars, myIdx, baseLapTime, pitDeltaSeconds,
+      lapsToGo, myPct, cars, myIdx, baseLapTime, pitDeltaSeconds, clearAirSeconds,
     });
     options.push({ lap: lapTarget, trafficScore, nearest });
   }

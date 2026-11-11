@@ -9,6 +9,7 @@ import { PitHelperPanel } from "./components/PitHelperPanel";
 import { FastTrafficBanner } from "./components/FastTrafficBanner";
 import { YellowFlagWidgetContainer } from "./components/YellowFlagWidgetContainer";
 import { PitClearAirWidgetContainer } from "./components/PitClearAirWidgetContainer";
+import { FreeInfoWidgets } from "./components/FreeInfoWidgets";
 import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
 
 type ServerStatus = "connected" | "connecting" | "disconnected";
@@ -74,6 +75,8 @@ export const FreeLayout: React.FC<FreeLayoutProps> = ({
           isConnected={isConnected}
         />
       )}
+
+      {layoutMode !== "replay" && <FreeInfoWidgets state={state} rows={raceStandingsRows} />}
 
       <PitClearAirWidgetContainer
         pitClearAir={state?.pitClearAir ?? null}

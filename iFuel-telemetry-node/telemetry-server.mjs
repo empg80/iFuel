@@ -157,6 +157,7 @@ let pitStrategyParams = {
   pitDeltaSeconds: 32, // tiempo total de pit estimado
   fuelPerLap: null, // consumo por vuelta (lo envía el cliente); con él la ventana sale del combustible real
   safetyLaps: 1,
+  clearAirSeconds: 3, // ±s alrededor de tu salida que cuentan como tráfico
 };
 
 // Cargar si existe (se invoca desde startTelemetryServer, cuando ya se conoce dataDir)
@@ -1075,6 +1076,7 @@ standings.sort((a, b) => a.position - b.position);
         pitPct: Number.isFinite(pitPct) ? pitPct : null,
         passes,
         pitDeltaSeconds: pitLossSeconds,
+        clearAirSeconds: pitStrategyParams.clearAirSeconds,
       });
       pitClearAir.windowStatus = windowInfo.status;
       pitClearAir.windowStartLap = passes[0].lap;
@@ -1106,6 +1108,7 @@ standings.sort((a, b) => a.position - b.position);
         pitDeltaSeconds: pitLossSeconds,
         lapsRemainForRace,
         maxStintLapsFromFull,
+        clearAirSeconds: pitStrategyParams.clearAirSeconds,
       });
       pitClearAir.windowStatus = "window";
       pitClearAir.windowStartLap = pitStrategyParams.pitWindowStartLap;
@@ -1363,7 +1366,7 @@ if (origin && !allowedOrigins.has(origin)) {
 
       switch (msg.type) {
         case "updatePitStrategy": {
-          const { pitWindowStartLap, pitWindowEndLap, pitDeltaSeconds, fuelPerLap, safetyLaps } = msg;
+          const { pitWindowStartLap, pitWindowEndLap, pitDeltaSeconds, fuelPerLap, safetyLaps, clearAirSeconds } = msg;
           const next = { ...pitStrategyParams };
 
           if (fuelPerLap !== undefined) {
@@ -1379,6 +1382,13 @@ if (origin && !allowedOrigins.has(origin)) {
               return;
             }
             next.safetyLaps = safetyLaps;
+          }
+          if (clearAirSeconds !== undefined) {
+            if (typeof clearAirSeconds !== "number" || !Number.isFinite(clearAirSeconds) || clearAirSeconds < 0.5 || clearAirSeconds > 10) {
+              console.warn("[iFuel] updatePitStrategy: clearAirSeconds inválido");
+              return;
+            }
+            next.clearAirSeconds = clearAirSeconds;
           }
           if (pitDeltaSeconds !== undefined) {
             if (typeof pitDeltaSeconds !== "number" || !Number.isFinite(pitDeltaSeconds) || pitDeltaSeconds <= 0 || pitDeltaSeconds > 600) {

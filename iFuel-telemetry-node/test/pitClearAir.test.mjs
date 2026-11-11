@@ -68,3 +68,11 @@ test("multiclase: un coche más lento por delante que alcanzarás cuenta; uno de
   assert.equal(r.options[0].slowAhead, 1);
   assert.equal(r.options[0].fastBehind, 0);
 });
+
+test("los segundos de aire limpio son configurables", () => {
+  const cars = [car(0, 0.5), car(1, 0.45)]; // sale 20 s por delante
+  const strict = f({ ...base, cars, pitWindowStartLap: 5, pitWindowEndLap: 5, clearAirSeconds: 25 });
+  assert.equal(strict.options[0].trafficScore, 1);
+  const lax = f({ ...base, cars, pitWindowStartLap: 5, pitWindowEndLap: 5, clearAirSeconds: 3 });
+  assert.equal(lax.options[0].trafficScore, 0);
+});

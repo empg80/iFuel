@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.38 - LAYOUT LIBRE CON LOS DATOS DEL PITBOARD
+- Widgets nuevos (menu Overlay > Show ...): Driver (posicion, incidentes propios, vuelta, tiempo, ultima/mejor/record, delta, sectores), Weather (estado, prob. lluvia, mojado, temperaturas, viento) y Tyres / car settings (desgaste, bias, TC, ABS; apagado por defecto). Arrastrables con los widgets desbloqueados y con su propio tamano.
+- Clic sobre el widget de Fuel: alterna compacto / completo (funciona tambien con el overlay bloqueado).
+- Panel de ajustes de Fuel: CLEAR AIR +/- segundos de aire limpio (1-10 s) para el pit clear air.
+
 NOVEDAD BETA.37 - BATTLE DEL LAYOUT LIBRE EN TARJETAS Y AJUSTES
   - Layout libre: el battle pasa a dos tarjetas compactas (delante / detrás) con el hueco en grande y color
     (verde = bien, rojo = mal), tu posición entre ambas y una línea de coches en pista. Tapa poco la pantalla.

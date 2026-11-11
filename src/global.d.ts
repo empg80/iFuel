@@ -8,6 +8,9 @@ declare global {
     yellowVisible?: boolean;
     pitClearAirVisible?: boolean;
     standingsVisible?: boolean;
+    driverVisible?: boolean;
+    weatherVisible?: boolean;
+    carVisible?: boolean;
     widgetsLocked?: boolean;
     /** La ventana principal es ahora mismo un overlay transparente sobre el juego (lo calcula main). */
     overlayActive?: boolean;
@@ -29,6 +32,9 @@ declare global {
     pitClearScale?: number;
     yellowScale?: number;
     standingsScale?: number;
+    driverScale?: number;
+    weatherScale?: number;
+    carScale?: number;
 
     layoutMode?: "free" | "pitboard" | "replay"; // añade "replay"
     replayVisible?: boolean; // opcional, para saber si la ventana está abierta
@@ -39,6 +45,7 @@ declare global {
       callback: (state: IfuelOverlayState) => void,
     ): () => void;
     setMouseCapture?(capture: boolean): void;
+    updateState?(partial: Partial<IfuelOverlayState>): Promise<unknown>;
     getSpotterPhrases?(): Promise<unknown>;
     onSpotterPhrases?(callback: (phrases: unknown) => void): () => void;
   }

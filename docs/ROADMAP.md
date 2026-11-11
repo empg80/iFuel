@@ -49,7 +49,7 @@ Pendiente de validar: litros y ventana en una parada de carrera por tiempo y por
 | C3 | Distinguir rivales más rápidos y más lentos que tú, y si tendrías que adelantarlos; en multiclase, ver M2 | M | **Hecho en beta.16 (`pitClearAir.mjs`: más rápidos que te alcanzan y más lentos que adelantarás pesan 0,5)**; falta validar en iRacing |
 | C4 | Tiempo de repostaje: pérdida de parada según litros a poner (no solo la última parada) | S | **Hecho en beta.9 (`pitLoss.lossFor`)**; falta validar con dos paradas reales |
 | C5 | Instrucción única y grande: "BOX AHORA: aire limpio" / "ESPERA N vueltas: pasas de X coches a Y" | S | **Hecho en beta.16 (nuevo widget: frase grande + barra de salida + barras de vueltas)**; falta probar en carrera real |
-| C6 | Umbrales configurables (segundos de aire limpio, margen de combustible) | S | **Parcial en beta.16: margen de combustible ajustable (±0,5 vueltas) en el panel de ajustes**; faltan los segundos de aire limpio |
+| C6 | Umbrales configurables (segundos de aire limpio, margen de combustible) | S | **Parcial en beta.16: margen de combustible ajustable (±0,5 vueltas) en el panel de ajustes**; **completo en beta.38: segundos de aire limpio ajustables (1-10 s)** |
 | C7 | Validar el modelo contra grabaciones con paradas y tráfico real | M | Informe de aciertos del modelo |
 
 ### P2 — Experiencia y distribución (lo que impide competir hoy)
@@ -169,3 +169,5 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 > beta.33: spotter con voces naturales pregrabadas (Claude MX / Dave ES) + fallback a voz del sistema.
 
 > Tras beta.36: pitboard v2 (franja de avisos, plan de parada, radar grande) y fuente Barlow en el pitboard. En el árbol (sin beta aún): el battle nuevo también en el layout libre. Pendiente: aplicar lo que salga del report de la 36; C1, regla de la serie (C2), C6, M4, M5, N3, E3.
+
+> Beta.38: layout libre con los datos del pitboard (widgets Driver, Weather, Tyres/car), clic en Fuel alterna compacto/completo, C6 completo. Pendiente: C1, regla de la serie (C2), M4, M5, N3, E3.
