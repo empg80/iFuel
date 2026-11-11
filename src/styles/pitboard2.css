@@ -89,3 +89,13 @@
 .pb-root .pb-settings { flex: none; }
 .pb-pithelper { position: relative; flex: 1; display: flex; }
 .pb-pithelper .pit-helper--pitboard { position: relative; inset: auto; flex: 1; }
+
+/* Battle en el layout libre (sobre iRacing): mismas variables que el pitboard, fondo sólido para leerse bien */
+.pb-scope {
+  --pb-bg: #0b0e13; --pb-panel: #121821; --pb-line: #232c3a; --pb-text: #e8edf4; --pb-text-2: #93a1b5;
+  --pb-good: #5fd39a; --pb-warn: #ffb547; --pb-bad: #ff6b6b; --pb-me: #4da3ff; --pb-best: #b68cff;
+  --class-0: #4c9bff; --class-1: #ff9f43; --class-2: #3ddc97; --class-3: #b084f5; --class-4: #ff6b8b; --class-5: #8fa3b8;
+  font-family: "Barlow Semi Condensed", "Segoe UI", system-ui, sans-serif; color: var(--pb-text);
+}
+.pb-scope--overlay { width: 360px; }
+.pb-scope--overlay .pb-battle { background: rgba(14, 19, 27, .94); }

@@ -167,3 +167,5 @@ Hecho en beta.28, pendiente de validar en carrera multiclase: **M1** aviso de cl
 Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en C2, C6 (segundos de aire limpio), M4 (relative tintado por clase), M5 (final por clase), N3 (widgets como fuente de navegador para OBS), E3 (instalador y firma).
 
 > beta.33: spotter con voces naturales pregrabadas (Claude MX / Dave ES) + fallback a voz del sistema.
+
+> Tras beta.36: pitboard v2 (franja de avisos, plan de parada, radar grande) y fuente Barlow en el pitboard. En el árbol (sin beta aún): el battle nuevo también en el layout libre. Pendiente: aplicar lo que salga del report de la 36; C1, regla de la serie (C2), C6, M4, M5, N3, E3.
