@@ -36,7 +36,7 @@ export const PitboardHeader: React.FC<Props> = ({ position, totalCars, timeRemai
       {cell("Última", lapStr(lastLap))}
       {cell("Mejor", lapStr(bestLap), "pb-best")}
       {record != null && cell("Récord", lapStr(record))}
-      {incidents != null && incidents >= 0 && cell("Inc", <>{incidents}<small>x</small></>, incidents >= 12 ? "pb-bad" : "")}
+      {incidents != null && incidents >= 0 && cell("Inc", <>{incidents}<small>x</small></>, `pb-hd__inc${incidents >= 12 ? " pb-bad" : ""}`)}
       {cell("Delta", deltaStr(delta), dClass)}
       <div className="pb-hd__sectors">
         {[0, 1, 2].map((i) => {

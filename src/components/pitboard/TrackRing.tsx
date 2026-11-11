@@ -9,6 +9,8 @@ type Props = {
   trackTemp: number | null;
   airTemp: number | null;
   rainChance?: number | null;
+  /** Dato grande en el centro (p. ej. distancia al debris); si falta, temperaturas */
+  center?: { label: string; value: string; sub?: string; tone?: "warn" | "bad" } | null;
 };
 
 const R = 92;
@@ -24,7 +26,7 @@ const arc = (from: number, to: number) => {
 };
 const temp = (v: number | null) => (v == null ? "–" : `${Math.round(v)}°`);
 
-export const TrackRing: React.FC<Props> = ({ cars, myPct, classColorIndexById, sectorStarts, trackTemp, airTemp, rainChance }) => {
+export const TrackRing: React.FC<Props> = ({ cars, myPct, classColorIndexById, sectorStarts, trackTemp, airTemp, rainChance, center }) => {
   const starts = sectorStarts && sectorStarts.length >= 2 ? sectorStarts : [0];
   return (
     <div className="pb-panel pb-ring">
@@ -46,9 +48,19 @@ export const TrackRing: React.FC<Props> = ({ cars, myPct, classColorIndexById, s
         })()}
       </svg>
       <div className="pb-ring__center">
-        <span className="pb-lbl">Pista</span>
-        <b className="pb-num">{temp(trackTemp)}</b>
-        <span className="pb-ring__sub">Aire {temp(airTemp)}{rainChance != null && rainChance > 0 ? ` · Lluvia ${Math.round(rainChance)}%` : ""}</span>
+        {center ? (
+          <>
+            <span className="pb-lbl">{center.label}</span>
+            <b className={`pb-num ${center.tone === "bad" ? "pb-bad" : "pb-warn"}`}>{center.value}</b>
+            {center.sub && <span className="pb-ring__sub">{center.sub}</span>}
+          </>
+        ) : (
+          <>
+            <span className="pb-lbl">Pista</span>
+            <b className="pb-num">{temp(trackTemp)}</b>
+            <span className="pb-ring__sub">Aire {temp(airTemp)}{rainChance != null && rainChance > 0 ? ` · Lluvia ${Math.round(rainChance)}%` : ""}</span>
+          </>
+        )}
       </div>
     </div>
   );

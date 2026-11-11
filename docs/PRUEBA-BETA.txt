@@ -56,6 +56,18 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.36 - PITBOARD v2 (DISEÑO NUEVO) + FUENTE BARLOW
+  - Franja de avisos bajo la cabecera: un solo aviso, el más importante (pit lane > sanción > debris/amarilla >
+    clase rápida > combustible > box > lluvia > última vuelta). Chips: tiempo, bandera y temperaturas.
+  - Centro: "Plan de parada" (qué hacer, depósito, vueltas, repostar, consumo, línea de carrera con ventana,
+    ahorro de fuel, cuándo parar con tráfico, paradas previstas y margen de seguridad con +/-). Neumáticos en franja fina.
+  - Derecha: delante/detrás compactos + radar grande (muestra la distancia al debris en el centro) + bias/TC/ABS.
+    En la calle de boxes, esa columna se sustituye por el pitlane helper.
+  - Cabecera: incidentes pequeños y sectores grandes. Fuente Barlow Semi Condensed (solo en el pitboard).
+  - Debris: la distancia solo se dice/muestra hasta 1200 m; más lejos, solo "Debris".
+  - Quitado del pitboard: trazado de pedales. El layout libre no cambia.
+  PRUEBA: mira que la franja muestre lo correcto y que el plan de parada tenga sentido; dime qué sobra o falta.
+
 NOVEDAD BETA.35 - HISTÓRICO, TIEMPO Y PITLANE HELPER
   - Histórico por circuito+coche (trackHistory.json en la carpeta de datos de iFuel): mejores vueltas de carrera,
     qualy y práctica, y consumo por vuelta. Si aún no hay consumo medido, el cálculo de fuel arranca con el guardado.

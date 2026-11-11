@@ -17,7 +17,7 @@ const SLOW_FRACTION = 0.35; // por debajo del 35 % de su ritmo normal = trompo, 
 const HOLD_SECONDS = 6; // iRacing apaga el debris tras unos 5 s; con un coche localizado por delante seguimos avisando
 const HOLD_NO_CAR_SECONDS = 1.5; // sin coche localizado no hay nada que "seguir": se apaga casi al soltar la bandera
 const MIN_TIME_SPEED = 10; // m/s: por debajo, "segundos hasta llegar" no significa nada (saliendo de boxes, parado)
-const MAX_SHOW_METERS = 3000; // más lejos que esto la cifra no sirve (Le Mans: kilómetros): solo aviso genérico
+const MAX_SHOW_METERS = 1200; // más lejos que esto la cifra no es fiable (el culpable puede ser otro coche): solo aviso genérico
 const SPOT_MEMORY_SECONDS = 300; // el debris se queda donde ocurrió el incidente aunque el coche ya no esté
 const PROFILE_BINS = 200; // perfil de velocidad por zona de pista, aprendido de los coches que pasan
 const PROFILE_MIN_SAMPLES = 8;
