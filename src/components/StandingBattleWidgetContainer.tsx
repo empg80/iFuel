@@ -1,6 +1,7 @@
 // RelativeWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { BattlePanel } from "./pitboard/BattlePanel";
+import { BattleCards } from "./BattleCards";
 import { loadWidgetPosition, clampPosition } from "../utils/position";
 import { saveJsonToStorage } from "../utils/storage";
 import type { IfuelState } from "../useIfuelWebSocket";
@@ -128,7 +129,7 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
       </div>
 
       {state && hasRelative ? (
-        <div className={isPitboard ? undefined : "pb-scope pb-scope--overlay"}>
+        isPitboard ? (
           <BattlePanel
             ahead={ahead}
             behind={behind}
@@ -140,7 +141,16 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
             classColorIndexById={classColorIndexById}
             classNames={classNames}
           />
-        </div>
+        ) : (
+          <BattleCards
+            ahead={ahead}
+            behind={behind}
+            myPosition={myPos}
+            onTrackAhead={onTrackAhead}
+            onTrackBehind={onTrackBehind}
+            classColorIndexById={classColorIndexById}
+          />
+        )
       ) : (
         <div className="fuel-widget">
           <div className="label">ESPERANDO DATOS DE IRACING…</div>

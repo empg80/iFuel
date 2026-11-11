@@ -6,7 +6,7 @@ import { Backdrop } from "./Backdrop";
 import { FuelWidget, type FuelWidgetProps } from "../components/FuelWidget";
 import { FuelWidgetOverlay } from "../components/FuelWidgetOverlay";
 import { RelativeWidget } from "../components/StandingBattleWidget";
-import { BattlePanel } from "../components/pitboard/BattlePanel";
+import { BattleCards } from "../components/BattleCards";
 import { YellowFlagWidget } from "../components/YellowFlagWidget";
 import { PitClearAirWidget } from "../components/PitClearAirWidget";
 import { RaceStandingsWidget } from "../components/RaceStandingsWidget";
@@ -279,7 +279,7 @@ function Scene({ scene }: { scene: string }) {
     <div className="app-root app-root--free" style={{ position: "absolute", inset: 0, display: "block", minHeight: 0 }}>
       <Backdrop />
       {at({ left: 36, bottom: detail === "full" ? undefined : 36, top: detail === "full" ? 36 : undefined }, <FuelWidgetOverlay {...fuelProps(kind)} detail={detail} />)}
-      {at({ left: "50%", transform: "translateX(-50%)", bottom: 36 }, <div className="pb-scope pb-scope--overlay"><BattlePanel ahead={ahead} behind={behind} myPosition={4} myLastLap={109.2} myBestLap={108.95} onTrackAhead={onAhead} onTrackBehind={onBehind} classColorIndexById={classColors} classNames={classNames} /></div>)}
+      {at({ left: "50%", transform: "translateX(-50%)", bottom: 36 }, <BattleCards ahead={ahead} behind={behind} myPosition={4} onTrackAhead={onAhead} onTrackBehind={onBehind} classColorIndexById={classColors} />)}
       {at({ right: 36, top: 36 }, <Standings />)}
       {at({ left: "50%", transform: "translateX(-50%)", top: 36 }, <Yellow on={yellow} />)}
       {(scene === "warn" || scene === "crit") && at({ right: 36, bottom: 36 }, <Pit lap={scene === "warn" ? pitLap : 25} />)}

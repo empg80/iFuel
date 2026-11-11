@@ -940,6 +940,7 @@ standings.push({
   iRating: driver?.IRating > 0 ? driver.IRating : null,
   incidents: idx === driverIdx && myIncidentCount != null && myIncidentCount >= 0 ? myIncidentCount : null, // iRacing no da los de los demás
   penalty: penaltyFromFlags(carIdxSessionFlags[idx] ?? 0),
+  flagsRaw: carIdxSessionFlags[idx] ? carIdxSessionFlags[idx] : undefined, // diagnóstico: bits crudos de CarIdxSessionFlags
 });
 
 

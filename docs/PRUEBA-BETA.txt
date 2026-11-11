@@ -56,6 +56,14 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.37 - BATTLE DEL LAYOUT LIBRE EN TARJETAS Y AJUSTES
+  - Layout libre: el battle pasa a dos tarjetas compactas (delante / detrás) con el hueco en grande y color
+    (verde = bien, rojo = mal), tu posición entre ambas y una línea de coches en pista. Tapa poco la pantalla.
+  - Sanción: la franja del pitboard dice "BANDERA NEGRA · cumple la sanción en boxes". iRacing no da el tipo
+    (drive-through, stop&go 10/30) por telemetría, solo la bandera negra; el informe ahora graba los bits crudos
+    de bandera de cada coche (flagsRaw) para investigar si se puede distinguir.
+  PRUEBA: en una sanción real, comprueba qué aviso sale y cuándo se apaga; el informe lo analizo yo.
+
 NOVEDAD BETA.36 - PITBOARD v2 (DISEÑO NUEVO) + FUENTE BARLOW
   - Franja de avisos bajo la cabecera: un solo aviso, el más importante (pit lane > sanción > debris/amarilla >
     clase rápida > combustible > box > lluvia > última vuelta). Chips: tiempo, bandera y temperaturas.

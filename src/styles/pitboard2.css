@@ -99,3 +99,17 @@
 }
 .pb-scope--overlay { width: 360px; }
 .pb-scope--overlay .pb-battle { background: rgba(14, 19, 27, .94); }
+
+/* Battle del layout libre: tarjetas compactas */
+.bc-wrap { width: 300px; display: flex; flex-direction: column; gap: 4px; }
+.bc { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 10px; background: rgba(14,19,27,.92); border: 1px solid var(--pb-line); border-left: 5px solid var(--pb-line); }
+.bc--good { border-left-color: var(--pb-good); } .bc--bad { border-left-color: var(--pb-bad); }
+.bc__side { color: var(--pb-text-2); font-size: 13px; }
+.bc__num { font-size: 24px; line-height: 1; }
+.bc__name { flex: 1; min-width: 0; font-size: 14px; color: var(--pb-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc__gap { font-size: 30px; line-height: 1; margin-left: auto; font-variant-numeric: tabular-nums; }
+.bc__gap small { font-size: 13px; color: var(--pb-text-2); }
+.bc--good .bc__gap { color: var(--pb-good); } .bc--bad .bc__gap { color: var(--pb-bad); }
+.bc__trend { font-size: 16px; color: var(--pb-text-2); }
+.bc-me { align-self: center; margin: -10px 0; z-index: 1; background: var(--pb-me); color: #00122b; font-weight: 800; font-size: 13px; padding: 1px 12px; border-radius: 12px; }
+.bc-ot { display: flex; justify-content: space-between; font-size: 13px; color: var(--pb-text-2); background: rgba(14,19,27,.85); border-radius: 8px; padding: 3px 10px; }

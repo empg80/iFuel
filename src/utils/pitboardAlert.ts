@@ -27,7 +27,7 @@ export function pitboardAlert(s: AlertSource): PitboardAlert {
     return { tone: "ok", tag: "PIT LANE", msg: `Limitador activo${box}` };
   }
   if (s.checkered) return { tone: "info", tag: "META", msg: "BANDERA A CUADROS" };
-  if (s.myPenalty === "black" || s.myPenalty === "dq") return { tone: "danger", tag: "SANCIÓN", msg: s.myPenalty === "dq" ? "DESCALIFICADO" : "BANDERA NEGRA · cumple la sanción" };
+  if (s.myPenalty === "black" || s.myPenalty === "dq") return { tone: "danger", tag: "SANCIÓN", msg: s.myPenalty === "dq" ? "DESCALIFICADO" : "BANDERA NEGRA · cumple la sanción en boxes" };
   if (s.myPenalty === "repair") return { tone: "danger", tag: "BANDERA", msg: "NARANJA · entra a reparar" };
   const y = s.yellow;
   if (y?.active) {
