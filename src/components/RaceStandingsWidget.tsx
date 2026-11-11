@@ -66,7 +66,6 @@ export function RaceStandingsWidget({
           <span>#</span>
           <span>DRIVER</span>
           <span>iR</span>
-          <span>INC</span>
           <span>BEST LAP</span>
           <span>GAP</span>
           <span className="race-standings__h-stint">STINT</span>
@@ -128,9 +127,6 @@ export function RaceStandingsWidget({
                     </span>
                     <span className="race-standings__cell race-standings__cell--ir">
                       {row.iRating != null ? (row.iRating >= 1000 ? `${(row.iRating / 1000).toFixed(1)}k` : row.iRating) : "–"}
-                    </span>
-                    <span className={clsx("race-standings__cell race-standings__cell--inc", (row.incidents ?? 0) >= 12 && "is-high")}>
-                      {row.incidents ?? "–"}x
                     </span>
                     <span className="race-standings__cell race-standings__cell--best">
                       {formatLapTimeSeconds(row.bestLapTime)}

@@ -51,6 +51,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
           bestLap={state?.myBestLapTime ?? null}
           delta={car?.delta ?? null}
           sectors={car?.sectors ?? []}
+          incidents={myRow?.incidents ?? null}
           record={state?.trackHistory?.best?.race ?? state?.trackHistory?.best?.quali ?? state?.trackHistory?.best?.practice ?? null}
         />
       </div>

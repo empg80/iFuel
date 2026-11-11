@@ -52,14 +52,14 @@ const Rival: React.FC<{ side: Side; car: RelativeCar; cls?: Record<number, numbe
 };
 
 /** Coche físicamente delante/detrás en pista (aunque sea de otra clase o vuelta distinta). */
-const OnTrack: React.FC<{ side: Side; car: OnTrackCar | null; cls?: Record<number, number>; names?: Record<number, string> }> = ({ side, car, cls, names }) => {
+const OnTrack: React.FC<{ side: Side; car: OnTrackCar | null; cls?: Record<number, number> }> = ({ side, car, cls }) => {
   const rel = car?.lapsDiff == null ? "" : car.lapsDiff === 0 ? "" : car.lapsDiff > 0 ? `+${car.lapsDiff}V` : `${car.lapsDiff}V`;
   const tone = car?.lapsDiff == null || car.lapsDiff === 0 ? "" : car.lapsDiff < 0 ? "pb-ot--lapped" : "pb-ot--ahead";
   return (
     <div className={`pb-ot ${tone}`}>
       <span className="pb-ot__arrow">{side === "ahead" ? "▲" : "▼"}</span>
       <b className="pb-ot__num pb-num">{car?.carNum ?? "--"}</b>
-      <ClassBadge small classId={car?.classId ?? null} classPosition={car?.classPosition ?? null} classColorIndexById={cls} classNames={names} />
+      <ClassBadge small classId={car?.classId ?? null} classPosition={car?.classPosition ?? null} classColorIndexById={cls} />
       <span className="pb-ot__gap pb-num">{gapStr(car?.gapSeconds)}s</span>
       <span className="pb-ot__rel">{rel}</span>
     </div>
@@ -87,8 +87,8 @@ export const BattlePanel: React.FC<Props> = (p) => {
       <Rival side="behind" car={p.behind} cls={p.classColorIndexById} names={p.classNames} />
       <div className="pb-ot-row">
         <span className="pb-lbl">En pista</span>
-        <OnTrack side="ahead" car={p.onTrackAhead} cls={p.classColorIndexById} names={p.classNames} />
-        <OnTrack side="behind" car={p.onTrackBehind} cls={p.classColorIndexById} names={p.classNames} />
+        <OnTrack side="ahead" car={p.onTrackAhead} cls={p.classColorIndexById} />
+        <OnTrack side="behind" car={p.onTrackBehind} cls={p.classColorIndexById} />
       </div>
     </div>
   );
