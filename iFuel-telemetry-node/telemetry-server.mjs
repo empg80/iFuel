@@ -18,6 +18,9 @@ import {
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { buildPitPasses } from "./pitPasses.mjs";
 import { fuelSaving, computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
+import { createTrackHistory, sessionKind, historyKey } from "./trackHistory.mjs";
+import { computePitHelper, parsePitLimitKph } from "./pitHelper.mjs";
+import { createWeatherTracker } from "./weather.mjs";
 import { createFuelModel } from "./fuelModel.mjs";
 import { createPitLossTracker } from "./pitLoss.mjs";
 import { createPitDecisionStabilizer } from "./pitDecision.mjs";
@@ -70,7 +73,7 @@ const defaultCreateSdk = async () => {
 const TELEMETRY_VARS = [
   "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition", "CarIdxEstTime",
   "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct", "CarIdxLastLapTime",
-  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxSessionFlags", "PlayerCarMyIncidentCount", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
+  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxSessionFlags", "PlayerCarMyIncidentCount", "EngineWarnings", "Precipitation", "RelativeHumidity", "Skies", "TrackWetness", "WindDir", "WindVel", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
   "SessionState", "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
@@ -226,7 +229,7 @@ function registerClassIdsFromCars(cars) {
 function startTelemetryLoop(
   sdk,
   wss,
-  { onSimClosed, isSimRunning = defaultIsSimRunning, simClosedCheckMs = SIM_CLOSED_CHECK_MS, diag = {} } = {},
+  { onSimClosed, isSimRunning = defaultIsSimRunning, simClosedCheckMs = SIM_CLOSED_CHECK_MS, diag = {}, history = createTrackHistory(null) } = {},
 ) {
   resetPitAndStintState();
   const pitLossTracker = createPitLossTracker();
@@ -241,6 +244,10 @@ function startTelemetryLoop(
   let paceLastLap = null;
   let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
+  const weatherTracker = createWeatherTracker();
+  let histEntry = null; // histórico del circuito+coche actual (se envía al cliente)
+  let histLapSeen = null; // última vuelta completada ya registrada en el histórico
+  let histLapHadPit = false;
   let lastCarLeftRight = null; // último valor de CarLeftRight enviado al spotter
   const pitDecision = createPitDecisionStabilizer(); // evita que la recomendación de Pit Clear Air parpadee
   let leaderState = { finished: false, pct: null }; // el líder ya cruzó la meta tras agotarse el reloj
@@ -352,7 +359,8 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
       if (lastSessionKey !== null) {
         resetPitAndStintState();
         pitLossTracker.reset();
-        fuelModel.reset();
+        weatherTracker.reset();
+        fuelModel.reset(); histLapSeen = null; histLapHadPit = false;
         pitDecision.reset(); timeWasRunning = false; timeExpired = false; leaderState = { finished: false, pct: null };
         paceLaps.length = 0; paceLastLap = null;
         yellowTracker.reset();
@@ -999,8 +1007,29 @@ standings.sort((a, b) => a.position - b.position);
     }
     // bandera a cuadros ya mostrada a mi coche tras agotarse el reloj: he terminado
     const iFinished = timeExpired && (sessionFlags & 0x1) === 1;
-    const fpl = pitStrategyParams.fuelPerLap ?? measuredFuelPerLap;
-    const fplSource = pitStrategyParams.fuelPerLap != null ? "laps" : measuredFuelPerLap != null ? "measured" : null;
+    // Histórico circuito+coche: récords y consumo (semilla si aún no hay medida)
+    const histCarPath = drivers.find((d) => d.CarIdx === driverIdx)?.CarPath ?? "";
+    const histKey = historyKey(weekend.TrackName ?? "", histCarPath);
+    const histKind = sessionKind(
+      (session?.SessionInfo?.Sessions ?? []).find((x) => x.SessionNum === telemetry.SessionNum?.value?.[0])?.SessionType,
+    );
+    if (carIdxOnPitRoad[driverIdx]) histLapHadPit = true;
+    if (histKey && !telemetry.IsReplayPlaying?.value?.[0]) {
+      if (histLapSeen == null) histLapSeen = lapCompleted;
+      else if (lapCompleted > histLapSeen) {
+        histLapSeen = lapCompleted;
+        if (!histLapHadPit && lastLapTime > 0) {
+          history.recordLap(histKey, histKind, lastLapTime);
+          if (fuelModel.lapsMeasured >= 3 && measuredFuelPerLap != null) history.recordFuel(histKey, measuredFuelPerLap);
+          history.save();
+        }
+        histLapHadPit = false;
+      }
+    }
+    histEntry = history.get(histKey);
+    const histFuel = histEntry?.fuelPerLap ?? null;
+    const fpl = pitStrategyParams.fuelPerLap ?? measuredFuelPerLap ?? histFuel;
+    const fplSource = pitStrategyParams.fuelPerLap != null ? "laps" : measuredFuelPerLap != null ? "measured" : histFuel != null ? "history" : null;
     const pitPct = Number(driverInfo.DriverPitTrkPct);
     // en replay el combustible vale 0: no hay plan que calcular
     const plan = fpl > 0 && fuelMax > 0 && !telemetry.IsReplayPlaying?.value?.[0]
@@ -1150,7 +1179,29 @@ standings.sort((a, b) => a.position - b.position);
   classColorIndexById,
   classNames,
   cars: carsCompact,
+  pitHelper: computePitHelper({
+    onPitRoad: !!carIdxOnPitRoad[driverIdx] && !telemetry.IsInGarage?.value?.[0],
+    speedMs: telemetry.Speed?.value?.[0] ?? 0,
+    limitKph: parsePitLimitKph(weekend.TrackPitSpeedLimit),
+    engineWarnings: telemetry.EngineWarnings?.value?.[0] ?? 0,
+    myPct: telemetry.LapDistPct?.value?.[0] ?? -1,
+    pitPct: Number(driverInfo.DriverPitTrkPct),
+    trackLengthM: trackLengthMeters,
+  }),
+  weather: (() => {
+    const precip = telemetry.Precipitation?.value?.[0] ?? 0;
+    const wetness = telemetry.TrackWetness?.value?.[0] ?? 1;
+    const skies = telemetry.Skies?.value?.[0] ?? 0;
+    const w = weatherTracker.update({ precip, wetness, skies, rainChance: rainChance ?? 0 });
+    return {
+      state: w.state, event: w.event, precip, wetness, skies,
+      humidity: telemetry.RelativeHumidity?.value?.[0] ?? null,
+      windKph: telemetry.WindVel?.value?.[0] != null ? telemetry.WindVel.value[0] * 3.6 : null,
+      windDir: telemetry.WindDir?.value?.[0] ?? null,
+    };
+  })(),
   fuelPlan,
+  trackHistory: histEntry ? { best: histEntry.best, fuelPerLap: histEntry.fuelPerLap } : null,
   yellowWarning,
   fastTraffic,
   pitClearAir,
@@ -1269,6 +1320,7 @@ async function startTelemetryServer(options = {}) {
     isSimRunning: options.isSimRunning || defaultIsSimRunning,
     createSdk: options.createSdk || defaultCreateSdk,
     simClosedCheckMs: options.simClosedCheckMs ?? SIM_CLOSED_CHECK_MS,
+    history: createTrackHistory(options.dataDir ? path.join(options.dataDir, "trackHistory.json") : null),
   };
 
   // El origen de desarrollo (Vite) solo se admite si no se indica lo contrario
@@ -1390,6 +1442,7 @@ if (origin && !allowedOrigins.has(origin)) {
             isSimRunning: control.isSimRunning,
             simClosedCheckMs: control.simClosedCheckMs,
             diag,
+            history: control.history,
             onSimClosed: () => {
               console.log("[iFuel] iRacing se ha cerrado; esperando para reconectar...");
               resolve();

@@ -33,6 +33,8 @@ type OnTrackCar = {
 
 import { emitSpotter } from "./spotter/bus";
 import type { FastTraffic } from "./types/fastTraffic";
+import type { Weather } from "./types/weather";
+import type { PitHelper } from "./types/pitHelper";
 type YellowWarning = {
   active: boolean;
   distanceMeters: number | null;
@@ -104,6 +106,9 @@ type RawMessage = {
 
   yellowWarning?: YellowWarning;
   fastTraffic?: FastTraffic | null;
+  weather?: Weather | null;
+  pitHelper?: PitHelper | null;
+  trackHistory?: { best: { race?: number; quali?: number; practice?: number }; fuelPerLap: number | null } | null;
   pitClearAir?: PitClearAir;
   standings?: StandingsRowPayload[];
   cameraCarNumber?: string | number | null;
@@ -121,7 +126,7 @@ type RawMessage = {
 /** Plan de combustible y parada calculado por el servidor (única fuente para fuel y pit clear air) */
 export type FuelPlan = {
   perLap: number | null;
-  perLapSource: "laps" | "measured" | null;
+  perLapSource: "laps" | "measured" | "history" | null;
   status: "unknown" | "no-stop" | "window" | "extra-stop" | "critical";
   stops: number | null;
   stintLaps: number[];
@@ -193,6 +198,9 @@ export type IfuelState = {
 
   yellowWarning?: YellowWarning;
   fastTraffic?: FastTraffic | null;
+  weather?: Weather | null;
+  pitHelper?: PitHelper | null;
+  trackHistory?: { best: { race?: number; quali?: number; practice?: number }; fuelPerLap: number | null } | null;
   pitClearAir?: PitClearAir;
   standings?: StandingsRow[];
   cameraCarNumber?: string | null;
@@ -325,6 +333,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             fuelPlan,
             yellowWarning,
             fastTraffic,
+            weather,
+            pitHelper,
+            trackHistory,
             pitClearAir,
             standings: standingsRaw,
             cameraCarNumber: rawCameraCarNumber,
@@ -697,6 +708,9 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             classNames: classNames ?? undefined,
             yellowWarning: yellowWarning ?? null,
             fastTraffic: fastTraffic ?? null,
+            weather: weather ?? null,
+            pitHelper: pitHelper ?? null,
+            trackHistory: trackHistory ?? null,
             pitClearAir: pitClearAir ?? null,
             standings,
             cameraCarNumber,

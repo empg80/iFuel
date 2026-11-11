@@ -39,3 +39,14 @@ test("última vuelta y bandera a cuadros avisan una vez; se pueden silenciar", (
   r = alertsFor(initialAlertMemory(), { lastLap: true, muted: ["lastLap"], nowMs: 0 });
   assert.deepEqual(r.say, []);
 });
+
+test("lluvia: riesgo, empieza, deja de llover; se puede silenciar", () => {
+  let r = alertsFor(initialAlertMemory(), { weatherState: "risk", nowMs: 0 });
+  assert.deepEqual(r.say, ["Riesgo de lluvia"]);
+  r = alertsFor(r.mem, { weatherState: "raining", nowMs: 1 });
+  assert.deepEqual(r.say, ["Empieza a llover"]);
+  r = alertsFor(r.mem, { weatherState: "drying", nowMs: 2 });
+  assert.deepEqual(r.say, ["Deja de llover"]);
+  r = alertsFor(initialAlertMemory(), { weatherState: "raining", muted: ["rain"], nowMs: 3 });
+  assert.deepEqual(r.say, []);
+});

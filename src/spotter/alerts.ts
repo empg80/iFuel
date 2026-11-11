@@ -4,7 +4,7 @@
 import { fill, getPhrases } from "./phrases.ts";
 
 /** Avisos que se pueden silenciar uno a uno desde el menú. */
-export const ALERT_IDS = ["clear", "fastClass", "yellow", "fuel", "window", "box", "lastLap", "checkered"] as const;
+export const ALERT_IDS = ["clear", "fastClass", "yellow", "fuel", "window", "box", "lastLap", "checkered", "rain"] as const;
 export type AlertId = (typeof ALERT_IDS)[number];
 
 export type AlertInput = {
@@ -18,6 +18,7 @@ export type AlertInput = {
   pitLocked?: boolean;
   lastLap?: boolean;
   checkered?: boolean;
+  weatherState?: string | null;
   muted?: string[];
   nowMs: number;
 };
@@ -31,10 +32,11 @@ export type AlertMemory = {
   boxLap: number | null;
   lastLap: boolean;
   checkered: boolean;
+  weather: string;
 };
 
 export const initialAlertMemory = (): AlertMemory => ({
-  fastCar: null, fastAt: -1e9, yellowKey: null, fuelCritical: false, windowOpen: false, boxLap: null, lastLap: false, checkered: false,
+  fastCar: null, fastAt: -1e9, yellowKey: null, fuelCritical: false, windowOpen: false, boxLap: null, lastLap: false, checkered: false, weather: "dry",
 });
 
 const FAST_REPEAT_MS = 40000;
@@ -95,5 +97,13 @@ export function alertsFor(mem: AlertMemory, i: AlertInput): { say: string[]; mem
   const chk = !!i.checkered;
   if (chk && !mem.checkered && on("checkered")) say.push(P.checkered);
   next.checkered = chk;
+
+  const w = i.weatherState ?? "dry";
+  if (w !== mem.weather && on("rain")) {
+    if (w === "raining") say.push(P.rainStart);
+    else if (mem.weather === "raining") say.push(P.rainStop);
+    else if (w === "risk" && mem.weather === "dry") say.push(P.rainRisk);
+  }
+  next.weather = w;
   return { say, mem: next };
 }

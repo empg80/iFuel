@@ -71,6 +71,7 @@ export function useSpotter(state: IfuelState | null) {
       pitLocked: !!(state.pitClearAir as { locked?: boolean } | null)?.locked,
       lastLap: ((state.sessionFlags ?? 0) & 0x2) !== 0 || state.sessionLapsRemainEx === 1,
       checkered: ((state.sessionFlags ?? 0) & 0x1) !== 0,
+      weatherState: state.weather?.state ?? null,
       muted: mutedRef.current,
       nowMs: Date.now(),
     });

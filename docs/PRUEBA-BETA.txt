@@ -56,6 +56,18 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.35 - HISTÓRICO, TIEMPO Y PITLANE HELPER
+  - Histórico por circuito+coche (trackHistory.json en la carpeta de datos de iFuel): mejores vueltas de carrera,
+    qualy y práctica, y consumo por vuelta. Si aún no hay consumo medido, el cálculo de fuel arranca con el guardado.
+    El pitboard muestra "Récord" en la cabecera cuando existe.
+  - Tiempo: franja en el pitboard (seco / riesgo de lluvia / LLUEVE / pista mojada, cielo, viento) y avisos de voz
+    "Empieza a llover", "Deja de llover", "Riesgo de lluvia" (menú Spotter > Voice alerts: Rain).
+  - Pitlane helper: dentro de la calle de boxes aparece un panel con velocidad vs límite, limitador y distancia a tu
+    box. Rojo parpadeante si superas el límite; ámbar si no llevas el limitador. En pitboard tapa el panel de batalla
+    mientras estás en boxes; en layout libre sale arriba al centro.
+  PRUEBA: 1) tras 2-3 vueltas cierra y abre iFuel en el mismo circuito/coche: debe haber Récord y consumo.
+  2) Si te toca lluvia, comprueba los avisos. 3) En boxes, mira si el límite y la distancia al box son correctos.
+
 NOVEDAD BETA.34 - PITBOARD REDISEÑADO Y MÁS DATOS
   - Pitboard reorganizado en 3 zonas: Standings | Estrategia (fuel, pit clear air, neumáticos) | Rivales y pista.
   - Panel de batalla nuevo: coche, hueco y tendencia (verde = bien, rojo = mal) de delante y detrás, carril de huecos

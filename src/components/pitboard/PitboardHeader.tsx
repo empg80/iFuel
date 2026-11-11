@@ -13,6 +13,7 @@ type Props = {
   bestLap: number | null;
   delta: number | null;
   sectors: SectorInfo[];
+  record?: number | null;
 };
 
 const cell = (label: string, value: React.ReactNode, cls = "") => (
@@ -22,7 +23,7 @@ const cell = (label: string, value: React.ReactNode, cls = "") => (
   </div>
 );
 
-export const PitboardHeader: React.FC<Props> = ({ position, totalCars, timeRemain, lapsRemain, lap, lapsTotal, lastLap, bestLap, delta, sectors }) => {
+export const PitboardHeader: React.FC<Props> = ({ position, totalCars, timeRemain, lapsRemain, lap, lapsTotal, lastLap, bestLap, delta, sectors, record }) => {
   const dClass = delta == null ? "" : delta < 0 ? "pb-good" : delta > 0 ? "pb-bad" : "";
   return (
     <div className="pb-panel pb-hd">
@@ -33,6 +34,7 @@ export const PitboardHeader: React.FC<Props> = ({ position, totalCars, timeRemai
       {cell("Vuelta", <>{lap ?? "–"}{lapsTotal ? <small>/{lapsTotal}</small> : null}</>)}
       {cell("Última", lapStr(lastLap))}
       {cell("Mejor", lapStr(bestLap), "pb-best")}
+      {record != null && cell("Récord", lapStr(record))}
       {cell("Delta", deltaStr(delta), dClass)}
       <div className="pb-hd__sectors">
         {[0, 1, 2].map((i) => {

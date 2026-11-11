@@ -22,11 +22,14 @@
 "box esta vuelta": "c18.ogg",
 "última vuelta": "c19.ogg",
 "bandera a cuadros": "c20.ogg",
-"spotter activo": "c21.ogg",
-"por detrás": "c22.ogg",
-"detrás": "c23.ogg",
-"número": "c24.ogg",
-"clase rápida": "c25.ogg"
+"empieza a llover": "c21.ogg",
+"deja de llover": "c22.ogg",
+"riesgo de lluvia": "c23.ogg",
+"spotter activo": "c24.ogg",
+"por detrás": "c25.ogg",
+"detrás": "c26.ogg",
+"número": "c27.ogg",
+"clase rápida": "c28.ogg"
 },
 "classes": {
 "LMP2": "k_lmp2.ogg",

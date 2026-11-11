@@ -1,0 +1,17 @@
+.pit-helper { border-radius: 10px; border: 2px solid #3ddc97; background: #08140e; color: #fff; padding: 10px 14px; font-family: "Segoe UI", system-ui, sans-serif; }
+.pit-helper--speeding { border-color: #ff4d4d; background: #280808; animation: pit-helper-blink .5s steps(2) infinite; }
+.pit-helper--no-limiter { border-color: #ffb547; background: #281c06; }
+.pit-helper__msg { font-size: 20px; font-weight: 900; letter-spacing: .08em; text-align: center; }
+.pit-helper--speeding .pit-helper__msg { color: #ff7a7a; }
+.pit-helper--no-limiter .pit-helper__msg { color: #ffc766; }
+.pit-helper__row { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 6px; }
+.pit-helper__speed b { font-size: 46px; line-height: 1; font-variant-numeric: tabular-nums; }
+.pit-helper__speed small, .pit-helper__box small { display: block; font-size: 12px; opacity: .75; }
+.pit-helper__lim { font-weight: 800; padding: 4px 10px; border-radius: 6px; background: #444; }
+.pit-helper__lim.is-on { background: #1f8f5f; }
+.pit-helper__box { text-align: right; }
+.pit-helper__box b { font-size: 30px; font-variant-numeric: tabular-nums; }
+.pit-helper--free { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 45; min-width: 380px; }
+.pit-helper--pitboard { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: center; }
+.pit-helper--pitboard .pit-helper__speed b { font-size: 64px; }
+@keyframes pit-helper-blink { 50% { box-shadow: 0 0 0 4px rgba(255,77,77,.55); } }

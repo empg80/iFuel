@@ -9,6 +9,8 @@ import { RelativeWidgetContainer } from "./components/StandingBattleWidgetContai
 import { PitClearAirWidgetContainer } from "./components/PitClearAirWidgetContainer";
 import { FuelWidgetContainer } from "./components/FuelWidgetContainer";
 import { PitboardHeader } from "./components/pitboard/PitboardHeader";
+import { PitHelperPanel } from "./components/PitHelperPanel";
+import { WeatherStrip } from "./components/pitboard/WeatherStrip";
 import { TrackRing } from "./components/pitboard/TrackRing";
 import { TyresPanel } from "./components/pitboard/TyresPanel";
 import { CarSettings } from "./components/pitboard/CarSettings";
@@ -49,6 +51,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
           bestLap={state?.myBestLapTime ?? null}
           delta={car?.delta ?? null}
           sectors={car?.sectors ?? []}
+          record={state?.trackHistory?.best?.race ?? state?.trackHistory?.best?.quali ?? state?.trackHistory?.best?.practice ?? null}
         />
       </div>
       {state?.yellowWarning?.active && (
@@ -84,9 +87,11 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({
       </div>
       <div className="pb-col pb-col--right">
         <div className="pb-sec">Rivales y pista</div>
-        <div className="pb-area-relative pitboard-widget">
+        <div className="pb-area-relative pitboard-widget" style={{ position: "relative" }}>
+          <PitHelperPanel helper={state?.pitHelper} variant="pitboard" />
           <RelativeWidgetContainer variant="pitboard" state={state} isConnected={isConnected} />
         </div>
+        <WeatherStrip weather={state?.weather} rainChance={state?.rainChance ?? null} trackTemp={state?.trackTemp ?? null} airTemp={state?.airTemp ?? null} />
         <div className="pb-area-ring">
           <FastTrafficBanner state={state} variant="pitboard" />
           <TrackRing

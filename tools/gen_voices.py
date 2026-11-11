@@ -17,7 +17,7 @@ CHUNKS = [
     "por detrás número", "clase rápida por detrás número",
     "debris", "coche parado", "amarilla", "bandera amarilla", "a", "metros",
     "combustible crítico", "ventana de parada abierta", "entra a boxes esta vuelta", "box", "box esta vuelta",
-    "última vuelta", "bandera a cuadros", "spotter activo", "por detrás", "detrás", "número", "clase rápida",
+    "última vuelta", "bandera a cuadros", "empieza a llover", "deja de llover", "riesgo de lluvia", "spotter activo", "por detrás", "detrás", "número", "clase rápida",
 ]
 # Nombre de clase (normalizado: mayúsculas, sin espacios) -> cómo se pronuncia
 CLASSES = {

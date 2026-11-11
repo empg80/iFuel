@@ -7,6 +7,7 @@ import "./styles/overlay-theme.css";
 import "./styles/pitboard.css";
 import "./styles/fast-traffic.css";
 import "./styles/fuel-saving.css";
+import "./styles/pit-helper.css";
 import "./styles/replay-theme.css";
 import { WidgetVisibilityProvider } from "./contexts/WidgetVisibilityProvider";
 import { HashRouter, Routes, Route } from "react-router-dom";

@@ -296,6 +296,9 @@ const SPOTTER_PHRASES_DEFAULT = {
   boxNow: "Entra a boxes esta vuelta",
   lastLap: "Última vuelta",
   checkered: "Bandera a cuadros",
+  rainStart: "Empieza a llover",
+  rainStop: "Deja de llover",
+  rainRisk: "Riesgo de lluvia",
   test: "Spotter activo. Izquierda. Derecha. Libre.",
 };
 const spotterPhrasesPath = path.join(app.getPath("userData"), "spotter-frases.json");
@@ -706,6 +709,7 @@ function buildMenuTemplate() {
             ["box", "Box this lap"],
             ["lastLap", "Last lap"],
             ["checkered", "Checkered flag"],
+            ["rain", "Rain (starts / stops / risk)"],
           ].map(([id, label]) => ({
             label,
             type: "checkbox",

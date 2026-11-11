@@ -4,7 +4,7 @@ export type Phrases = {
   left: string; right: string; both: string; twoLeft: string; twoRight: string; clear: string;
   fastClass: string; fastClassNoName: string;
   debris: string; incident: string; yellow: string; distance: string;
-  fuelCritical: string; windowOpen: string; boxNow: string; lastLap: string; checkered: string; test: string;
+  fuelCritical: string; windowOpen: string; boxNow: string; lastLap: string; checkered: string; rainStart: string; rainStop: string; rainRisk: string; test: string;
 };
 
 export const DEFAULT_PHRASES: Phrases = {
@@ -25,6 +25,9 @@ export const DEFAULT_PHRASES: Phrases = {
   boxNow: "Entra a boxes esta vuelta",
   lastLap: "Última vuelta",
   checkered: "Bandera a cuadros",
+  rainStart: "Empieza a llover",
+  rainStop: "Deja de llover",
+  rainRisk: "Riesgo de lluvia",
   test: "Spotter activo. Izquierda. Derecha. Libre.",
 };
 
