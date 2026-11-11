@@ -89,19 +89,6 @@ const behind = { carNum: "8", driverName: "Jonas Eriksen-Larsen", gapSeconds: -0
 const onAhead = { carNum: "62", driverName: "Pablo Ruiz", gapSeconds: 4.2, lapsDiff: -1, classId: 2523, classPosition: 1 };
 const onBehind = { carNum: "91", driverName: "Liam O Connor", gapSeconds: -6.9, lapsDiff: 0, classId: 4011, classPosition: 6 };
 
-const Rel = () => (
-  <RelativeWidget
-    ahead={ahead}
-    behind={behind}
-    myPosition={4}
-    myLastLap={109.2}
-    myBestLap={108.95}
-    onTrackAhead={onAhead}
-    onTrackBehind={onBehind}
-    classColorIndexById={classColors}
-    classNames={classNames}
-  />
-);
 const Standings = () => (
   <RaceStandingsWidget clock={{ time: "8:00", cap: "TIME LEFT", extra: "2 LAPS LEFT", low: false }} rows={rows} myCarNumber="14" classColorIndexById={classColors} classNames={classNames} />
 );
