@@ -11,13 +11,17 @@ const MAX_GAP_LAPS = 0.5;
  *   cars:{idx:number,pct:number,classId:number|null,carNum:string|null,bestLap:number,lastLap:number,onPit:number|boolean}[]}} i
  * @returns {{carNum:string|null, classId:number|null, gapSeconds:number, catchInSeconds:number, count:number}|null}
  */
-export function computeFastTraffic({ myIdx, myClassId, myPct, myPace, cars, maxCatchSeconds = MAX_CATCH_SECONDS }) {
-  if (!(myPace > 0) || !Number.isFinite(myPct) || myPct < 0 || myClassId == null) return null;
+export function computeFastTraffic({ myIdx, myClassId, myLap = null, myPct, myPace, cars, maxCatchSeconds = MAX_CATCH_SECONDS }) {
+  if (!(myPace > 0) || !Number.isFinite(myPct) || myPct < 0) return null;
   let best = null;
   let count = 0;
   for (const c of cars) {
-    if (c.idx === myIdx || c.classId == null || c.classId === myClassId) continue;
+    if (c.idx === myIdx) continue;
     if (!Number.isFinite(c.pct) || c.pct < 0 || c.onPit) continue;
+    // Bandera azul: aunque sea de tu clase, un coche con más vueltas que viene detrás te va a doblar
+    const lapping = myLap != null && Number.isFinite(c.lapIdx) && c.lapIdx + c.pct - (myLap + myPct) > 0.5;
+    const otherClass = c.classId != null && myClassId != null && c.classId !== myClassId;
+    if (!lapping && !otherClass) continue;
     const pace = c.bestLap > 0 ? c.bestLap : c.lastLap > 0 ? c.lastLap : null;
     if (pace == null || pace > myPace * (1 - PACE_DIFF_MIN)) continue;
     const behindLaps = (((myPct - c.pct) % 1) + 1) % 1; // distancia (en vueltas) que te saca de detrás
@@ -27,7 +31,7 @@ export function computeFastTraffic({ myIdx, myClassId, myPct, myPace, cars, maxC
     if (!(catchIn > 0) || catchIn > maxCatchSeconds) continue;
     count++;
     if (best == null || catchIn < best.catchInSeconds) {
-      best = { carNum: c.carNum ?? null, classId: c.classId, gapSeconds: behindLaps * myPace, catchInSeconds: catchIn };
+      best = { carNum: c.carNum ?? null, classId: c.classId, gapSeconds: behindLaps * myPace, catchInSeconds: catchIn, lapping };
     }
   }
   return best ? { ...best, count } : null;

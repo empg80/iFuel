@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { IfuelState } from "../useIfuelWebSocket";
 import type { StandingsRow } from "../types/standings";
 import { useOverlayState } from "../contexts/useOverlayState";
@@ -9,6 +9,45 @@ import { CarSettings } from "./pitboard/CarSettings";
 import { clockStr, deltaStr, lapStr, secStr } from "./pitboard/fmt";
 
 type Props = { state: IfuelState | null; rows: StandingsRow[] };
+
+type Sample = { t: number; wet: number; rain: number; chance: number };
+const WINDOW_MS = 20 * 60 * 1000;
+
+/** iRacing no ofrece radar: se dibuja la tendencia de los últimos 20 min (pista mojada, lluvia y probabilidad). */
+const WeatherTrend: React.FC<{ state: IfuelState }> = ({ state }) => {
+  const [samples, setSamples] = useState<Sample[]>([]);
+  const latest = useRef<Sample | null>(null);
+  const w = state.weather;
+  latest.current = w ? {
+    t: Date.now(),
+    wet: Math.min(1, Math.max(0, (w.wetness - 1) / 6)),
+    rain: Math.min(1, Math.max(0, w.precip ?? 0)),
+    chance: Math.min(1, Math.max(0, (state.rainChance ?? 0) / 100)),
+  } : null;
+  useEffect(() => {
+    const push = () => {
+      const s = latest.current;
+      if (!s) return;
+      setSamples((prev) => [...prev.filter((x) => s.t - x.t < WINDOW_MS), s]);
+    };
+    push();
+    const id = setInterval(push, 10000);
+    return () => clearInterval(id);
+  }, []);
+  if (samples.length < 2) return null;
+  const W = 400, H = 46;
+  const t0 = samples[samples.length - 1].t - WINDOW_MS;
+  const x = (t: number) => ((t - t0) / WINDOW_MS) * W;
+  const line = (k: "wet" | "rain" | "chance") => samples.map((s, i) => `${i ? "L" : "M"}${x(s.t).toFixed(1)},${(H - 3 - s[k] * (H - 8)).toFixed(1)}`).join(" ");
+  return (
+    <svg className="fw-trend" width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-label="Tendencia del clima, últimos 20 minutos">
+      <path d={line("chance")} fill="none" stroke="#ffb547" strokeWidth="1.5" strokeDasharray="4 3" />
+      <path d={line("wet")} fill="none" stroke="#5aa9ff" strokeWidth="2" />
+      <path d={line("rain")} fill="none" stroke="#ffffff" strokeWidth="1.5" />
+      <text x="6" y="11" fontSize="10" fill="#93a1b5">20 min · <tspan fill="#5aa9ff">mojado</tspan> · <tspan fill="#fff">lluvia</tspan> · <tspan fill="#ffb547">prob.</tspan></text>
+    </svg>
+  );
+};
 
 /** Datos del pitboard que el layout libre no tenía: piloto (posición, incidentes, vueltas, sectores), clima, neumáticos y ajustes. */
 export const FreeInfoWidgets: React.FC<Props> = ({ state, rows }) => {
@@ -59,6 +98,7 @@ export const FreeInfoWidgets: React.FC<Props> = ({ state, rows }) => {
       <FloatingWidget id="weather" visible={o.weatherVisible ?? true} scale={o.weatherScale ?? 1} defaultPos={{ x: 40, y: 500 }}>
         <div className="fw-weather">
           <WeatherStrip weather={state.weather} rainChance={state.rainChance ?? null} trackTemp={state.trackTemp ?? null} airTemp={state.airTemp ?? null} />
+          <WeatherTrend state={state} />
         </div>
       </FloatingWidget>
 

@@ -32,3 +32,11 @@ test("cruce de la meta: el coche está detrás aunque su % sea mayor", () => {
   const r = computeFastTraffic({ ...me, myPct: 0.02, cars: [car({ pct: 0.99 })] });
   assert.ok(r && Math.abs(r.gapSeconds - 3.6) < 0.01);
 });
+
+test("bandera azul: un coche de tu clase con más vueltas que viene detrás también avisa", () => {
+  const base = { ...me, myLap: 5 };
+  const lapper = car({ pct: 0.48, classId: 1, lapIdx: 6 }); // 1 vuelta más y detrás en pista
+  const r = computeFastTraffic({ ...base, cars: [lapper] });
+  assert.ok(r && r.lapping);
+  assert.equal(computeFastTraffic({ ...base, cars: [car({ pct: 0.48, classId: 1, lapIdx: 5 })] }), null, "misma vuelta: no es azul");
+});

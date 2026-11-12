@@ -1135,8 +1135,12 @@ standings.sort((a, b) => a.position - b.position);
         sessionTime,
       });
       fastTraffic = computeFastTraffic({
-        myIdx: driverIdx, myClassId: carIdxClass[driverIdx] ?? null, myPct, myPace: baseLapTime, cars,
+        myIdx: driverIdx, myClassId: carIdxClass[driverIdx] ?? null, myLap, myPct, myPace: baseLapTime, cars,
       });
+      // Bandera azul real de iRacing (bit 0x20) aunque no haya un coche identificado
+      if (!fastTraffic && sessionFlags != null && (sessionFlags & 0x20)) {
+        fastTraffic = { carNum: null, classId: null, gapSeconds: null, catchInSeconds: 0, count: 1, lapping: true, blueFlag: true };
+      }
     }
 
     const bestLapTime = driverIdx >= 0 && carIdxBestLapTime[driverIdx] > 0

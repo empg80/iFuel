@@ -6,7 +6,7 @@ export type AlertSource = {
   pitHelper?: { status: string; limitKph: number | null; boxDistM: number | null } | null;
   myPenalty?: "black" | "dq" | "repair" | "warn" | null;
   yellow?: { active: boolean; type?: "incident" | "debris" | null; distanceMeters: number | null; carNum?: number | string | null } | null;
-  fastTraffic?: { carNum: string | null; catchInSeconds: number; classId?: number | null } | null;
+  fastTraffic?: { carNum: string | null; catchInSeconds: number; classId?: number | null; lapping?: boolean; blueFlag?: boolean } | null;
   classNames?: Record<number, string>;
   weatherState?: string | null;
   call?: { headline: string; tone: string } | null;
@@ -36,6 +36,9 @@ export function pitboardAlert(s: AlertSource): PitboardAlert {
     return { tone: "warn", tag: "AVISO", msg: `${what}${d}` };
   }
   const f = s.fastTraffic;
+  if (f && (f.lapping || f.blueFlag)) {
+    return { tone: "info", tag: "BANDERA AZUL", msg: f.carNum != null ? `#${f.carNum} te alcanza en ${Math.max(1, Math.round(f.catchInSeconds))} s · déjale pasar` : "déjale pasar" };
+  }
   if (f && f.carNum != null) {
     const cls = f.classId != null ? s.classNames?.[f.classId] : null;
     return { tone: "warn", tag: "TRÁFICO", msg: `${cls ? cls.toUpperCase() : "CLASE RÁPIDA"} #${f.carNum} te alcanza en ${Math.max(1, Math.round(f.catchInSeconds))} s` };
