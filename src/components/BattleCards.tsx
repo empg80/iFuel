@@ -32,6 +32,23 @@ const Card: React.FC<{ side: "ahead" | "behind"; car: RelativeCar; cls?: Record<
   );
 };
 
+const lapsText = (d: number | null | undefined) =>
+  d == null ? "" : d === 0 ? "misma vuelta" : d > 0 ? `${d} ${d === 1 ? "vuelta" : "vueltas"} más` : `${-d} ${d === -1 ? "vuelta" : "vueltas"} menos`;
+
+/** Coche más cercano en pista (de cualquier clase), en una línea legible: lado · número · distancia · vueltas. */
+const OnTrackRow: React.FC<{ side: "ahead" | "behind"; car: OnTrackCar | null }> = ({ side, car }) => {
+  if (!car) return null;
+  const d = car.lapsDiff ?? null;
+  return (
+    <div className={`bc-ot__row${d != null && d !== 0 ? (d > 0 ? " bc-ot__row--more" : " bc-ot__row--less") : ""}`}>
+      <span className="bc-ot__where">{side === "ahead" ? "▲ Delante" : "▼ Detrás"}</span>
+      <b className="bc-ot__car">#{car.carNum}</b>
+      <span className="bc-ot__gap">{gap(car.gapSeconds)} s</span>
+      <span className="bc-ot__laps">{lapsText(d)}</span>
+    </div>
+  );
+};
+
 /** Layout libre: dos tarjetas compactas (delante / detrás) que tapan poco de la pantalla. */
 export const BattleCards: React.FC<Props> = ({ ahead, behind, myPosition, onTrackAhead, onTrackBehind, classColorIndexById }) => (
   <div className="pb-scope bc-wrap">
@@ -39,9 +56,9 @@ export const BattleCards: React.FC<Props> = ({ ahead, behind, myPosition, onTrac
     <div className="bc-me">P{myPosition ?? "–"}</div>
     <Card side="behind" car={behind} cls={classColorIndexById} />
     {(onTrackAhead || onTrackBehind) && (
-      <div className="bc-ot">
-        {onTrackAhead && <span>▲ #{onTrackAhead.carNum} {gap(onTrackAhead.gapSeconds)}s{onTrackAhead.lapsDiff ? ` ${onTrackAhead.lapsDiff > 0 ? "+" : ""}${onTrackAhead.lapsDiff}V` : ""}</span>}
-        {onTrackBehind && <span>▼ #{onTrackBehind.carNum} {gap(onTrackBehind.gapSeconds)}s{onTrackBehind.lapsDiff ? ` ${onTrackBehind.lapsDiff > 0 ? "+" : ""}${onTrackBehind.lapsDiff}V` : ""}</span>}
+      <div className="bc-ot" title="Coche más cercano en pista, de cualquier clase">
+        <OnTrackRow side="ahead" car={onTrackAhead} />
+        <OnTrackRow side="behind" car={onTrackBehind} />
       </div>
     )}
   </div>

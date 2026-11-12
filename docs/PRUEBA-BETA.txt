@@ -56,6 +56,9 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.41 - LINEA DE COCHES EN PISTA MAS CLARA
+- Battle del libre: la linea de abajo pasa a dos filas con texto claro: "Delante / Detras", numero de coche, distancia en segundos y vueltas ("6 vueltas mas", "3 vueltas menos" o "misma vuelta"), con color.
+
 NOVEDAD BETA.40 - BANDERA AZUL Y AJUSTES DE TAMANO
 - Bandera azul: avisa (banner azul en el libre, franja BANDERA AZUL en el pitboard) cuando un coche con mas vueltas que tu, aunque sea de tu clase, viene detras y te va a doblar, y tambien cuando iRacing te muestra la bandera azul.
 - Battle del libre: la linea de coches en pista (debajo de las tarjetas) es mucho mas grande y legible.
