@@ -31,7 +31,7 @@ export function computeFastTraffic({ myIdx, myClassId, myLap = null, myPct, myPa
     if (!(catchIn > 0) || catchIn > maxCatchSeconds) continue;
     count++;
     if (best == null || catchIn < best.catchInSeconds) {
-      best = { carNum: c.carNum ?? null, classId: c.classId, gapSeconds: behindLaps * myPace, catchInSeconds: catchIn, lapping };
+      best = { carNum: c.carNum ?? null, classId: c.classId, gapSeconds: behindLaps * myPace, catchInSeconds: catchIn, lapping, sameClass: !otherClass };
     }
   }
   return best ? { ...best, count } : null;

@@ -39,8 +39,7 @@
   --class-5: #8fa3b8;
 
   --ov-radius: 12px;
-  --ov-font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system,
-    "Helvetica Neue", Arial, sans-serif;
+  --ov-font: var(--ifuel-font);
 
   font-family: var(--ov-font);
   color: var(--ov-text);

@@ -6,11 +6,17 @@ test("clase rápida: avisa una vez por coche y repite pasados 40 s", () => {
   let m = initialAlertMemory();
   const ft = { carNum: "7", classId: 4029, catchInSeconds: 20 };
   let r = alertsFor(m, { fastTraffic: ft, classNames: { 4029: "LMP2" }, nowMs: 1000 });
-  assert.deepEqual(r.say, ["LMP2 por detrás, número 7"]);
+  assert.deepEqual(r.say, ["Bandera azul, coche de categoría más rápida por detrás, número 7"]);
   r = alertsFor(r.mem, { fastTraffic: ft, nowMs: 5000 });
   assert.deepEqual(r.say, []);
   r = alertsFor(r.mem, { fastTraffic: ft, nowMs: 50000 });
   assert.equal(r.say.length, 1);
+});
+test("bandera azul: misma clase dice el número; sin coche solo bandera azul", () => {
+  let r = alertsFor(initialAlertMemory(), { fastTraffic: { carNum: "12", classId: 1, catchInSeconds: 9, sameClass: true }, nowMs: 0 });
+  assert.deepEqual(r.say, ["Bandera azul, coche número 12 por detrás"]);
+  r = alertsFor(initialAlertMemory(), { fastTraffic: { carNum: null, classId: null, catchInSeconds: 0, blueFlag: true }, nowMs: 0 });
+  assert.deepEqual(r.say, ["Bandera azul"]);
 });
 test("amarilla/debris con distancia redondeada, una sola vez", () => {
   let r = alertsFor(initialAlertMemory(), { yellow: { active: true, type: "debris", distanceMeters: 327, carNum: null }, nowMs: 0 });

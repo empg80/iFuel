@@ -1139,7 +1139,7 @@ standings.sort((a, b) => a.position - b.position);
       });
       // Bandera azul real de iRacing (bit 0x20) aunque no haya un coche identificado
       if (!fastTraffic && sessionFlags != null && (sessionFlags & 0x20)) {
-        fastTraffic = { carNum: null, classId: null, gapSeconds: null, catchInSeconds: 0, count: 1, lapping: true, blueFlag: true };
+        fastTraffic = { carNum: null, classId: null, gapSeconds: null, catchInSeconds: 0, count: 1, lapping: true, sameClass: true, blueFlag: true };
       }
     }
 

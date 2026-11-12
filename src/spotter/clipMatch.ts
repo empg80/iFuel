@@ -12,7 +12,7 @@ export function matchClips(text: string, m: Manifest): string[] | null {
   while (i < words.length) {
     let hit: string | null = null;
     let used = 1;
-    for (let n = Math.min(6, words.length - i); n >= 1; n--) {
+    for (let n = Math.min(8, words.length - i); n >= 1; n--) {
       const key = words.slice(i, i + n).join(" ");
       if (m.chunks[key]) { hit = m.chunks[key]; used = n; break; }
     }

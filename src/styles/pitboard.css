@@ -46,7 +46,7 @@
 
 .pb-panel { background: var(--pb-panel); border: 1px solid var(--pb-line); border-radius: 8px; box-sizing: border-box; }
 .pb-lbl { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--pb-text-2); font-weight: 600; }
-.pb-num { font-family: "Cascadia Mono", "JetBrains Mono", Consolas, monospace; font-weight: 700; }
+.pb-num { font-variant-numeric: tabular-nums; font-weight: 700; }
 .pb-good { color: var(--pb-good); } .pb-bad { color: var(--pb-bad); } .pb-warn { color: var(--pb-warn); }
 .pb-best { color: var(--pb-best); } .pb-dim { opacity: .55; }
 .pb-row-between { display: flex; justify-content: space-between; align-items: baseline; }

@@ -1,10 +1,10 @@
+:root { --ifuel-font: "Barlow Semi Condensed", "Segoe UI", system-ui, -apple-system, sans-serif; }
 :root {
   color-scheme: dark;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: var(--ifuel-font);
   background-color: #000;
 }

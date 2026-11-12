@@ -6,4 +6,5 @@ export type FastTraffic = {
   count: number;
   lapping?: boolean;
   blueFlag?: boolean;
+  sameClass?: boolean;
 };

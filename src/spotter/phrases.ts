@@ -2,7 +2,7 @@
 // En las frases con huecos: {clase} {numero} {metros}.
 export type Phrases = {
   left: string; right: string; both: string; twoLeft: string; twoRight: string; clear: string;
-  fastClass: string; fastClassNoName: string;
+  fastClass: string; fastClassNoName: string; blue: string;
   debris: string; incident: string; yellow: string; distance: string;
   fuelCritical: string; windowOpen: string; boxNow: string; lastLap: string; checkered: string; rainStart: string; rainStop: string; rainRisk: string; test: string;
 };
@@ -14,8 +14,9 @@ export const DEFAULT_PHRASES: Phrases = {
   twoLeft: "Dos a la izquierda",
   twoRight: "Dos a la derecha",
   clear: "Libre",
-  fastClass: "{clase} por detrás, número {numero}",
-  fastClassNoName: "Clase rápida por detrás, número {numero}",
+  fastClass: "Bandera azul, coche de categoría más rápida por detrás, número {numero}",
+  fastClassNoName: "Bandera azul, coche número {numero} por detrás",
+  blue: "Bandera azul",
   debris: "Debris",
   incident: "Coche parado",
   yellow: "Amarilla",

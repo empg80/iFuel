@@ -8,7 +8,7 @@ export const ALERT_IDS = ["clear", "fastClass", "yellow", "fuel", "window", "box
 export type AlertId = (typeof ALERT_IDS)[number];
 
 export type AlertInput = {
-  fastTraffic?: { carNum: string | null; classId: number | null; catchInSeconds: number } | null;
+  fastTraffic?: { carNum: string | null; classId: number | null; catchInSeconds: number; sameClass?: boolean; blueFlag?: boolean } | null;
   classNames?: Record<number, string>;
   yellow?: { active: boolean; type?: "incident" | "debris" | null; distanceMeters: number | null; carNum: number | string | null } | null;
   fuelStatus?: string | null;
@@ -52,13 +52,14 @@ export function alertsFor(mem: AlertMemory, i: AlertInput): { say: string[]; mem
   const on = (id: AlertId) => !i.muted?.includes(id);
 
   const ft = i.fastTraffic;
-  if (ft && ft.carNum != null) {
-    if (ft.carNum !== mem.fastCar || i.nowMs - mem.fastAt > FAST_REPEAT_MS) {
-      const cls = ft.classId != null ? i.classNames?.[ft.classId] : null;
+  if (ft && (ft.carNum != null || ft.blueFlag)) {
+    const who = ft.carNum ?? "blue";
+    if (who !== mem.fastCar || i.nowMs - mem.fastAt > FAST_REPEAT_MS) {
       if (on("fastClass")) {
-        say.push(cls ? fill(P.fastClass, { clase: cls, numero: ft.carNum }) : fill(P.fastClassNoName, { numero: ft.carNum }));
+        // Sin nombre de clase (las siglas se leían mal): "categoría más rápida" o "coche número X"
+        say.push(ft.carNum == null ? P.blue : ft.sameClass ? fill(P.fastClassNoName, { numero: ft.carNum }) : fill(P.fastClass, { numero: ft.carNum }));
       }
-      next.fastCar = ft.carNum;
+      next.fastCar = who;
       next.fastAt = i.nowMs;
     }
   } else if (mem.fastCar != null && i.nowMs - mem.fastAt > 5000) {

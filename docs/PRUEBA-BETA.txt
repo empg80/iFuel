@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.43 - TIPOGRAFIA UNIFICADA, BANDERA AZUL HABLADA, CLIMA CON ICONOS
+- Tipografia Barlow Semi Condensed en todos los layouts (libre, pitboard, replay y paneles).
+- Bandera azul hablada con la voz elegida (claude/dave): "Bandera azul, coche de categoria mas rapida por detras, numero X" o, si es de tu categoria, "Bandera azul, coche numero X por detras". Ya no se lee el nombre de la clase (las siglas sonaban mal). Si iRacing da la bandera sin coche: "Bandera azul".
+- Weather unificado en una sola tarjeta: icono grande del estado, prob. de lluvia, chips con iconos (pista, aire, mojada, viento con flecha) y la grafica de tendencia a todo el ancho.
+- Battle del libre: en las filas de coches en pista el numero va en un recuadro con el color de su categoria.
+
 NOVEDAD BETA.42 - BANDERA AZUL CON EL DISEÑO DE AMARILLA, SPOTTER ESTABLE
 - Bandera azul: ahora sale en el widget de banderas con el mismo diseno que amarilla y debris (BLUE FLAG, bandera azul, luces que se encienden segun te alcanza, segundos y numero de coche). Si hay amarilla o debris activos, mandan esas.
 - Test de audio: solo al arrancar el programa; ya no suena al cambiar de layout. El menu "Probar sonido" sigue funcionando.

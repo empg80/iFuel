@@ -36,13 +36,14 @@ const lapsText = (d: number | null | undefined) =>
   d == null ? "" : d === 0 ? "misma vuelta" : d > 0 ? `${d} ${d === 1 ? "vuelta" : "vueltas"} más` : `${-d} ${d === -1 ? "vuelta" : "vueltas"} menos`;
 
 /** Coche más cercano en pista (de cualquier clase), en una línea legible: lado · número · distancia · vueltas. */
-const OnTrackRow: React.FC<{ side: "ahead" | "behind"; car: OnTrackCar | null }> = ({ side, car }) => {
+const OnTrackRow: React.FC<{ side: "ahead" | "behind"; car: OnTrackCar | null; cls?: Record<number, number> }> = ({ side, car, cls }) => {
   if (!car) return null;
+  const ci = car.classId != null ? (cls?.[car.classId] ?? 0) % 6 : null;
   const d = car.lapsDiff ?? null;
   return (
     <div className={`bc-ot__row${d != null && d !== 0 ? (d > 0 ? " bc-ot__row--more" : " bc-ot__row--less") : ""}`}>
       <span className="bc-ot__where">{side === "ahead" ? "▲ Delante" : "▼ Detrás"}</span>
-      <b className="bc-ot__car">#{car.carNum}</b>
+      <b className="bc-ot__car" style={ci != null ? { background: `var(--class-${ci})` } : undefined}>#{car.carNum}</b>
       <span className="bc-ot__gap">{gap(car.gapSeconds)} s</span>
       <span className="bc-ot__laps">{lapsText(d)}</span>
     </div>
@@ -57,8 +58,8 @@ export const BattleCards: React.FC<Props> = ({ ahead, behind, myPosition, onTrac
     <Card side="behind" car={behind} cls={classColorIndexById} />
     {(onTrackAhead || onTrackBehind) && (
       <div className="bc-ot" title="Coche más cercano en pista, de cualquier clase">
-        <OnTrackRow side="ahead" car={onTrackAhead} />
-        <OnTrackRow side="behind" car={onTrackBehind} />
+        <OnTrackRow side="ahead" car={onTrackAhead} cls={classColorIndexById} />
+        <OnTrackRow side="behind" car={onTrackBehind} cls={classColorIndexById} />
       </div>
     )}
   </div>

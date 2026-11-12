@@ -18,6 +18,11 @@ test("número de coche y clase", () => {
   assert.ok(c && c.length >= 2);
   assert.ok(toClips("GT3 por detrás"));
 });
+test("frases de bandera azul se montan con clips", () => {
+  assert.ok(toClips("Bandera azul, coche de categoría más rápida por detrás, número 6"));
+  assert.ok(toClips("Bandera azul, coche número 12 por detrás"));
+  assert.ok(toClips("Bandera azul"));
+});
 test("texto no grabado devuelve null (fallback a voz del sistema)", () => {
   assert.equal(toClips("frase totalmente inventada zzz"), null);
 });

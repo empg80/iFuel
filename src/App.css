@@ -1,11 +1,11 @@
+:root { --ifuel-font: "Barlow Semi Condensed", "Segoe UI", system-ui, -apple-system, sans-serif; }
 html,
 body,
 #root {
   margin: 0;
   padding: 0;
   background: transparent;
-  font-family: "Roboto Mono", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  font-family: var(--ifuel-font);
   font-size: 14px;
 }
 
@@ -44,8 +44,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #f5f5f5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    sans-serif;
+  font-family: var(--ifuel-font);
 }
 
 /* Cabecera SESSION/TEMPS en estilo pequeño y espaciado */
@@ -674,8 +673,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #f5f5f5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    sans-serif;
+  font-family: var(--ifuel-font);
 }
 
 /* Cabecera de widget */
@@ -697,7 +695,7 @@ body {
   background: #050608;
   border-radius: 6px;
   overflow: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--ifuel-font);
   color: #f5f5f5;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.8);
 }
@@ -1043,8 +1041,7 @@ body {
   );
   box-shadow: 0 14px 26px rgba(0, 0, 0, 0.75);
   color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: var(--ifuel-font);
   animation: driver-focus-fade 0.14s ease-out;  
 }
 
@@ -1193,8 +1190,7 @@ body {
   background: rgba(5, 6, 8, 0.1);      /* un poco transparente */
   border-radius: 6px;
   overflow: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: var(--ifuel-font);
   color: #f5f5f5;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(6px);          /* efecto glass suave */
@@ -1317,7 +1313,7 @@ body {
   border-radius: 18px;
   border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 18px 40px rgba(0,0,0,0.85);
-  font-family: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--ifuel-font);
 }
 
 /* tarjeta común (Pitboard sin card) */
@@ -1384,7 +1380,7 @@ body {
 
 .race-standings-widget,
 .relative-widget {
-  font-family: "Roboto Mono", monospace;
+  font-family: var(--ifuel-font);
 }
 
 /* ---- Colores por clase en PITBOARD ---- */

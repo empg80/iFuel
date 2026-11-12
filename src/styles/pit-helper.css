@@ -1,4 +1,4 @@
-.pit-helper { border-radius: 10px; border: 2px solid #3ddc97; background: #08140e; color: #fff; padding: 10px 14px; font-family: "Segoe UI", system-ui, sans-serif; }
+.pit-helper { border-radius: 10px; border: 2px solid #3ddc97; background: #08140e; color: #fff; padding: 10px 14px; font-family: var(--ifuel-font); }
 .pit-helper--speeding { border-color: #ff4d4d; background: #280808; animation: pit-helper-blink .5s steps(2) infinite; }
 .pit-helper--no-limiter { border-color: #ffb547; background: #281c06; }
 .pit-helper__msg { font-size: 20px; font-weight: 900; letter-spacing: .08em; text-align: center; }
