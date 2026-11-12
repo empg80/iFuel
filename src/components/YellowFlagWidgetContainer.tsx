@@ -134,6 +134,7 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
           warning={warning}
           classColorIndexById={classColorIndexById}
           classNames={state?.classNames}
+          blue={state?.fastTraffic && (state.fastTraffic.lapping || state.fastTraffic.blueFlag) ? state.fastTraffic : null}
         />
       ) : (
         <div className="fuel-widget">

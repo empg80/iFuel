@@ -806,6 +806,7 @@
 }
 .yfw[data-state="yellow"] { --yfw-accent: #ffd21f; --yfw-glow: rgba(255, 210, 31, 0.34); --yfw-edge: rgba(255, 210, 31, 0.7); }
 .yfw[data-state="debris"] { --yfw-accent: #ff9f1a; --yfw-glow: rgba(255, 159, 26, 0.32); --yfw-edge: rgba(255, 159, 26, 0.7); }
+.yfw[data-state="blue"] { --yfw-accent: #3b9bff; --yfw-glow: rgba(59, 155, 255, 0.34); --yfw-edge: rgba(59, 155, 255, 0.7); }
 .yfw[data-state="clear"] { width: 330px; }
 
 /* Baldosa del glifo: borde diagonal y franjas de precaución */

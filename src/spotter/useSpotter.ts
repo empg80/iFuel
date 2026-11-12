@@ -22,9 +22,13 @@ export function useSpotter(state: IfuelState | null) {
   const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const memRef = useRef<AlertMemory>(initialAlertMemory());
 
+  // Hasta que no llegan los ajustes guardados (voz, volumen...) no se habla: evita sonar con la voz por defecto
+  const loadedRef = useRef(false);
+  loadedRef.current = overlay.spotterVoiceName !== undefined;
+
   const silent = () => {
     const s = stateRef.current;
-    return !s || !!s.isReplayPlaying || !!s.onPitRoad;
+    return !loadedRef.current || !s || !!s.isReplayPlaying || !!s.onPitRoad;
   };
 
   useEffect(() => {
@@ -82,9 +86,14 @@ export function useSpotter(state: IfuelState | null) {
 
   // "Probar sonido" del menú
   const testNonce = overlay.spotterTestNonce;
-  const firstNonce = useRef(true);
+  // El primer valor que llega (al abrir la ventana o cambiar de layout) solo se memoriza; el test suena
+  // únicamente cuando el valor cambia después (menú "Probar sonido" y arranque del programa).
+  const lastNonce = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (firstNonce.current) { firstNonce.current = false; return; }
+    if (testNonce === undefined) return;
+    if (lastNonce.current === undefined) { lastNonce.current = testNonce; return; }
+    if (lastNonce.current === testNonce) return;
+    lastNonce.current = testNonce;
     const k = cfgRef.current;
     playTone("left", k.spotterVolume);
     setTimeout(() => playTone("right", k.spotterVolume), 350);

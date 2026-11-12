@@ -7,6 +7,7 @@ type Props = { state: IfuelState | null; variant?: "free" | "pitboard" };
 export const FastTrafficBanner: React.FC<Props> = ({ state, variant = "free" }) => {
   const t = state?.fastTraffic;
   if (!t) return null;
+  if (variant === "free" && (t.lapping || t.blueFlag)) return null; // la bandera azul sale en el widget de banderas
   const idx = (state?.classColorIndexById?.[t.classId ?? -1] ?? 0) % 6;
   const name = t.classId != null ? state?.classNames?.[t.classId] : null;
   const secs = Math.max(1, Math.round(t.catchInSeconds));

@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.42 - BANDERA AZUL CON EL DISEÑO DE AMARILLA, SPOTTER ESTABLE
+- Bandera azul: ahora sale en el widget de banderas con el mismo diseno que amarilla y debris (BLUE FLAG, bandera azul, luces que se encienden segun te alcanza, segundos y numero de coche). Si hay amarilla o debris activos, mandan esas.
+- Test de audio: solo al arrancar el programa; ya no suena al cambiar de layout. El menu "Probar sonido" sigue funcionando.
+- Voz del spotter: al abrir la ventana (cambio de layout) usaba la voz por defecto hasta recibir tus ajustes; ahora espera a tenerlos, asi no cambia de voz.
+
 NOVEDAD BETA.41 - LINEA DE COCHES EN PISTA MAS CLARA
 - Battle del libre: la linea de abajo pasa a dos filas con texto claro: "Delante / Detras", numero de coche, distancia en segundos y vueltas ("6 vueltas mas", "3 vueltas menos" o "misma vuelta"), con color.
 

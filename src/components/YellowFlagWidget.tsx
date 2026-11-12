@@ -1,10 +1,13 @@
 import type { YellowWarning } from "../types/yellow";
+import type { FastTraffic } from "../types/fastTraffic";
 import { ClassBadge } from "./ClassBadge";
 
 type Props = {
   warning: YellowWarning;
   classColorIndexById?: Record<number, number>;
   classNames?: Record<number, string>;
+  /** Coche que te va a doblar (o bandera azul de iRacing): si no hay amarilla/debris se muestra con este mismo diseño */
+  blue?: FastTraffic | null;
 };
 
 /** A partir de esta distancia la tira de luces empieza a encenderse */
@@ -13,12 +16,12 @@ const APPROACH_METERS = 1000;
 const CLOSE_METERS = 250;
 const SEGMENTS = 12;
 
-const Glyph = ({ state }: { state: "clear" | "yellow" | "debris" }) => (
+const Glyph = ({ state }: { state: "clear" | "yellow" | "debris" | "blue" }) => (
   <svg viewBox="0 0 40 40" className="yfw__glyph" aria-hidden="true">
     {state === "clear" && (
       <path d="M9 21l8 8 14-16" fill="none" stroke="currentColor" strokeWidth="4.4" strokeLinecap="round" strokeLinejoin="round" />
     )}
-    {state === "yellow" && (
+    {(state === "yellow" || state === "blue") && (
       <>
         <path d="M10 5v31" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
         <path d="M13 8c5-3 9 3 14 0 2-1.2 3.8-1.6 5.5-1.5v16c-1.700-.1-3.500.3-5.500 1.500-5 3-9-3-14 0z" fill="currentColor" />
@@ -34,11 +37,38 @@ const Glyph = ({ state }: { state: "clear" | "yellow" | "debris" }) => (
   </svg>
 );
 
-export const YellowFlagWidget = ({ warning, classColorIndexById, classNames }: Props) => {
+export const YellowFlagWidget = ({ warning, classColorIndexById, classNames, blue = null }: Props) => {
   const w = warning;
   const active = !!w && w.active;
   const isDebris = active && w!.type === "debris";
-  const state = !active ? "clear" : isDebris ? "debris" : "yellow";
+  const showBlue = !active && !!blue;
+  const state = active ? (isDebris ? "debris" : "yellow") : showBlue ? "blue" : "clear";
+
+  if (showBlue) {
+    const secs = blue!.catchInSeconds > 0 ? Math.max(1, Math.round(blue!.catchInSeconds)) : null;
+    const lit = secs == null ? SEGMENTS : Math.max(1, Math.round(Math.min(1, Math.max(0, 1 - secs / 30)) * SEGMENTS));
+    const cls = blue!.classId != null ? classNames?.[blue!.classId] : null;
+    return (
+      <div className="yfw" data-state="blue" data-close={secs != null && secs <= 8 ? "1" : "0"} role="status" aria-live="polite">
+        <div className="yfw__tile"><Glyph state="blue" /></div>
+        <div className="yfw__main">
+          <div className="yfw__kicker">
+            <span>{secs != null ? "Déjale pasar · te dobla" : "Déjale pasar"}</span>
+            {blue!.carNum != null && <span className="yfw__car">#{blue!.carNum}{cls ? ` ${cls}` : ""}</span>}
+          </div>
+          <div className="yfw__row">
+            <span className="yfw__title">BLUE FLAG</span>
+            {secs != null && <span className="yfw__readout"><span className="yfw__dist">{secs}<small>s</small></span></span>}
+          </div>
+          <div className="yfw__lights" data-sweep={secs == null ? "1" : "0"} aria-hidden="true">
+            {Array.from({ length: SEGMENTS }, (_, i) => (
+              <i key={i} className="yfw__seg" data-on={i < lit ? "1" : "0"} data-hot={i >= SEGMENTS - 3 ? "1" : "0"} style={secs == null ? { animationDelay: `${i * 0.08}s` } : undefined} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const hasDistance = active && w!.distanceMeters != null;
   const meters = hasDistance ? Math.round(w!.distanceMeters as number) : null;

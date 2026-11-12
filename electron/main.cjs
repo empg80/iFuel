@@ -1121,6 +1121,8 @@ function trackWindowBounds(win) {
   win.on("close", save);
 }
 
+let startupSoundTestDone = false;
+
 function createWindow() {
   const overlay = overlayWindow.shouldUseOverlay(overlayState, { forceWindowed });
   const savedWin = overlay ? null : readWindowBounds();
@@ -1177,6 +1179,15 @@ function createWindow() {
 
   win.webContents.on("did-finish-load", () => {
     sendOverlayState();
+    // Test de audio solo al arrancar el programa (no al cambiar de layout, que recrea la ventana)
+    if (!startupSoundTestDone) {
+      startupSoundTestDone = true;
+      setTimeout(() => {
+        if (!overlayState.spotterEnabled || !mainWindow || mainWindow.isDestroyed()) return;
+        overlayState.spotterTestNonce = (overlayState.spotterTestNonce || 0) + 1;
+        sendOverlayState();
+      }, 2500);
+    }
   });
 
   if (isDev && process.env.IFUEL_DEVTOOLS === "1") {
