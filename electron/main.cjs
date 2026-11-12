@@ -1088,8 +1088,43 @@ function generateBetaReport({ reveal = false, name = null } = {}) {
   }
 }
 
+// Posición, tamaño y estado maximizado de la ventana normal (pitboard): se recuerdan entre aperturas
+const windowBoundsPath = path.join(app.getPath("userData"), "window-bounds.json");
+function readWindowBounds() {
+  try {
+    return JSON.parse(fs.readFileSync(windowBoundsPath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+function trackWindowBounds(win) {
+  let timer = null;
+  const save = () => {
+    if (win.isDestroyed() || win.isMinimized()) return;
+    const maximized = win.isMaximized();
+    const prev = readWindowBounds() ?? {};
+    const bounds = maximized && prev.bounds ? prev.bounds : win.getBounds();
+    try {
+      fs.writeFileSync(windowBoundsPath, JSON.stringify({ bounds, maximized }));
+    } catch {
+      /* sin permisos: no se recuerda */
+    }
+  };
+  const later = () => {
+    clearTimeout(timer);
+    timer = setTimeout(save, 400);
+  };
+  win.on("move", later);
+  win.on("resize", later);
+  win.on("maximize", later);
+  win.on("unmaximize", later);
+  win.on("close", save);
+}
+
 function createWindow() {
   const overlay = overlayWindow.shouldUseOverlay(overlayState, { forceWindowed });
+  const savedWin = overlay ? null : readWindowBounds();
+  const windowBounds = savedWin ? overlayWindow.pickWindowBounds(savedWin.bounds, screen.getAllDisplays()) : null;
   const display = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
 
   const win = new BrowserWindow(
@@ -1099,9 +1134,14 @@ function createWindow() {
       isDev,
       preloadPath: path.join(__dirname, "preload.cjs"),
       iconPath: isDev ? path.join(__dirname, "..", "build", "icon.ico") : undefined,
+      windowBounds,
     }),
   );
   mainWindow = win;
+  if (!overlay) {
+    if (windowBounds && savedWin?.maximized) win.maximize();
+    trackWindowBounds(win);
+  }
   windowIsOverlay = overlay;
 
   hardenWebContents(win);

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
-const { shouldUseOverlay, pickDisplay, buildMainWindowOptions, applyOverlayBehavior, keepOnTop } =
+const { pickWindowBounds, shouldUseOverlay, pickDisplay, buildMainWindowOptions, applyOverlayBehavior, keepOnTop } =
   createRequire(import.meta.url)("../electron/overlayWindow.cjs");
 
 const bounds = { x: 1920, y: 0, width: 2560, height: 1440 };
@@ -109,4 +109,16 @@ test("keepOnTop reafirma 'encima' solo si la ventana está visible", () => {
   assert.ok(visible.calls.some((c) => c[0] === "moveTop"));
   const hidden = fakeWin({ visible: false }); keepOnTop(hidden);
   assert.deepEqual(hidden.calls, []);
+});
+
+test("pickWindowBounds recuerda la ventana si su monitor sigue conectado y la descarta si no", () => {
+  const displays = [
+    { bounds: { x: 0, y: 0, width: 1920, height: 1080 } },
+    { bounds: { x: 0, y: -800, width: 1280, height: 800 } }, // monitor de arriba
+  ];
+  const saved = { x: 0, y: -800, width: 1280, height: 800 };
+  assert.deepEqual(pickWindowBounds(saved, displays), saved);
+  assert.equal(pickWindowBounds(saved, [displays[0]]), null, "monitor desconectado");
+  assert.equal(pickWindowBounds(null, displays), null);
+  assert.equal(pickWindowBounds({ x: 0, y: 0, width: NaN, height: 800 }, displays), null);
 });

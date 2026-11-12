@@ -978,3 +978,10 @@
 .race-standings__tag--warn { background: #ddd; color: #000; }
 .race-standings__cell--ir, .race-standings__cell--inc { text-align: right; color: var(--ov-text-2); font-variant-numeric: tabular-nums; }
 .race-standings__cell--inc.is-high { color: var(--ov-warn); font-weight: 700; }
+
+/* Botones del layout libre: bloquear/desbloquear widgets y pasar al pitboard */
+.free-controls { position: fixed; top: 46px; right: 16px; z-index: 50; display: flex; gap: 6px; opacity: .55; transition: opacity .15s; }
+.free-controls:hover { opacity: 1; }
+.free-controls__btn { font: 600 12px var(--ov-font, system-ui); width: 32px; height: 32px; padding: 0; font-size: 16px; line-height: 1; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(14,19,27,.9); color: #e8edf4; cursor: pointer; }
+.free-controls__btn:hover { border-color: rgba(255,255,255,.6); }
+.free-controls__btn--on { background: rgba(255,92,92,.92); border-color: transparent; color: #fff; }

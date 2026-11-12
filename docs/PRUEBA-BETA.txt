@@ -56,6 +56,10 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.39 - BOTONES EN EL LAYOUT LIBRE Y VENTANA DEL PITBOARD RECORDADA
+- Layout libre: arriba a la derecha hay dos botones con icono: candado (bloquea o desbloquea el arrastre de widgets, igual que Ctrl+Shift+L) y cuadricula (cambia al layout pitboard sin pasar por el menu).
+- Pitboard (y cualquier ventana normal): se recuerda la posicion, el tamano y si estaba maximizada; al abrirla vuelve al monitor donde la dejaste. Si ese monitor ya no esta conectado, abre en el principal.
+
 NOVEDAD BETA.38 - LAYOUT LIBRE CON LOS DATOS DEL PITBOARD
 - Widgets nuevos (menu Overlay > Show ...): Driver (posicion, incidentes propios, vuelta, tiempo, ultima/mejor/record, delta, sectores), Weather (estado, prob. lluvia, mojado, temperaturas, viento) y Tyres / car settings (desgaste, bias, TC, ABS; apagado por defecto). Arrastrables con los widgets desbloqueados y con su propio tamano.
 - Clic sobre el widget de Fuel: alterna compacto / completo (funciona tambien con el overlay bloqueado).

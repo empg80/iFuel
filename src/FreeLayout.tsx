@@ -54,6 +54,25 @@ export const FreeLayout: React.FC<FreeLayoutProps> = ({
           </div>
         </>
       )}
+      <div className="free-controls" data-clickable>
+        <button
+          type="button"
+          className={`free-controls__btn${widgetsLocked ? "" : " free-controls__btn--on"}`}
+          onClick={() => void window.ifuelOverlay?.updateState?.({ widgetsLocked: !widgetsLocked })}
+          title={widgetsLocked ? "Widgets bloqueados: clic para desbloquear y moverlos" : "Widgets desbloqueados: clic para bloquear"}
+          aria-label={widgetsLocked ? "Desbloquear widgets" : "Bloquear widgets"}
+        >
+          <span aria-hidden="true">{widgetsLocked ? "🔒" : "🔓"}</span>
+        </button>
+        <button
+          type="button"
+          className="free-controls__btn"
+          onClick={() => void window.ifuelOverlay?.updateState?.({ layoutMode: "pitboard", widgetsLocked: true })}
+          title="Cambiar al layout Pitboard" aria-label="Cambiar al layout Pitboard"
+        >
+          <span aria-hidden="true">▦</span>
+        </button>
+      </div>
       <div className={`server-status server-status--${serverStatus}`}>
         {label}
       </div>

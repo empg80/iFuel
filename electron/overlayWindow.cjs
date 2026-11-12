@@ -20,8 +20,24 @@ function pickDisplay(screen, displayId) {
   return displays.find((d) => d.id === displayId) ?? screen.getPrimaryDisplay();
 }
 
+/**
+ * Posición/tamaño guardados de la ventana normal (pitboard en el monitor secundario).
+ * Devuelve los bounds si siguen cayendo en algún monitor conectado; si no (monitor desconectado), null.
+ */
+function pickWindowBounds(saved, displays) {
+  if (!saved || ![saved.x, saved.y, saved.width, saved.height].every(Number.isFinite)) return null;
+  if (saved.width < 300 || saved.height < 200) return null;
+  const visible = displays.some((d) => {
+    const b = d.workArea ?? d.bounds;
+    const w = Math.min(saved.x + saved.width, b.x + b.width) - Math.max(saved.x, b.x);
+    const h = Math.min(saved.y + saved.height, b.y + b.height) - Math.max(saved.y, b.y);
+    return w >= 200 && h >= 100; // al menos una parte razonable dentro del monitor
+  });
+  return visible ? { x: saved.x, y: saved.y, width: saved.width, height: saved.height } : null;
+}
+
 /** Opciones del BrowserWindow principal, en modo overlay o en modo ventana normal. */
-function buildMainWindowOptions({ overlay, bounds, isDev, preloadPath, iconPath }) {
+function buildMainWindowOptions({ overlay, bounds, isDev, preloadPath, iconPath, windowBounds = null }) {
   const webPreferences = {
     nodeIntegration: false,
     contextIsolation: true,
@@ -35,8 +51,7 @@ function buildMainWindowOptions({ overlay, bounds, isDev, preloadPath, iconPath 
 
   if (!overlay) {
     return {
-      width: 800,
-      height: 600,
+      ...(windowBounds ?? { width: 800, height: 600 }),
       frame: true,
       transparent: false,
       backgroundColor: "#202020",
@@ -107,6 +122,7 @@ function keepOnTop(win) {
 module.exports = {
   shouldUseOverlay,
   pickDisplay,
+  pickWindowBounds,
   buildMainWindowOptions,
   applyOverlayBehavior,
   keepOnTop,
