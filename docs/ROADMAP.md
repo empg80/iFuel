@@ -176,3 +176,8 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 - Botón o widget en el layout libre para pasar al pitboard (desde el pitboard ya es fácil volver al libre; al revés hoy hay que ir por el menú).
 - Recordar posición, tamaño y monitor de la ventana del pitboard entre aperturas (ahora hay que moverla cada vez al monitor de arriba).
 - Beta.39 incluye ademas un boton para bloquear/desbloquear los widgets del layout libre.
+
+## Anotado tras beta.43 (para mañana)
+- **Clima con pronóstico**: la blackbox "Weather" de iRacing muestra una previsión cada 15 min (cielo, temperatura, % lluvia, humedad, viento con dirección). Investigar si el SDK/sesión (YAML WeekendInfo, telemetría) expone esa previsión; si sí, usarla en el widget del clima (tira de iconos por franja) y en el spotter (aviso de lluvia anticipado). Si no, valorar leerla de la blackbox o seguir con tendencia medida.
+- **Repaso de optimización y de funciones de los widgets**: medir consumo de CPU/RAM del overlay (renderizados a 4 Hz, grabación de diagnóstico, voces precargadas), revisar qué widgets aportan y cuáles sobran, y limpiar código sin uso (TrackInfo, DriverFocus, WeatherStrip si queda sin usar).
+- Plan: beta de mañana con lo que entre; Kike la prueba el fin de semana y manda reportes.
