@@ -23,6 +23,9 @@ export const PitPlanCard: React.FC<{ state: IfuelState | null }> = ({ state }) =
   const stops = plan?.stintLaps ?? [];
   const lastStop = stops.length ? stops[stops.length - 1] : null;
   const loss = state?.pitClearAir?.pitLossSeconds ?? null;
+  // Litros de ESTA parada (no el total hasta meta, que puede superar el depósito) y consumo por vuelta
+  const refuel = state?.estRefuel ?? plan?.litersNextStop ?? 0;
+  const burn = perLap ?? state?.fuelAvg ?? state?.fuelLast ?? null;
   const toFinish = remaining != null && perLap ? remaining * perLap : null;
 
   return (
@@ -38,8 +41,8 @@ export const PitPlanCard: React.FC<{ state: IfuelState | null }> = ({ state }) =
       <div className="pb-plan__kpis">
         <div className="pb-kpi"><span className="pb-lbl">Depósito</span><b className="pb-num">{f1(state?.fuel)}<small> L</small></b></div>
         <div className="pb-kpi"><span className="pb-lbl">Vueltas</span><b className="pb-num">{state?.estLaps != null ? f1(state.estLaps) : "–"}</b></div>
-        <div className="pb-kpi"><span className="pb-lbl">Repostar</span><b className="pb-num pb-warn">{plan?.litersToAdd != null && plan.litersToAdd > 0 ? f1(plan.litersToAdd) : "0"}</b></div>
-        <div className="pb-kpi"><span className="pb-lbl">Consumo</span><b className="pb-num">{f1(perLap, 2)}</b></div>
+        <div className="pb-kpi"><span className="pb-lbl">Repostar</span><b className="pb-num pb-warn">{refuel > 0.05 ? f1(refuel) : "0"}<small> L</small></b></div>
+        <div className="pb-kpi"><span className="pb-lbl">Consumo</span><b className="pb-num">{f1(burn, 2)}<small> L/v</small></b></div>
       </div>
       <div className="pb-plan__tank"><i style={{ width: `${ratio * 100}%` }} /></div>
 

@@ -1261,6 +1261,7 @@ standings.sort((a, b) => a.position - b.position);
         const lr = safeTelemetryVariable(sdk, "CarLeftRight")?.value?.[0];
         if (Number.isFinite(lr) && lr !== lastCarLeftRight) {
           lastCarLeftRight = lr;
+          diag.recorder?.write(JSON.stringify({ _spotter: { t: Date.now(), carLeftRight: lr } }) + "\n"); // para revisar el spotter en los informes
           const msg = JSON.stringify({ type: "spotter", carLeftRight: lr, t: Date.now() });
           wss.clients.forEach((c) => { if (c.readyState === 1) c.send(msg); });
         }

@@ -44,6 +44,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
     fuelCritical: state?.fuelPlan?.status === "critical",
     lastLap: (flags & 0x2) !== 0 || remain === 1,
     checkered: (flags & 0x1) !== 0,
+    refuelL: state?.estRefuel ?? null,
   });
   const y = state?.yellowWarning;
   const center =

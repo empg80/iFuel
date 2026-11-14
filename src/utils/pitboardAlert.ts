@@ -13,6 +13,8 @@ export type AlertSource = {
   fuelCritical?: boolean;
   lastLap?: boolean;
   checkered?: boolean;
+  /** Litros a repostar en esta parada (se recuerda en el pit lane) */
+  refuelL?: number | null;
 };
 
 const MAX_METERS = 1200;
@@ -21,7 +23,7 @@ const roundM = (m: number) => (m < 100 ? Math.round(m / 10) * 10 : Math.round(m 
 export function pitboardAlert(s: AlertSource): PitboardAlert {
   const h = s.pitHelper;
   if (h) {
-    const box = h.boxDistM != null && h.boxDistM > 3 ? ` · tu box a ${Math.round(h.boxDistM)} m` : "";
+    const box = (h.boxDistM != null && h.boxDistM > 3 ? ` · tu box a ${Math.round(h.boxDistM)} m` : "") + (s.refuelL != null && s.refuelL > 0.5 ? ` · REPOSTAR ${s.refuelL.toFixed(0)} L` : "");
     if (h.status === "speeding") return { tone: "danger", tag: "PIT LANE", msg: `REDUCE VELOCIDAD${h.limitKph ? ` · límite ${Math.round(h.limitKph)}` : ""}${box}` };
     if (h.status === "no-limiter") return { tone: "warn", tag: "PIT LANE", msg: `ACTIVA EL LIMITADOR${box}` };
     return { tone: "ok", tag: "PIT LANE", msg: `Limitador activo${box}` };
