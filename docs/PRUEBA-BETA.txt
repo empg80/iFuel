@@ -56,6 +56,9 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.46 - MULTICLASE: HUECOS ENTRE COCHES DE LA MISMA CLASE
+- Standings: el hueco con el coche de delante de tu clase se calcula con la distancia total al lider (en vueltas). Antes, si el lider general doblaba a uno de los dos coches de tu clase y al otro no, salia "+1L" en vez de los segundos reales (p. ej. 14 s).
+
 NOVEDAD BETA.45 - ARREGLO: PLAN DE COMBUSTIBLE VACIO EN EL PITBOARD
 - Error corregido: el plan de combustible del servidor no llegaba a las tarjetas (faltaba reenviarlo en el estado del hook). Por eso en el pitboard "Repostar", "Consumo", la linea del plan de carrera, las paradas previstas y la linea de ahorro salian como guion o vacias. Ahora se muestran. Afecta tambien a la linea de ahorro de combustible del layout libre.
 - Test nuevo que vigila que el estado reenvie los datos que usan las tarjetas.

@@ -34,7 +34,7 @@ export function computeStandingsGaps(cars, refLapTime, { byBestLap = false } = {
 
   for (const c of valid) {
     if (c.idx === leader.idx) {
-      out.set(c.idx, { lapsDown: 0, gapSeconds: 0 });
+      out.set(c.idx, { lapsDown: 0, gapSeconds: 0, gapLaps: 0, refLap: refLapTime > 0 ? refLapTime : null });
       continue;
     }
     const deficit = leaderProgress - progress(c);
@@ -46,7 +46,8 @@ export function computeStandingsGaps(cars, refLapTime, { byBestLap = false } = {
     const lapsDown = Math.floor(deficit + 1e-6);
     const frac = deficit - lapsDown;
     const gapSeconds = refLapTime > 0 ? Math.max(0, frac) * refLapTime : null;
-    out.set(c.idx, { lapsDown, gapSeconds });
+    // gapLaps: distancia total al líder en vueltas (sin partir en vueltas+fracción): sirve para el hueco entre coches de la misma clase
+    out.set(c.idx, { lapsDown, gapSeconds, gapLaps: deficit, refLap: refLapTime > 0 ? refLapTime : null });
   }
   return out;
 }

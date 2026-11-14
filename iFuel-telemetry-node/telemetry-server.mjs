@@ -904,7 +904,7 @@ for (const entry of carsForStandings) {
   const driverName = driver?.UserName ?? String(carNum || `#${idx}`);
   const carModel = driver?.CarPath ?? ""; 
 
-  const gapInfo = standingsGaps.get(idx) ?? { lapsDown: 0, gapSeconds: null };
+  const gapInfo = standingsGaps.get(idx) ?? { lapsDown: 0, gapSeconds: null, gapLaps: null, refLap: null };
   const lapsDown = gapInfo.lapsDown;
   const gapToLeaderSeconds = gapInfo.gapSeconds;
 
@@ -934,6 +934,8 @@ standings.push({
   stintLapCount,
   lastPitDurationSeconds,
   gapToLeaderSeconds,
+  gapLaps: gapInfo.gapLaps ?? null,
+  refLap: gapInfo.refLap ?? null,
   lapsDown,
   pitStops,
   inPit,

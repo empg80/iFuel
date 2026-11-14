@@ -7,6 +7,15 @@ import { fitStandings } from "../utils/standingsFilter";
 /** Distancia al coche de delante de la misma clase: "+1.234", "+1L" si va doblado, "—" para el primero. */
 function formatInterval(row: StandingsRow, ahead: StandingsRow | undefined): string {
   if (!ahead) return "—";
+  // Con la distancia total al líder (en vueltas) el hueco con el coche de tu clase es exacto aunque el líder general doble a uno y no al otro
+  if (row.gapLaps != null && ahead.gapLaps != null && row.refLap) {
+    const d = row.gapLaps - ahead.gapLaps;
+    if (d < -0.02) return "--";
+    const laps = Math.floor(d + 0.02);
+    if (laps >= 1) return `+${laps}L`;
+    const g = Math.max(0, d) * row.refLap;
+    return `+${g < 100 ? g.toFixed(1) : Math.round(g)}`;
+  }
   if (row.lapsDown !== ahead.lapsDown) {
     const d = row.lapsDown - ahead.lapsDown;
     return d > 0 ? `+${d}L` : "—";

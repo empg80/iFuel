@@ -7,6 +7,9 @@ export type StandingsRow = {
 
   bestLapTime: number | null;
   gapToLeader: number | null;
+  /** Distancia total al líder en vueltas y tiempo de vuelta de referencia (hueco correcto entre coches de la misma clase) */
+  gapLaps?: number | null;
+  refLap?: number | null;
 
   lapsDown: number;
   stintLapCount: number;
