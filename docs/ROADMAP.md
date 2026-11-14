@@ -183,3 +183,11 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 - Plan: beta de mañana con lo que entre; Kike la prueba el fin de semana y manda reportes.
 - **Replay → libre**: al pasar al layout replay y volver al libre aparecen todos los widgets y movidos de sitio. Revisar al entrar en el layout replay (posiblemente visibilidad/posiciones que se pisan o se reinician al recrear la ventana; las posiciones están en localStorage `ifuel-pos-*` y la visibilidad en overlay-state.json).
 - **Release**: si las pruebas del fin de semana van bien, lanzar la release (versión estable, sin "beta") y actualizar el README antes: funciones actuales (layouts libre/pitboard/replay, widgets nuevos, spotter con voces, banderas, clima, historial por circuito), instalación/uso, capturas y requisitos. Revisar también el changelog y las notas de la release.
+
+## Proyecto aparte: analizador de vueltas desde .ibt (decidido: opción 1)
+- iRacing graba la telemetría a 60 Hz en `Documentos\iRacing\telemetry\*.ibt` (hay que activar la grabación en iRacing). iFuel no graba nada extra: lee esos archivos después.
+- Leer .ibt (cabecera + canales: Speed, Throttle, Brake, SteeringWheelAngle, Gear, RPM, LapDistPct, LatAccel, LongAccel, Lat/Lon) y separar por vueltas.
+- Informe: pérdida por sectores/mini-sectores, frenada (punto, presión, longitud), velocidad mínima y salida de curva, trazada, acelerador y volante, consistencia entre vueltas, y las 3-5 curvas donde más tiempo se pierde.
+- Comparar la mejor vuelta contra la media (o contra una vuelta de referencia) y proponer qué cambiar; sin pretender un modelo físico del coche.
+- Decidir después de la release: ¿pestaña dentro de iFuel o herramienta separada? Avisar en la UI de que el .ibt hay que activarlo en iRacing.
+- Aprovechar también: incluir `trackHistory.json` en el informe beta.
