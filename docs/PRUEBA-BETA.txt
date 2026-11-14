@@ -56,6 +56,10 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.45 - ARREGLO: PLAN DE COMBUSTIBLE VACIO EN EL PITBOARD
+- Error corregido: el plan de combustible del servidor no llegaba a las tarjetas (faltaba reenviarlo en el estado del hook). Por eso en el pitboard "Repostar", "Consumo", la linea del plan de carrera, las paradas previstas y la linea de ahorro salian como guion o vacias. Ahora se muestran. Afecta tambien a la linea de ahorro de combustible del layout libre.
+- Test nuevo que vigila que el estado reenvie los datos que usan las tarjetas.
+
 NOVEDAD BETA.44 - COMBUSTIBLE CLARO EN EL PITBOARD Y SPOTTER REGISTRADO
 - Pitboard, tarjeta del plan: "Repostar" ahora muestra los litros de ESTA parada (antes mostraba el total hasta meta, p. ej. 193 L, que supera el deposito) y "Consumo" lleva su unidad (L/v).
 - Pitboard, franja del pit lane: recuerda "REPOSTAR X L" mientras vas por boxes.

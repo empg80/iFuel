@@ -712,6 +712,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             weather: weather ?? null,
             pitHelper: pitHelper ?? null,
             trackHistory: trackHistory ?? null,
+            fuelPlan: fuelPlan ?? null,
             pitClearAir: pitClearAir ?? null,
             standings,
             cameraCarNumber,
