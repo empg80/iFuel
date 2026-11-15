@@ -3,6 +3,7 @@ import clsx from "clsx";
 import type { RaceStandingsWidgetProps, StandingsRow } from "../types/standings";
 import { formatLapTimeSeconds } from "../utils/relativeFormat";
 import { fitStandings } from "../utils/standingsFilter";
+import { tireChip } from "../utils/tireChip";
 
 /** Distancia al coche de delante de la misma clase: "+1.234", "+1L" si va doblado, "—" para el primero. */
 function formatInterval(row: StandingsRow, ahead: StandingsRow | undefined): string {
@@ -74,6 +75,7 @@ export function RaceStandingsWidget({
           {multi && <span>CLS</span>}
           <span>#</span>
           <span>DRIVER</span>
+          <span>TYRE</span>
           <span>iR</span>
           <span>BEST LAP</span>
           <span>GAP</span>
@@ -133,6 +135,12 @@ export function RaceStandingsWidget({
                           {PENALTY[row.penalty].txt}
                         </span>
                       )}
+                    </span>
+                    <span className="race-standings__cell race-standings__cell--tyre">
+                      {(() => {
+                        const t = tireChip(row.tire, row.tireName);
+                        return t ? <span className={clsx("race-standings__tyre", `race-standings__tyre--${t.kind}`)} title={t.title}>{t.letter}</span> : null;
+                      })()}
                     </span>
                     <span className="race-standings__cell race-standings__cell--ir">
                       {row.iRating != null ? (row.iRating >= 1000 ? `${(row.iRating / 1000).toFixed(1)}k` : row.iRating) : "–"}

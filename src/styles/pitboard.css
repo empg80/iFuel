@@ -116,13 +116,9 @@
 /* la cabecera del pitboard ya da tiempo y vueltas: la clasificación gana ese espacio para más filas */
 .pb-root .race-standings__head { display: none; }
 
-/* en el pitboard stint y última parada ya salen en otros paneles: se cambian por el gap al de delante */
-.pb-root .race-standings__cell--stint,
-.pb-root .race-standings__cell--pit,
-.pb-root .race-standings__h-stint,
-.pb-root .race-standings__h-pit { display: none; }
-.app-root--free.pb-root .race-standings__row { grid-template-columns: 26px 50px minmax(0, 1fr) 40px 78px 50px; column-gap: 6px; }
-.app-root--free.pb-root .race-standings__table--multi .race-standings__row { grid-template-columns: 26px 22px 50px minmax(0, 1fr) 40px 78px 50px; column-gap: 6px; }
+/* pitboard: neumático, gap al de delante, vueltas de stint y duración de la última parada */
+.app-root--free.pb-root .race-standings__row { grid-template-columns: 26px 50px minmax(0, 1fr) 24px 40px 72px 46px 34px 40px; column-gap: 6px; }
+.app-root--free.pb-root .race-standings__table--multi .race-standings__row { grid-template-columns: 26px 22px 50px minmax(0, 1fr) 24px 40px 72px 46px 34px 40px; column-gap: 6px; }
 
 /* el contenedor ocupa toda su celda: así la altura medida es la disponible y no la del contenido */
 .pb-root .pb-area-standings { display: flex; flex-direction: column; }

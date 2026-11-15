@@ -122,7 +122,7 @@ function Scene({ scene }: { scene: string }) {
     const names47 = ["Alonso Pérez", "Marcus Eriksen-Larsen", "Jean-Baptiste Dubois", "Kimi Tanaka", "Pablo Ruiz", "Liam O Connor", "Sergio Hernández"];
     const big: StandingsRow[] = Array.from({ length: 47 }, (_, i) => ({
       position: i + 1, carNumber: String(i === 32 ? 8 : i + 20), classId: i % 3 === 0 ? 4029 : 4011, driverName: names47[i % names47.length] + " " + (i + 1),
-      bestLapTime: 232 + i * 0.4, gapToLeader: i * 2.37, lapsDown: 0, stintLapCount: 5, lastPitDurationSeconds: null, pitStops: 0, inPit: i === 3, carModel: "GTP", iRating: 2500 + i * 90, incidents: i % 5, penalty: i === 6 ? "black" : i === 8 ? "repair" : null,
+      bestLapTime: 232 + i * 0.4, gapToLeader: i * 2.37, lapsDown: 0, stintLapCount: 5, lastPitDurationSeconds: null, pitStops: 0, inPit: i === 3, carModel: "GTP", iRating: 2500 + i * 90, tire: i % 5 === 4 ? 1 : 0, tireName: i % 5 === 4 ? "Wet" : i % 2 ? "Medium" : "Hard", incidents: i % 5, penalty: i === 6 ? "black" : i === 8 ? "repair" : null,
     }));
     const state = {
       fuel: 18.4, fuelMax: 52, fuelCapacity: 52, lapNumber: 12, lapTime: 107.52, fuelLast: 2.78, fuelAvg: 2.78, fuelAvg2: 2.8, fuelAvg5: 2.78, fuelAvg10: 2.77,
@@ -165,7 +165,7 @@ function Scene({ scene }: { scene: string }) {
       return {
         position: i + 1, carNumber: String(10 + i), classId: classId === 4011 && i > 9 ? 4029 : classId,
         driverName: `Driver ${i + 1}`, bestLapTime: 200 + i * 0.7, gapToLeader: null, lapsDown: 0,
-        stintLapCount: 5 + (i % 4), lastPitDurationSeconds: i % 3 ? 24.8 : null, pitStops: i % 3, inPit: false, carModel: "x", iRating: 3100 - i * 40, incidents: i % 7, penalty: null,
+        stintLapCount: 5 + (i % 4), lastPitDurationSeconds: i % 3 ? 24.8 : null, pitStops: i % 3, inPit: false, carModel: "x", iRating: 3100 - i * 40, tire: 0, tireName: i % 3 ? "Hard" : "Soft", incidents: i % 7, penalty: null,
       };
     });
     void cls;

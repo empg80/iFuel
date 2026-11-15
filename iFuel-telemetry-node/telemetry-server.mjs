@@ -73,7 +73,7 @@ const defaultCreateSdk = async () => {
 const TELEMETRY_VARS = [
   "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition", "CarIdxEstTime",
   "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct", "CarIdxLastLapTime",
-  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxSessionFlags", "PlayerCarMyIncidentCount", "EngineWarnings", "Precipitation", "RelativeHumidity", "Skies", "TrackWetness", "WindDir", "WindVel", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
+  "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxSessionFlags", "CarIdxTireCompound", "PlayerCarMyIncidentCount", "EngineWarnings", "Precipitation", "RelativeHumidity", "Skies", "TrackWetness", "WindDir", "WindVel", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
   "SessionState", "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
@@ -384,6 +384,9 @@ let driverIdx =
 const carIdxLapDistPct = telemetry.CarIdxLapDistPct?.value ?? [];
 
 const carIdxLap = telemetry.CarIdxLap?.value ?? [];
+const carIdxTire = telemetry.CarIdxTireCompound?.value ?? [];
+// nombres de compuesto de la sesión (Hard/Medium/Soft/Wet...) por índice
+const tireNameByIndex = new Map((session?.DriverInfo?.DriverTires ?? []).map((t) => [t.TireIndex, String(t.TireCompoundType ?? "")]));
 const carIdxEstTime = telemetry.CarIdxEstTime?.value ?? [];
 const carIdxLastLapTime = telemetry.CarIdxLastLapTime?.value ?? [];
 const carIdxBestLapTime = telemetry.CarIdxBestLapTime?.value ?? [];
@@ -933,6 +936,8 @@ standings.push({
   bestLapSeconds: bestLap > 0 ? bestLap : null,
   stintLapCount,
   lastPitDurationSeconds,
+  tire: Number.isFinite(carIdxTire[idx]) && carIdxTire[idx] >= 0 ? carIdxTire[idx] : null,
+  tireName: tireNameByIndex.get(carIdxTire[idx]) || null,
   gapToLeaderSeconds,
   gapLaps: gapInfo.gapLaps ?? null,
   refLap: gapInfo.refLap ?? null,

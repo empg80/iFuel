@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.47 - STANDINGS: NEUMÁTICO, STINT Y PARADA
+- Nueva columna TYRE en la tabla de standings (pitboard y libre): neumático que lleva cada piloto (D/W en seco/lluvia; S/M/H/I/W si el coche tiene compuestos con nombre). Pasa el ratón/mira el color del círculo.
+- En el pitboard ya se ven las columnas STINT (vueltas del stint) y LAST PIT (duración de la última parada), antes ocultas.
+- El informe beta incluye ahora trackHistory.json (histórico de consumo/mejores vueltas).
+- Qué mirar: que el neumático coincida con lo que ves en pista (sobre todo tras paradas y en mojado) y que el nombre del piloto no quede demasiado recortado.
+
 NOVEDAD BETA.46 - MULTICLASE: HUECOS ENTRE COCHES DE LA MISMA CLASE
 - Standings: el hueco con el coche de delante de tu clase se calcula con la distancia total al lider (en vueltas). Antes, si el lider general doblaba a uno de los dos coches de tu clase y al otro no, salia "+1L" en vez de los segundos reales (p. ej. 14 s).
 

@@ -58,6 +58,8 @@ type StandingsRowPayload = {
   gapToLeaderSeconds: number | null;
   gapLaps?: number | null;
   refLap?: number | null;
+  tire?: number | null;
+  tireName?: string | null;
   lapsDown: number;
   pitStops: number;
   inPit: boolean;
@@ -660,6 +662,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
               bestLapTime: car.bestLapSeconds,
               gapToLeader: car.gapToLeaderSeconds ?? null,
               gapLaps: car.gapLaps ?? null,
+              tire: car.tire ?? null,
+              tireName: car.tireName ?? null,
               refLap: car.refLap ?? null,
               lapsDown: car.lapsDown ?? 0,
               stintLapCount: car.stintLapCount,

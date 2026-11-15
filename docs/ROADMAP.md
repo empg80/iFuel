@@ -190,9 +190,9 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 - Informe: pérdida por sectores/mini-sectores, frenada (punto, presión, longitud), velocidad mínima y salida de curva, trazada, acelerador y volante, consistencia entre vueltas, y las 3-5 curvas donde más tiempo se pierde.
 - Comparar la mejor vuelta contra la media (o contra una vuelta de referencia) y proponer qué cambiar; sin pretender un modelo físico del coche.
 - Decidir después de la release: ¿pestaña dentro de iFuel o herramienta separada? Avisar en la UI de que el .ibt hay que activarlo en iRacing.
-- Aprovechar también: incluir `trackHistory.json` en el informe beta.
+- Hecho en beta.47: `trackHistory.json` incluido en el informe beta.
 
-## Standings: neumático, parada y stint por piloto (pedido 14-nov)
+## Standings: neumático, parada y stint por piloto (pedido 14-nov) — HECHO en beta.47, pendiente validar en iRacing
 - Mostrar en la tabla (pitboard y libre) el neumático que lleva cada piloto: iRacing lo expone por coche en `CarIdxTireCompound` (comprobar que lo entrega el SDK/irsdk-node y añadirlo a TELEMETRY_VARS y a las filas de standings).
 - Parada en boxes: duración de la última parada y número de paradas (ya llegan `lastPitDurationSeconds` y `pitStops`; el libre ya enseña pit y stint, revisar que sea visible y claro también en el pitboard).
 - Vueltas de stint (`stintLapCount`): ya está en los datos; mostrarlo con claridad.

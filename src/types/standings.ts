@@ -10,6 +10,9 @@ export type StandingsRow = {
   /** Distancia total al líder en vueltas y tiempo de vuelta de referencia (hueco correcto entre coches de la misma clase) */
   gapLaps?: number | null;
   refLap?: number | null;
+  /** Neumático que lleva el coche: índice de iRacing y nombre del compuesto si la sesión lo da */
+  tire?: number | null;
+  tireName?: string | null;
 
   lapsDown: number;
   stintLapCount: number;

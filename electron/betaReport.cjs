@@ -142,6 +142,8 @@ function buildReport({ userData, outDir, since = 0, summary = {}, now = new Date
     add(f, `diagnostics/${path.basename(f)}`);
   const stateFile = path.join(userData, "overlay-state.json");
   if (fs.existsSync(stateFile)) add(stateFile, "overlay-state.json");
+  const histFile = path.join(userData, "trackHistory.json");
+  if (fs.existsSync(histFile)) add(histFile, "trackHistory.json");
   for (const f of extraFiles) add(f, path.basename(f));
 
   const resumen = {
