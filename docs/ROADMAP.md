@@ -197,3 +197,7 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 - Parada en boxes: duración de la última parada y número de paradas (ya llegan `lastPitDurationSeconds` y `pitStops`; el libre ya enseña pit y stint, revisar que sea visible y claro también en el pitboard).
 - Vueltas de stint (`stintLapCount`): ya está en los datos; mostrarlo con claridad.
 - Diseño: icono/inicial del compuesto con color, y valores compactos para no apretar el nombre del piloto.
+
+## Neumáticos: colores por compuesto y cobertura (pedido 16-nov)
+- Dar un color a cada tipo de neumático en la columna TYRE (p. ej. Wet azul, Hard blanco, Medium amarillo, Soft rojo, Inter verde).
+- Revisar si todos los coches muestran el dato: Kike cree que algún coche no lo mostraba (el 15-nov). Comprobar en el informe de esta noche qué valor trae `CarIdxTireCompound` por coche (-1 / sin dato) y mostrar un fallback claro.
