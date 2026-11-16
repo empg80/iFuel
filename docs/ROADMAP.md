@@ -234,3 +234,8 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - M2 (pit clear air multiclase): VALIDADO con datos. Recomienda vuelta, alternativas con puntuación de tráfico, coche más cercano y pérdida (32 s); consumo 3,13 L/vuelta e historial coherentes. Falta saber si Kike siguió la recomendación en boxes.
 - Huecos multiclase: arreglados en beta.46 (tests); pendiente verlos en pista (el informe es de la beta.43).
 - Neumáticos: la beta.43 no registraba CarIdxTireCompound; comprobar cobertura con el informe de la beta.47.
+
+## Dashboard de volante: diseño elegido v4 "Estratégico" (aprobado 16-nov, noche)
+- Sustituye al v3 como diseño objetivo (640x300, sin huecos). Copia: docs/mockups/dashboard-volante-v4-estrategico.dc.html (el v3 queda como alternativa).
+- Novedades: cinta de carrera (una celda por vuelta con tráfico al salir de boxes, ventana de parada, vuelta BOX recomendada y fin del combustible), anillo de marcha (RPM fuera, delta dentro), escalera de tráfico por clases con aviso del coche más rápido, modos RACE/QUALI/PIT (QUALI oculta el delta), neumáticos con compuesto en color, temperatura y desgaste.
+- Datos que ya tenemos: pitClearAir (opciones por vuelta), fuelPlan, fastTraffic, standings/relative, CarIdxTireCompound. A comprobar en SDK: Gear, Speed, RPM, luces de cambio, SoC/híbrido, desgaste de neumático.
