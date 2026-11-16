@@ -201,3 +201,11 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 ## Neumáticos: colores por compuesto y cobertura (pedido 16-nov)
 - Dar un color a cada tipo de neumático en la columna TYRE (p. ej. Wet azul, Hard blanco, Medium amarillo, Soft rojo, Inter verde).
 - Revisar si todos los coches muestran el dato: Kike cree que algún coche no lo mostraba (el 15-nov). Comprobar en el informe de esta noche qué valor trae `CarIdxTireCompound` por coche (-1 / sin dato) y mostrar un fallback claro.
+
+## Widget "Dashboard de volante" (pedido 16-nov)
+- Widget tipo dash de volante para los coches que lo llevan integrado (LMP2, GTP, etc.): barra de LEDs de RPM, marcha y velocidad grandes, posición/vuelta, combustible, delta, última/mejor vuelta, temperatura de neumáticos y ajustes (BIAS, TC1, TC2, ABS, mapa).
+- Mockup aprobado para revisar en el artefacto "iFuel · Widget Dashboard de volante" (1000x560). Pendiente: elegir qué datos del SDK usar (Gear, Speed, RPM, shift LEDs) y si va en layout libre, pitboard o ambos.
+
+## Widgets en el layout pitboard (pedido 16-nov)
+- Viable: el pitboard es una rejilla fija de 1280x800, así que se puede (a) permitir sustituir/añadir paneles de la rejilla (p. ej. el dashboard en el hueco de abajo) o (b) abrir widgets flotantes encima, reutilizando FloatingWidget del layout libre (posición y escala guardadas).
+- Decidir: panel sustituible (más limpio, rejilla fija) o flotante (más flexible, puede tapar datos). Recomendación inicial: flotantes opcionales, desactivados por defecto, con el botón de bloqueo ya existente.
