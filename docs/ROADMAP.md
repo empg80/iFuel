@@ -222,3 +222,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 8. Repaso de optimización (CPU/RAM) y limpieza de código sin uso, con todo ya dentro.
 9. README (funciones, layouts, instalación, capturas, requisitos), changelog y notas de la release.
 10. Release estable `v0.1.0` (sin beta).
+
+## Clima con pronóstico: investigación inicial (16-nov)
+- La nota original es la de "Anotado tras beta.43" (blackbox Weather con previsión cada 15 min). No hay más debate guardado de esa conversación.
+- Foro SimHub (abr-2024): iRacing "no publica ese dato vía API/SDK" en sim; el SDK solo da el estado actual (pista mojada, etc.). Pendiente confirmar si cambió con las actualizaciones recientes.
+- La Data API online de iRacing (OAuth, aparte del SDK en sim) sí tiene un pronóstico condensado por sesión (tiempo, temp. aire, % precipitación, cobertura de nubes, humedad, viento). Requiere login del usuario: valorar si compensa.
+- Siguiente paso: grabar `WeekendInfo` y variables de clima en una sesión con lluvia prevista y comprobar qué llega; si no hay nada, opciones: (a) tendencia medida (lo actual), (b) Data API con login, (c) leer la blackbox por OCR (descartado salvo que no haya otra).
