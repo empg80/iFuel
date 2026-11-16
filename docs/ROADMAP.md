@@ -211,11 +211,14 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 - Decidir: panel sustituible (más limpio, rejilla fija) o flotante (más flexible, puede tapar datos). Recomendación inicial: flotantes opcionales, desactivados por defecto, con el botón de bloqueo ya existente.
 
 ## RUTA A LA RELEASE (acordada 16-nov)
-Desde ahora solo se trabaja en esto; lo demás queda aparcado hasta después de la release.
+Todo el roadmap entra antes de la release y no se añade nada nuevo hasta terminarlo. Orden propuesto (lo que depende de las pruebas de Kike primero):
 1. Beta.48: informe de esta noche (spotter, multiclase, cobertura de neumáticos), colores por compuesto y fallback sin dato.
-2. Validar en iRacing: standings con neumático/stint/parada, aviso de clase rápida (M1), pit clear air multiclase (M2), huecos multiclase.
+2. Validar en iRacing: standings con neumático/stint/parada, M1 (clase rápida), M2 (pit clear air multiclase), huecos multiclase.
 3. Bug replay → libre (widgets visibles y movidos).
-4. Repaso de optimización (CPU/RAM) y limpieza de código sin uso.
-5. README (funciones, layouts, instalación, capturas, requisitos), changelog y notas de la release.
-6. Release estable `v0.1.0` (sin beta).
-Aparcado hasta después: widget Dashboard de volante, widgets en pitboard, clima con pronóstico, C1, C2, M4, M5, N3, E3, analizador .ibt.
+4. Clima con pronóstico (investigar si el SDK lo expone).
+5. Widget Dashboard de volante (mockup v3 aprobado) y widgets flotantes en el pitboard.
+6. Funciones propuestas pendientes: C1 (rivales que paran en tu ventana), C2 (regla de la serie), M4 (relative tintado por clase), M5 (final por clase), N3 (widgets como fuente de navegador para OBS), E3 (instalador y firma).
+7. Analizador de vueltas desde .ibt.
+8. Repaso de optimización (CPU/RAM) y limpieza de código sin uso, con todo ya dentro.
+9. README (funciones, layouts, instalación, capturas, requisitos), changelog y notas de la release.
+10. Release estable `v0.1.0` (sin beta).
