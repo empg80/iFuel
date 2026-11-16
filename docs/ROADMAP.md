@@ -209,3 +209,13 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 ## Widgets en el layout pitboard (pedido 16-nov)
 - Viable: el pitboard es una rejilla fija de 1280x800, así que se puede (a) permitir sustituir/añadir paneles de la rejilla (p. ej. el dashboard en el hueco de abajo) o (b) abrir widgets flotantes encima, reutilizando FloatingWidget del layout libre (posición y escala guardadas).
 - Decidir: panel sustituible (más limpio, rejilla fija) o flotante (más flexible, puede tapar datos). Recomendación inicial: flotantes opcionales, desactivados por defecto, con el botón de bloqueo ya existente.
+
+## RUTA A LA RELEASE (acordada 16-nov)
+Desde ahora solo se trabaja en esto; lo demás queda aparcado hasta después de la release.
+1. Beta.48: informe de esta noche (spotter, multiclase, cobertura de neumáticos), colores por compuesto y fallback sin dato.
+2. Validar en iRacing: standings con neumático/stint/parada, aviso de clase rápida (M1), pit clear air multiclase (M2), huecos multiclase.
+3. Bug replay → libre (widgets visibles y movidos).
+4. Repaso de optimización (CPU/RAM) y limpieza de código sin uso.
+5. README (funciones, layouts, instalación, capturas, requisitos), changelog y notas de la release.
+6. Release estable `v0.1.0` (sin beta).
+Aparcado hasta después: widget Dashboard de volante, widgets en pitboard, clima con pronóstico, C1, C2, M4, M5, N3, E3, analizador .ibt.
