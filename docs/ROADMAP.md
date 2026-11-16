@@ -228,3 +228,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Foro SimHub (abr-2024): iRacing "no publica ese dato vía API/SDK" en sim; el SDK solo da el estado actual (pista mojada, etc.). Pendiente confirmar si cambió con las actualizaciones recientes.
 - La Data API online de iRacing (OAuth, aparte del SDK en sim) sí tiene un pronóstico condensado por sesión (tiempo, temp. aire, % precipitación, cobertura de nubes, humedad, viento). Requiere login del usuario: valorar si compensa.
 - Siguiente paso: grabar `WeekendInfo` y variables de clima en una sesión con lluvia prevista y comprobar qué llega; si no hay nada, opciones: (a) tendencia medida (lo actual), (b) Data API con login, (c) leer la blackbox por OCR (descartado salvo que no haya otra).
+
+## Validación punto 2 con el informe de la carrera multiclase 2h40 (beta.43, 14-nov) — anotado 16-nov
+- M1 (aviso de clase rápida): VALIDADO con datos. 43 episodios de la clase GTP acercándose (29 doblando, 14 no), ninguno >2 min; bit de bandera azul de iRacing en ~6,6 min; aviso a tiempo (p. ej. rápido a 4,8 s, alcance estimado 54 s). La sensación de uso (si molestó) la confirma Kike.
+- M2 (pit clear air multiclase): VALIDADO con datos. Recomienda vuelta, alternativas con puntuación de tráfico, coche más cercano y pérdida (32 s); consumo 3,13 L/vuelta e historial coherentes. Falta saber si Kike siguió la recomendación en boxes.
+- Huecos multiclase: arreglados en beta.46 (tests); pendiente verlos en pista (el informe es de la beta.43).
+- Neumáticos: la beta.43 no registraba CarIdxTireCompound; comprobar cobertura con el informe de la beta.47.
