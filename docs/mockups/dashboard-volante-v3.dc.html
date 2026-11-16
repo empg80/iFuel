@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dashboard de volante</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@500;600&display=swap">
+<style>
+body{margin:0;background:#05080d;font-family:'Barlow',system-ui,sans-serif}
+</style>
+</helmet>
+<div style="width:680px;height:262px;box-sizing:border-box;padding:8px;background:radial-gradient(120% 100% at 50% 0%,#16233a 0%,#0a0f18 65%);color:#eef3fb;display:flex;flex-direction:column;gap:6px;border-radius:14px;font-family:'Barlow',system-ui,sans-serif;position:relative;overflow:hidden">
+
+  <!-- Barra de RPM -->
+  <div style="display:flex;gap:3px;align-items:flex-end;height:16px">
+    <sc-for list="{{leds}}" as="led" hint-placeholder-count="20">
+      <div style="flex:1 1 0;min-width:0;height:{{led.h}}px;border-radius:2px;transform:skewX(-18deg);background:{{led.color}};opacity:{{led.opacity}};box-shadow:{{led.glow}}"></div>
+    </sc-for>
+  </div>
+
+  <!-- Cuerpo: 3 columnas sin huecos -->
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 176px minmax(0,1fr);gap:6px;flex-grow:1;min-height:0">
+
+    <!-- Izquierda -->
+    <div style="display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:6px">
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:0 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;letter-spacing:.18em;color:#7f93b0">POS</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#5cb0ff">5<span style="font-size:16px;color:#6f84a3;font-weight:600">/27</span></span>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:0 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;letter-spacing:.18em;color:#7f93b0">DELTA</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;line-height:1;color:#43e6a0;text-shadow:0 0 14px rgba(67,230,160,.4)">−0.18</span>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:0 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;letter-spacing:.18em;color:#7f93b0">VUELTA</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:34px;line-height:1">12<span style="font-size:16px;color:#6f84a3;font-weight:600">/28</span></span>
+      </div>
+    </div>
+
+    <!-- Centro: marcha y velocidad -->
+    <div style="background:linear-gradient(180deg,rgba(92,176,255,.14),rgba(92,176,255,.04));border:1px solid rgba(92,176,255,.25);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;position:relative">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:128px;line-height:.82;color:#fff;text-shadow:0 0 28px rgba(92,176,255,.55)">4</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;margin-top:6px">218<span style="font-size:12px;color:#7f93b0;letter-spacing:.1em"> KM/H</span></div>
+    </div>
+
+    <!-- Derecha -->
+    <div style="display:grid;grid-template-rows:repeat(3,minmax(0,1fr));gap:6px">
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:0 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;letter-spacing:.18em;color:#7f93b0">ÚLTIMA</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1">1:47.52</span>
+      </div>
+      <div style="background:rgba(183,140,255,.1);border:1px solid rgba(183,140,255,.3);border-radius:10px;padding:0 12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;letter-spacing:.18em;color:#b78cff">MEJOR</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;line-height:1;color:#c9a8ff">1:46.91</span>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:0 12px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:10px;letter-spacing:.18em;color:#7f93b0">FUEL</span><span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;line-height:1">38.4<span style="font-size:11px;color:#7f93b0"> L · 14.2 v</span></span></div>
+        <div style="height:5px;border-radius:3px;background:#1a2538;overflow:hidden"><div style="width:62%;height:100%;background:linear-gradient(90deg,#43e6a0,#5cb0ff)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Franja inferior: ajustes + híbrido + pedales -->
+  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 1.7fr;gap:6px;height:34px">
+    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:0 8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;letter-spacing:.14em;color:#7f93b0">BIAS</span><b style="font-family:'Barlow Condensed',sans-serif;font-size:19px">54.5</b></div>
+    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:0 8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;letter-spacing:.14em;color:#7f93b0">TC1</span><b style="font-family:'Barlow Condensed',sans-serif;font-size:19px">4</b></div>
+    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:0 8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;letter-spacing:.14em;color:#7f93b0">TC2</span><b style="font-family:'Barlow Condensed',sans-serif;font-size:19px">2</b></div>
+    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:0 8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;letter-spacing:.14em;color:#7f93b0">ABS</span><b style="font-family:'Barlow Condensed',sans-serif;font-size:19px">3</b></div>
+    <div style="background:rgba(255,184,61,.12);border:1px solid rgba(255,184,61,.35);border-radius:8px;padding:0 8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;letter-spacing:.14em;color:#ffb83d">MAP</span><b style="font-family:'Barlow Condensed',sans-serif;font-size:19px;color:#ffb83d">2</b></div>
+    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:0 10px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+      <div style="display:flex;align-items:center;gap:6px"><span style="font-size:8px;letter-spacing:.14em;color:#7f93b0;width:26px">HYB</span><div style="flex:1;height:5px;border-radius:3px;background:#1a2538;overflow:hidden"><div style="width:68%;height:100%;background:linear-gradient(90deg,#5cb0ff,#43e6a0)"></div></div><b style="font-family:'Barlow Condensed',sans-serif;font-size:13px">68%</b></div>
+      <div style="display:flex;align-items:center;gap:4px"><span style="font-size:8px;letter-spacing:.14em;color:#7f93b0;width:26px">THR</span><div style="flex:1;height:4px;border-radius:2px;background:#1a2538;overflow:hidden"><div style="width:92%;height:100%;background:#43e6a0"></div></div><div style="flex:1;height:4px;border-radius:2px;background:#1a2538;overflow:hidden;transform:scaleX(-1)"><div style="width:20%;height:100%;background:#ff4d5e"></div></div><span style="font-size:8px;letter-spacing:.14em;color:#7f93b0;width:20px;text-align:right">BRK</span></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":680,"height":262}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const n = 20, on = 16, leds = [];
+    for (let i = 0; i < n; i++) {
+      const color = i < 9 ? '#43e6a0' : i < 15 ? '#ffb83d' : '#ff4d5e';
+      const lit = i < on;
+      leds.push({
+        color,
+        opacity: lit ? 1 : 0.14,
+        h: 8 + Math.round(i * 0.4),
+        glow: lit ? '0 0 8px ' + color : 'none'
+      });
+    }
+    return { leds };
+  }
+}
+</script>
+</body>
+</html>
