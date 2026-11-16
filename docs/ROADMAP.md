@@ -204,7 +204,7 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 
 ## Widget "Dashboard de volante" (pedido 16-nov)
 - Widget tipo dash de volante para los coches que lo llevan integrado (LMP2, GTP, etc.): barra de LEDs de RPM, marcha y velocidad grandes, posición/vuelta, combustible, delta, última/mejor vuelta, temperatura de neumáticos y ajustes (BIAS, TC1, TC2, ABS, mapa).
-- Mockup v2 (compacto 760x340, moderno: barra RPM con brillo, anillo y marcha grande) en el artefacto "iFuel · Widget Dashboard de volante". Pendiente: elegir qué datos del SDK usar (Gear, Speed, RPM, shift LEDs) y si va en layout libre, pitboard o ambos.
+- Mockup v3 (muy compacto 680x262, celdas sin huecos, marcha central, franja inferior con ajustes, híbrido y pedales) en el artefacto "iFuel · Widget Dashboard de volante". Pendiente: elegir qué datos del SDK usar (Gear, Speed, RPM, shift LEDs) y si va en layout libre, pitboard o ambos.
 
 ## Widgets en el layout pitboard (pedido 16-nov)
 - Viable: el pitboard es una rejilla fija de 1280x800, así que se puede (a) permitir sustituir/añadir paneles de la rejilla (p. ej. el dashboard en el hueco de abajo) o (b) abrir widgets flotantes encima, reutilizando FloatingWidget del layout libre (posición y escala guardadas).
