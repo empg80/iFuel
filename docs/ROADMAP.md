@@ -239,3 +239,12 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Sustituye al v3 como diseño objetivo (640x300, sin huecos). Copia: docs/mockups/dashboard-volante-v4-estrategico.dc.html (el v3 queda como alternativa).
 - Novedades: cinta de carrera (una celda por vuelta con tráfico al salir de boxes, ventana de parada, vuelta BOX recomendada y fin del combustible), anillo de marcha (RPM fuera, delta dentro), escalera de tráfico por clases con aviso del coche más rápido, modos RACE/QUALI/PIT (QUALI oculta el delta), neumáticos con compuesto en color, temperatura y desgaste.
 - Datos que ya tenemos: pitClearAir (opciones por vuelta), fuelPlan, fastTraffic, standings/relative, CarIdxTireCompound. A comprobar en SDK: Gear, Speed, RPM, luces de cambio, SoC/híbrido, desgaste de neumático.
+
+## Planificador de stints para carreras endurance (pedido 19-nov)
+- Herramienta para planificar una carrera endurance antes de salir y recalcular durante ella: a partir del ritmo (tiempo por vuelta) y del consumo (litros/vuelta) calcula cuántas vueltas/minutos dura cada stint y cuántas paradas hacen falta.
+- Entradas: duración de la carrera (tiempo o vueltas), capacidad del depósito, tiempo por vuelta (limpio y con tráfico), consumo L/vuelta (normal y ahorrando), pérdida en boxes (entrada + repostaje + salida), margen de seguridad (la hoja de ruta ya usa 1 vuelta en carreras por tiempo).
+- Salida: tabla de stints (vuelta/hora de inicio y fin, litros a repostar, hora de parada), número mínimo de paradas, alternativas (parar antes/después, stint largo vs. corto) y tiempo total estimado.
+- Extras a valorar: cambio de piloto (tiempos mínimos de parada, máximo de tiempo al volante por piloto), neumáticos/desgaste, amarillas (vueltas neutralizadas que alargan el stint) y reajuste en directo con el consumo y el ritmo reales.
+- Reutilizar lo que ya existe: `fuelPlan`, `trackHistory.json` (consumo y mejor vuelta por circuito), `pitClearAir` (qué vuelta de parada deja aire limpio).
+- Dónde vive: por decidir (pestaña/ventana propia en iFuel antes de la carrera, y vista resumida en el pitboard durante la carrera).
+- Orden en la ruta a la release: junto al analizador de vueltas .ibt (apartado 7).
