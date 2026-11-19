@@ -248,3 +248,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Reutilizar lo que ya existe: `fuelPlan`, `trackHistory.json` (consumo y mejor vuelta por circuito), `pitClearAir` (qué vuelta de parada deja aire limpio).
 - Dónde vive: por decidir (pestaña/ventana propia en iFuel antes de la carrera, y vista resumida en el pitboard durante la carrera).
 - Orden en la ruta a la release: junto al analizador de vueltas .ibt (apartado 7).
+
+## Referencia: Pi Toolbox + ONE TIMING (Cosworth/PACETEQ, 19-nov-2026)
+- Plugin de pago (£5/mes o £50/año sobre Pi Toolbox Plus) con cronometraje en vivo de toda la parrilla para iRacing, para analizar junto a la telemetría propia. Fuente: https://www.iracing.com/pi-toolbox-meets-one-timing-what-you-get-in-iracing-and-how-to-save-20-this-black-friday/
+- Incluye: standings con posición general/clase, huecos, intervalos, tiempos por sector, velocidad punta, compuesto, stints y paradas; "Circle of Doom" (posición de cada coche en la vuelta medida en tiempo: aire limpio, quién se reincorpora tras parar); canales por coche, lap chart, Pi Math; sesiones guardadas.
+- Diferencia con iFuel: iFuel es un overlay en directo y gratuito; esto es análisis con licencia. Ya cubrimos standings con neumático/stint/parada y clear air.
+- Ideas a valorar (sin añadir al alcance de la release por ahora): tiempos por sector de rivales en los standings; vista tipo "Circle of Doom" (posiciones relativas en tiempo) que encajaría con el anillo de pista y la escalera de tráfico del dashboard v4; guardar el cronometraje en la grabación para el analizador .ibt.
