@@ -286,3 +286,10 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Versión ligera: panel pequeño de "Reglas de la carrera" con paradas obligatorias (nº y progreso), tiempo mínimo de parada (cuenta atrás en boxes) y máximo de stint (aviso). Se guarda por última configuración usada.
 - Solo en sesiones por equipos: mostrar el estado de Fair Share y el temporizador de 30 s del cambio de piloto si la telemetría los trae; si no, quedan como nota informativa (iRacing ya los muestra).
 - Sin planificador por series ni lista de reglas preconfiguradas.
+
+## Hecho en beta.50 (21-nov)
+- C1: rivales que paran en tu ventana (`rivalStops.mjs`, línea en el plan de parada del pitboard). Estimación con su último stint o la mediana de su clase.
+- M5: dato "Final" (líder general, clase, vuelta extra) a partir del cálculo existente (`finishInfo`).
+- C2-light: panel "Reglas de la carrera" (paradas obligatorias, tiempo mínimo en boxes, stint máximo), configurable y guardado. Fair Share y temporizador de 30 s no se muestran (iRacing ya los enseña).
+- N3: el servidor sirve la app en http://127.0.0.1:7071 y la ruta `#/obs/<widget>` pinta un solo widget con fondo transparente para fuentes de navegador de OBS.
+- Pendiente de validar en carrera: ventana de rivales, vuelta extra en multiclase, contador de boxes y OBS real.

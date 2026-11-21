@@ -179,3 +179,11 @@ test("fuelSaving: sin datos o ya llegas -> null", () => {
   assert.equal(fuelSaving({ fuelLevel: 20, fuelPerLap: 0, remaining: 5, stops: 0 }), null);
   assert.equal(fuelSaving({ fuelLevel: 20, fuelPerLap: 2, remaining: 5, stops: 0 }), null);
 });
+
+import { finishInfo } from "../fuelPlan.mjs";
+test("finishInfo: multiclase, cruzo antes que el líder general → vuelta extra", () => {
+  const base = { lapsRemain: 32767, timeRemain: 0, lapTime: 108, myPct: 0.913, timeExpired: true };
+  assert.equal(finishInfo({ ...base, leader: { pct: 0.3, lapTime: 107 } }).extraLap, true);
+  assert.equal(finishInfo({ ...base, leader: { pct: 0.95, lapTime: 107 } }).extraLap, false);
+  assert.equal(finishInfo({ ...base, leader: null }), null);
+});

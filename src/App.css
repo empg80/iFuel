@@ -1471,3 +1471,7 @@ body {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* N3: widget suelto para OBS: siempre en la esquina superior izquierda, sin arrastre */
+.obs-root{position:relative;width:100vw;height:100vh;background:transparent}
+.obs-root>*,.obs-root .floating-widget{position:absolute !important;left:0 !important;top:0 !important}

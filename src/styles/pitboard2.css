@@ -154,3 +154,17 @@
 
 /* M4: relative tintado por la clase del coche */
 .bc--tinted { background: linear-gradient(90deg, color-mix(in srgb, var(--tint) 22%, transparent), transparent 62%), rgba(14,19,27,.92); }
+
+.pb-plan__rivals{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.pb-plan__rivals>div{display:flex;flex-wrap:wrap;gap:6px}
+.pb-rival{padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.08);font-weight:700;font-size:13px}
+.pb-rival small{font-weight:500;opacity:.75}
+.pb-rival--other{opacity:.6}
+.pb-plan__finish{display:flex;flex-direction:column;gap:2px;margin:6px 0;font-size:13px}
+
+.pb-rules{display:flex;flex-direction:column;gap:6px;padding:8px 10px}
+.pb-rules__head{display:flex;justify-content:space-between;align-items:center}
+.pb-rules__cfg,.pb-rule-edit button{background:rgba(255,255,255,.1);border:0;color:inherit;border-radius:6px;padding:2px 10px;cursor:pointer;font:inherit}
+.pb-rules__list>div,.pb-rule-edit{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.pb-rules__list .is-ok span{color:#4ade80}.pb-rules__list .is-warn span{color:#fbbf24}.pb-rules__list .is-bad span{color:#f87171;font-weight:800}
+.pb-rules__off,.pb-rules__note{opacity:.6;font-size:12px}

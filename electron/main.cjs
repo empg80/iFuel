@@ -361,6 +361,7 @@ async function startTelemetryServerInElectron() {
         port: 7071,
         dataDir: app.getPath("userData"), // donde se guarda classColorMap.json
         dev: isDev, // en producción no se admite el origen de Vite
+        staticDir: path.join(__dirname, "../dist"), // N3: widgets como fuente de navegador de OBS
       });
       telemetryServerRunning = true;
       console.log("[iFuel] Telemetry server arrancado en 127.0.0.1:7071");

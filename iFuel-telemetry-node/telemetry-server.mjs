@@ -17,7 +17,9 @@ import {
 } from "./pitState.mjs";
 import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { buildPitPasses } from "./pitPasses.mjs";
-import { fuelSaving, computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
+import { estimateRivalStops } from "./rivalStops.mjs";
+import { createStaticHandler } from "./staticServer.mjs";
+import { fuelSaving, finishInfo, computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createTrackHistory, sessionKind, historyKey } from "./trackHistory.mjs";
 import { computePitHelper, parsePitLimitKph } from "./pitHelper.mjs";
 import { createWeatherTracker } from "./weather.mjs";
@@ -467,6 +469,8 @@ let standings = [];
 // sirve para validar avisos con grabaciones y para el widget de pista
 let carsCompact = [];
 let fuelPlan = null;
+let rivalPits = null;
+let raceFinish = null; // C1: rivales que paran en tu ventana
 
 
 // mapa CarIdx -> número de coche (puede ser vacío si DriverInfo viene roto)
@@ -878,6 +882,7 @@ updatePitAndStintState({
 const carIdxPosition = telemetry.CarIdxPosition?.value ?? [];
 
 standings = [];
+const rivalInputs = [];
 
 const carsForStandings = [];
 for (let idx = 0; idx < carIdxPosition.length; idx++) {
@@ -955,6 +960,7 @@ const pitStops = pitState.pitStops ?? 0;
 //  indicador en pit usando CarIdxOnPitRoad directamente
 const inPit = !!carIdxOnPitRoad[idx];
 
+rivalInputs.push({ carNumber: String(carNum ?? ""), classId, position: pos, stintLapCount, completedStints: pitState.completedStints ?? [], inPit });
 standings.push({
   position: pos,
   carNumber: String(carNum ?? ""),
@@ -1083,6 +1089,18 @@ standings.sort((a, b) => a.position - b.position);
         })
       : null;
     const windowInfo = plan?.window ?? null;
+    {
+      const lc = leaderEntry && leaderEntry.idx !== driverIdx ? cars.find((c) => c.idx === leaderEntry.idx) : null;
+      const lt = lc ? (carIdxBestLapTime[lc.idx] > 0 ? carIdxBestLapTime[lc.idx] : carIdxLastLapTime[lc.idx]) : 0;
+      const fi = lc && !leaderState.finished && Number.isFinite(lc.pct) && lt > 0
+        ? finishInfo({ lapsRemain: sessionLapsRemainEx, timeRemain: sessionTimeRemain, lapTime: baseLapTime, myPct, timeExpired, leader: { pct: lc.pct, lapTime: lt } })
+        : null;
+      raceFinish = leaderEntry && leaderEntry.idx !== driverIdx
+        ? { leaderCarNumber: carIdxNumberMap[leaderEntry.idx] ?? "", leaderClassId: carIdxClass[leaderEntry.idx] ?? 0,
+            sameClass: (carIdxClass[leaderEntry.idx] ?? 0) === (carIdxClass[driverIdx] ?? 0),
+            extraLap: fi?.extraLap ?? false, leaderFinished: leaderState.finished }
+        : null;
+    }
     if (plan) {
       const firstPass = windowInfo?.passes?.[0];
       const fuelAtPit = firstPass ? Math.max(0, fuelLevel - firstPass.lapsToPit * fpl) : fuelLevel;
@@ -1094,7 +1112,17 @@ standings.sort((a, b) => a.position - b.position);
         remainingLaps: plan.remainingLaps,
         saving: fuelSaving({ fuelLevel, fuelPerLap: fpl, remaining: plan.remainingLaps ?? 0, stops: plan.stops ?? 0 }),
       };
+      const myLapNow = telemetry.Lap?.value?.[0] ?? 0;
+      rivalPits = estimateRivalStops({
+        rows: rivalInputs,
+        myCarNumber: carIdxNumberMap[driverIdx] ?? "",
+        myClassId: carIdxClass[driverIdx] ?? 0,
+        myStintLaps: fpl > 0 && fuelMax > 0 ? fuelMax / fpl : null,
+        lapsToWindowStart: windowInfo?.startLap != null ? windowInfo.startLap - myLapNow : null,
+        lapsToWindowEnd: windowInfo?.endLap != null ? windowInfo.endLap - myLapNow : null,
+      });
     } else {
+      rivalPits = null;
       fuelPlan = { perLap: fpl ?? null, perLapSource: fplSource, status: "unknown", stops: null, stintLaps: [], litersToAdd: null, litersNextStop: null, windowStartLap: null, windowEndLap: null, remainingLaps: null };
     }
 
@@ -1243,6 +1271,8 @@ standings.sort((a, b) => a.position - b.position);
     };
   })(),
   fuelPlan,
+  rivalPits,
+  raceFinish,
   trackHistory: histEntry ? { best: histEntry.best, fuelPerLap: histEntry.fuelPerLap } : null,
   yellowWarning,
   fastTraffic,
@@ -1349,9 +1379,10 @@ async function startTelemetryServer(options = {}) {
 
   loadClassMapFromDisk_init(options.dataDir);
 
+  // N3: con staticDir se sirve la app por HTTP en el mismo puerto (widgets como fuente de navegador de OBS)
+  const httpServer = options.staticDir ? http.createServer(createStaticHandler(options.staticDir)) : null;
   const wss = new WebSocketServer({
-    host,
-    port,
+    ...(httpServer ? { server: httpServer } : { host, port }),
     path: pathWs,
     maxPayload: MAX_MESSAGE_BYTES, // rechaza mensajes grandes antes de bufferizarlos
     // Rechazo en el propio handshake (HTTP 403) para orígenes no permitidos.
@@ -1377,6 +1408,8 @@ async function startTelemetryServer(options = {}) {
   // El origen de desarrollo (Vite) solo se admite si no se indica lo contrario
   const allowedOrigins = new Set(["file://", "app://ifuel"]);
   if (options.dev !== false) allowedOrigins.add("http://localhost:5173");
+  if (httpServer) { allowedOrigins.add(`http://127.0.0.1:${port}`); allowedOrigins.add(`http://localhost:${port}`); }
+  if (httpServer) httpServer.listen(port, host);
 
   wss.on("connection", (ws, request) => {
     console.log("[iFuel] Nuevo cliente conectado a iFuel WS");
@@ -1597,6 +1630,7 @@ if (origin && !allowedOrigins.has(origin)) {
     }
     for (const client of wss.clients) client.terminate();
     await new Promise((resolve) => wss.close(() => resolve()));
+    if (httpServer) { httpServer.closeAllConnections?.(); await new Promise((resolve) => httpServer.close(() => resolve())); }
   };
 
   const isSdkConnected = () => !!diag.sdk;

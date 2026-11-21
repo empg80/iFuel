@@ -7,6 +7,7 @@ import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetCo
 import { PitboardHeader } from "./components/pitboard/PitboardHeader";
 import { AlertStrip } from "./components/pitboard/AlertStrip";
 import { PitPlanCard } from "./components/pitboard/PitPlanCard";
+import { RaceRulesCard } from "./components/pitboard/RaceRulesCard";
 import { TyresStrip } from "./components/pitboard/TyresStrip";
 import { RivalsRow } from "./components/pitboard/RivalsRow";
 import { TrackRing } from "./components/pitboard/TrackRing";
@@ -98,6 +99,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
       </div>
       <div className="pb-col pb-col--mid">
         <PitPlanCard state={state} />
+        <RaceRulesCard state={state} />
         <TyresStrip tyres={car?.tyres ?? null} compound={car?.compound ?? null} />
       </div>
       <div className="pb-col pb-col--right">

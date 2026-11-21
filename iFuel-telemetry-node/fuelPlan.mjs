@@ -58,6 +58,20 @@ export function lapsToRun({ lapsRemain, timeRemain, lapTime, myPct, timeExpired,
  * @returns {{perLap:number|null, perLapSource:string, lapsToFinish:number|null, litersToAdd:number|null,
  *   status:string, stops:number|null, stintLaps:number[], window:ReturnType<typeof computePitWindow>|null}}
  */
+/**
+ * Final de carrera en multiclase: la bandera la da el líder GENERAL (puede ser de otra clase) y cada coche termina en
+ * su primer paso por meta posterior. `extraLap` = cruzarías antes que el líder y te toca una vuelta más.
+ * @returns {{extraLap:boolean, leaderFinished:boolean}|null}
+ */
+export function finishInfo({ lapsRemain, timeRemain, lapTime, myPct, timeExpired, leader, leaderFinished }) {
+  if (!leader) return null;
+  const base = { lapsRemain, timeRemain, lapTime, myPct, timeExpired };
+  const withL = lapsToRun({ ...base, leader });
+  const without = lapsToRun({ ...base, leader: null });
+  if (withL == null || without == null) return null;
+  return { extraLap: withL - without > 0.5, leaderFinished: !!leaderFinished };
+}
+
 export function computeFuelPlan(i) {
   const { fuelLevel, fuelPerLap, fuelCapacity, myLap, myPct, pitPct, safetyLaps, lapsRemain, timeRemain, lapTime, timeExpired, leader, finished } = i;
   const empty = { perLap: fuelPerLap ?? null, litersToAdd: null, status: "unknown", stops: null, stintLaps: [], window: null, remainingLaps: null };

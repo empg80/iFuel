@@ -18,6 +18,7 @@ function getOrCreatePitState(carIdx) {
       lastKnownLapCompleted: 0,
 
       pitStops: 0,
+      completedStints: [], // vueltas de cada stint ya terminado (para estimar cuándo paran los rivales)
 
       // Primera observación del coche: si ya estaba en pit road, su primera salida
       // (p. ej. salir del box al empezar la sesión) no cuenta como parada.
@@ -77,6 +78,10 @@ function updatePitAndStintState({
           );
         }
         state.pitStops += 1;
+        if (state.stintStartLapCompleted != null) {
+          const len = lapCompleted - state.stintStartLapCompleted;
+          if (len >= 2) state.completedStints.push(len);
+        }
       }
       // Nuevo stint: antes no se reiniciaba nunca y "stint laps" acababa siendo el total de vueltas
       state.stintStartLapCompleted = Math.max(0, lapCompleted);

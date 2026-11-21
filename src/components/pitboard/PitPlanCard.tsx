@@ -26,6 +26,9 @@ export const PitPlanCard: React.FC<{ state: IfuelState | null }> = ({ state }) =
   // Litros de ESTA parada (no el total hasta meta, que puede superar el depósito) y consumo por vuelta
   const refuel = state?.estRefuel ?? plan?.litersNextStop ?? 0;
   const burn = perLap ?? state?.fuelAvg ?? state?.fuelLast ?? null;
+  const rf = state?.raceFinish ?? null;
+  const rfClass = rf && !rf.sameClass ? state?.classNames?.[rf.leaderClassId] ?? "otra clase" : null;
+  const rivals = state?.rivalPits?.inWindow ?? [];
   const toFinish = remaining != null && perLap ? remaining * perLap : null;
 
   return (
@@ -55,6 +58,22 @@ export const PitPlanCard: React.FC<{ state: IfuelState | null }> = ({ state }) =
       <div className="pb-plan__axis"><span>V{lap || "–"} ahora</span><span>{winS != null && winE != null ? `Ventana V${winS}–V${winE}` : ""}</span><span>{total ? `V${total} meta` : ""}</span></div>
 
       <FuelSavingLine saving={plan?.saving} />
+
+      {rf && (
+        <div className="pb-plan__finish">
+          <span className="pb-lbl">Final</span>
+          <span>{rf.leaderFinished ? "El líder ya vio la bandera: terminas en tu próximo paso por meta" : `Bandera del líder general #${rf.leaderCarNumber}${rfClass ? ` (${rfClass})` : ""}${rf.extraLap ? " · te toca 1 vuelta extra" : ""}`}</span>
+        </div>
+      )}
+
+      {rivals.length > 0 && (
+        <div className="pb-plan__rivals">
+          <span className="pb-lbl">Rivales parando en tu ventana</span>
+          <div>{rivals.slice(0, 5).map((r) => (
+            <span key={r.carNumber} className={`pb-rival${r.sameClass ? "" : " pb-rival--other"}`}>#{r.carNumber} <small>{r.lapsToStop <= 0 ? "ya" : `en ${r.lapsToStop} v`}{r.known ? "" : " (est.)"}</small></span>
+          ))}</div>
+        </div>
+      )}
 
       {call.laps.length > 0 && (
         <>

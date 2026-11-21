@@ -16,6 +16,7 @@ import "./styles/replay-theme.css";
 import { WidgetVisibilityProvider } from "./contexts/WidgetVisibilityProvider";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { ReplayOverlayApp } from "./components/ReplayOverlayApp";
+import { ObsWidgetPage } from "./components/ObsWidgetPage";
 
 // Vista previa con datos simulados: solo existe en builds con VITE_PREVIEW=1 (no va en el instalador)
 const PreviewPage = import.meta.env.VITE_PREVIEW
@@ -29,6 +30,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/replay" element={<ReplayOverlayApp />} />
+          <Route path="/obs/:widget" element={<ObsWidgetPage />} />
           {PreviewPage && (
             <Route
               path="/preview"

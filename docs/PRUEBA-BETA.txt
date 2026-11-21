@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.50 - RIVALES EN TU VENTANA, FINAL POR CLASE, REGLAS DE CARRERA Y WIDGETS PARA OBS
+- PITBOARD, plan de parada: línea "Rivales parando en tu ventana" (#coche y en cuántas vueltas; "(est.)" = estimado con la media de su clase) y línea "Final": quién da la bandera (líder general, con su clase) y si te toca una vuelta extra.
+- PITBOARD, nuevo panel "Reglas de la carrera" bajo el plan de parada. Pulsa "Ajustar" y pon: paradas obligatorias, tiempo mínimo en boxes y stint máximo (0 = off). Se recuerda. Muestra paradas hechas/faltan, vueltas de stint restantes (ámbar a 3 vueltas, rojo al pasarte) y cuenta atrás en boxes (cuenta desde que entras al pit lane, aproximado).
+- OBS: con iFuel abierto, en OBS añade una fuente de navegador con la URL http://127.0.0.1:7071/#/obs/fuel (también relative, standings, pitclear, yellow, driver, weather, car, traffic, pithelper). Pon el tamaño de la fuente a mano; el fondo es transparente.
+- Qué mirar: en carrera con rivales, que la lista de la ventana tenga sentido; en multiclase, que "Final" y la vuelta extra coincidan con lo que pasa; que el contador de boxes y el stint avisen bien; y en OBS, que el widget salga en la esquina con datos en vivo.
+
 NOVEDAD BETA.49 - CLIMA EN EL INFORME, WIDGETS EN EL PITBOARD Y RELATIVE POR CLASE
 - Informe: ahora se graba el clima de la sesión (tipo de clima, cielo, viento, humedad, niebla...) cada minuto y en cada volcado del SDK, para saber si iRacing da alguna previsión. No cambia nada en pantalla.
 - PITBOARD: widgets flotantes opcionales (Driver, Weather, Tyres/car settings), apagados por defecto. Se activan en el menú de la bandeja ("Pitboard: show ..."). Candado 🔒 en la esquina inferior izquierda del pitboard: desbloquéalo para arrastrarlos y vuelve a bloquear. La posición se recuerda.

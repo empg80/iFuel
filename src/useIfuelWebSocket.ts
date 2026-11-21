@@ -108,6 +108,8 @@ type RawMessage = {
   classColorIndexById?: Record<number, number>;
   classNames?: Record<number, string>;
   fuelPlan?: FuelPlan | null;
+  rivalPits?: RivalPits | null;
+  raceFinish?: RaceFinish | null;
 
   yellowWarning?: YellowWarning;
   fastTraffic?: FastTraffic | null;
@@ -141,6 +143,12 @@ export type FuelPlan = {
   windowEndLap: number | null;
   remainingLaps: number | null;
   saving?: FuelSaving | null;
+};
+export type RaceFinish = { leaderCarNumber: string; leaderClassId: number; sameClass: boolean; extraLap: boolean; leaderFinished: boolean };
+export type RivalPits = {
+  inWindow: { carNumber: string; classId: number; position: number; lapsToStop: number; sameClass: boolean; known: boolean }[];
+  total: number;
+  windowLaps: number[] | null;
 };
 export type FuelSaving = {
   mode: "avoid-stop" | "extra-lap";
@@ -200,6 +208,8 @@ export type IfuelState = {
   classColorIndexById?: Record<number, number>;
   classNames?: Record<number, string>;
   fuelPlan?: FuelPlan | null;
+  rivalPits?: RivalPits | null;
+  raceFinish?: RaceFinish | null;
 
   yellowWarning?: YellowWarning;
   fastTraffic?: FastTraffic | null;
@@ -336,6 +346,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             classColorIndexById,
             classNames,
             fuelPlan,
+            rivalPits,
+            raceFinish,
             yellowWarning,
             fastTraffic,
             weather,
@@ -721,6 +733,8 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             pitHelper: pitHelper ?? null,
             trackHistory: trackHistory ?? null,
             fuelPlan: fuelPlan ?? null,
+            rivalPits: rivalPits ?? null,
+            raceFinish: raceFinish ?? null,
             pitClearAir: pitClearAir ?? null,
             standings,
             cameraCarNumber,
