@@ -25,7 +25,7 @@ export const StintPlannerCard: React.FC<{ state: IfuelState | null }> = ({ state
     durationMin: t != null && t > 600 && t < 90000 ? Math.round(t / 60) : 180,
     tankL: state?.fuelCapacity ?? state?.fuelMax ?? 60,
     lapS: state?.lapTime ?? (state?.myBestLapTime ? state.myBestLapTime * 1.01 : null),
-    fuelPerLap: state?.fuelAvg ?? state?.trackHistory?.fuelPerLap?.race ?? null,
+    fuelPerLap: state?.fuelAvg ?? state?.trackHistory?.fuelPerLap ?? null,
     pitLossS: 38,
     marginLaps: 1,
   };
