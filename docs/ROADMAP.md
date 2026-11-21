@@ -214,8 +214,8 @@ Siguiente propuesto: C1 (rivales que paran en tu ventana), regla de la serie en 
 Todo el roadmap entra antes de la release y no se añade nada nuevo hasta terminarlo. Orden propuesto (lo que depende de las pruebas de Kike primero):
 1. Beta.48: informe de esta noche (spotter, multiclase, cobertura de neumáticos), colores por compuesto y fallback sin dato.
 2. Validar en iRacing: standings con neumático/stint/parada, M1 (clase rápida), M2 (pit clear air multiclase), huecos multiclase.
-3. Bug replay → libre (widgets visibles y movidos).
-4. Clima con pronóstico (investigar si el SDK lo expone).
+3. Clima con pronóstico (investigar si el SDK lo expone).
+4. (El bug replay → libre pasa al final, antes del repaso de optimización: decisión de Kike 21-nov.)
 5. Widget Dashboard de volante (mockup v3 aprobado) y widgets flotantes en el pitboard.
 6. Funciones propuestas pendientes: C1 (rivales que paran en tu ventana), C2 (regla de la serie), M4 (relative tintado por clase), M5 (final por clase), N3 (widgets como fuente de navegador para OBS), E3 (instalador y firma).
 7. Analizador de vueltas desde .ibt.
