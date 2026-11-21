@@ -260,3 +260,7 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Neumáticos: el dato llega por coche (CarIdxTireCompound + DriverTires, solo compuesto "Hard" en esta serie). Sin dato en ~9% de las filas de carrera, y son coches fuera de pista (desconectados/sin salir: sin mejor vuelta, stint 0, última posición), no un fallo del overlay. Beta.48: guion gris "–" cuando no hay dato. Colores por compuesto ya incluidos desde beta.47.
 - Stint y duración de parada: llegan y se muestran (p. ej. paradas de ~62-64 s).
 - Spotter: 98 cambios de carLeftRight en 147 min, 45 episodios de coche al lado, con 2 (izq.) y 3 (der.) dominantes, duraciones normales; ~8 de 45 duran <0,6 s (parpadeos). Los datos de entrada son limpios; si el "errático" persiste, mirar el filtrado de parpadeos y las frases, no la lectura del SDK.
+
+## Confirmación de Kike sobre la beta.47 (21-nov)
+- No vio nada raro durante la carrera de Monza (GT4); por eso las NOTAS.txt iban vacías. Con el informe sin errores, quedan VALIDADOS en pista: standings con neumático, stint y duración de parada, y el spotter sin fallos apreciables en esa sesión.
+- Beta.48 (guion en neumático sin dato) pendiente de probar.
