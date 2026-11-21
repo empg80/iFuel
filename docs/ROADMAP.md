@@ -280,3 +280,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Reglas propias de cada serie o liga (paradas obligatorias, tiempo mínimo de parada, máximo de tiempo al volante, juegos de neumáticos limitados): varían y no se ha confirmado que el SDK las exponga.
 - Propuesta: panel "Reglas de la carrera" configurable por el usuario (pestaña/ventana de ajustes, guardado por serie): paradas obligatorias (nº) y su progreso, tiempo mínimo de parada con cuenta atrás en boxes, máximo de stint (min o vueltas) con aviso, vueltas mínimas por piloto (fair share) con aviso. Alimenta el planificador de stints y los avisos del pitboard/spotter.
 - Automático desde iRacing donde se pueda: temporizador de 30 s del cambio de piloto y fair share (a comprobar en telemetría/YAML).
+
+## C2 · Alcance decidido (21-nov, tras respuesta de Kike)
+- Uso real: carreras por equipos de 3-4 pilotos y, sobre todo, endurances cortas en solitario. No hace falta un sistema complejo por series.
+- Versión ligera: panel pequeño de "Reglas de la carrera" con paradas obligatorias (nº y progreso), tiempo mínimo de parada (cuenta atrás en boxes) y máximo de stint (aviso). Se guarda por última configuración usada.
+- Solo en sesiones por equipos: mostrar el estado de Fair Share y el temporizador de 30 s del cambio de piloto si la telemetría los trae; si no, quedan como nota informativa (iRacing ya los muestra).
+- Sin planificador por series ni lista de reglas preconfiguradas.
