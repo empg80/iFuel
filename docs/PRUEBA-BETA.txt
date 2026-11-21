@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.48 - NEUMÁTICOS SIN DATO
+- En la columna TYRE, los coches de los que iRacing no da neumático (fuera de pista, desconectados o que no han salido) muestran un guion gris "–" en vez de quedar en blanco.
+- Colores por compuesto: Soft rojo, Medium amarillo, Hard blanco, Inter verde, Wet azul.
+- Qué mirar: que el neumático de cada coche coincida con lo que ves, y que los guiones solo aparezcan en coches que no están en pista.
+
 NOVEDAD BETA.47 - STANDINGS: NEUMÁTICO, STINT Y PARADA
 - Nueva columna TYRE en la tabla de standings (pitboard y libre): neumático que lleva cada piloto (D/W en seco/lluvia; S/M/H/I/W si el coche tiene compuestos con nombre). Pasa el ratón/mira el color del círculo.
 - En el pitboard ya se ven las columnas STINT (vueltas del stint) y LAST PIT (duración de la última parada), antes ocultas.

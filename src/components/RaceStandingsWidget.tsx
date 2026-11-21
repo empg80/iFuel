@@ -139,7 +139,7 @@ export function RaceStandingsWidget({
                     <span className="race-standings__cell race-standings__cell--tyre">
                       {(() => {
                         const t = tireChip(row.tire, row.tireName);
-                        return t ? <span className={clsx("race-standings__tyre", `race-standings__tyre--${t.kind}`)} title={t.title}>{t.letter}</span> : null;
+                        return t ? <span className={clsx("race-standings__tyre", `race-standings__tyre--${t.kind}`)} title={t.title}>{t.letter}</span> : <span className="race-standings__tyre race-standings__tyre--none" title="Sin dato de neumático (coche fuera de pista, desconectado o sin salir)">–</span>;
                       })()}
                     </span>
                     <span className="race-standings__cell race-standings__cell--ir">

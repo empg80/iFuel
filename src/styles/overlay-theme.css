@@ -990,4 +990,5 @@
 .race-standings__cell--tyre { display: flex; align-items: center; justify-content: center; }
 .race-standings__tyre { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; line-height: 1; border: 2px solid #8a94a3; color: #e8edf4; }
 .race-standings__tyre--soft { border-color: #ff4d4d; } .race-standings__tyre--medium { border-color: #ffd21f; } .race-standings__tyre--hard { border-color: #f1f5f9; }
+.race-standings__tyre--none { border-color: transparent; color: #5b6676; font-weight: 600; }
 .race-standings__tyre--wet { border-color: #3b9bff; color: #3b9bff; } .race-standings__tyre--inter { border-color: #35d07f; color: #35d07f; }

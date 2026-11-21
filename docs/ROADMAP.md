@@ -254,3 +254,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Incluye: standings con posición general/clase, huecos, intervalos, tiempos por sector, velocidad punta, compuesto, stints y paradas; "Circle of Doom" (posición de cada coche en la vuelta medida en tiempo: aire limpio, quién se reincorpora tras parar); canales por coche, lap chart, Pi Math; sesiones guardadas.
 - Diferencia con iFuel: iFuel es un overlay en directo y gratuito; esto es análisis con licencia. Ya cubrimos standings con neumático/stint/parada y clear air.
 - Ideas a valorar (sin añadir al alcance de la release por ahora): tiempos por sector de rivales en los standings; vista tipo "Circle of Doom" (posiciones relativas en tiempo) que encajaría con el anillo de pista y la escalera de tráfico del dashboard v4; guardar el cronometraje en la grabación para el analizador .ibt.
+
+## Informe beta.47 (Monza, GT4 multi-sesión, 147 min) — revisado 21-nov
+- Sin errores en el log; arranque y cierre limpios, informe con trackHistory.json correcto (Monza/Mercedes AMG GT4: 2.78 L/vuelta, 57 muestras).
+- Neumáticos: el dato llega por coche (CarIdxTireCompound + DriverTires, solo compuesto "Hard" en esta serie). Sin dato en ~9% de las filas de carrera, y son coches fuera de pista (desconectados/sin salir: sin mejor vuelta, stint 0, última posición), no un fallo del overlay. Beta.48: guion gris "–" cuando no hay dato. Colores por compuesto ya incluidos desde beta.47.
+- Stint y duración de parada: llegan y se muestran (p. ej. paradas de ~62-64 s).
+- Spotter: 98 cambios de carLeftRight en 147 min, 45 episodios de coche al lado, con 2 (izq.) y 3 (der.) dominantes, duraciones normales; ~8 de 45 duran <0,6 s (parpadeos). Los datos de entrada son limpios; si el "errático" persiste, mirar el filtrado de parpadeos y las frases, no la lectura del SDK.
