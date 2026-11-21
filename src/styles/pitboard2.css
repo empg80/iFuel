@@ -168,3 +168,26 @@
 .pb-rules__list>div,.pb-rule-edit{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
 .pb-rules__list .is-ok span{color:#4ade80}.pb-rules__list .is-warn span{color:#fbbf24}.pb-rules__list .is-bad span{color:#f87171;font-weight:800}
 .pb-rules__off,.pb-rules__note{opacity:.6;font-size:12px}
+
+.pb-view{grid-column:1/-1;grid-row:3;min-height:0;overflow:auto}
+.pb-tabs{position:absolute;left:6px;bottom:6px;z-index:50;display:flex;gap:4px}
+.pb-tabs button{padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(10,15,24,.7);color:#9fb0c7;font:inherit;font-size:12px;cursor:pointer}
+.pb-tabs button.on{border-color:#5cb0ff;color:#eef3fb}
+.pb-dashfit{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pb-planner{display:flex;flex-direction:column;gap:10px;padding:12px}
+.pb-planner__fields{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.pb-planner__f>div{display:flex;align-items:center;gap:4px;margin-top:4px}
+.pb-planner__f b{flex:1;text-align:center;font-size:18px}.pb-planner__f small{font-size:11px;opacity:.7}
+.pb-planner__f button{background:rgba(255,255,255,.1);border:0;color:inherit;border-radius:6px;padding:2px 8px;cursor:pointer;font:inherit}
+.pb-planner__auto{font-size:10px !important;opacity:.7}
+.pb-planner__kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pb-planner__bar{display:flex;height:38px;border-radius:8px;overflow:hidden;gap:2px}
+.pb-planner__bar div{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.pb-planner__bar .a{background:rgba(92,176,255,.25);color:#9fd0ff}.pb-planner__bar .b{background:rgba(67,230,160,.22);color:#7ff0c0}
+.pb-planner__bar i{width:5px;background:#ffb83d}
+.pb-planner__tbl{width:100%;border-collapse:collapse;font-size:15px}
+.pb-planner__tbl th{font-size:12px;font-weight:500;color:var(--pb-text-2);text-align:right;padding:4px 8px}
+.pb-planner__tbl td{text-align:right;padding:6px 8px;border-top:1px solid rgba(255,255,255,.07)}
+.pb-planner__tbl th:first-child,.pb-planner__tbl td:first-child{text-align:left}
+.pb-planner__tbl tr.is-now td{background:rgba(92,176,255,.14)}
+.pb-planner__empty{opacity:.7}

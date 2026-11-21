@@ -1,6 +1,6 @@
 // src/PitboardLayout.tsx — pitboard para el monitor secundario (1280×800)
 // Zonas: cabecera · franja de avisos · standings | plan de parada + neumáticos | rivales + radar
-import React from "react";
+import React, { useState } from "react";
 import type { IfuelState } from "./useIfuelWebSocket";
 import type { StandingsRow } from "./types/standings";
 import { RaceStandingsWidgetContainer } from "./components/RaceStandingsWidgetContainer";
@@ -12,11 +12,13 @@ import { TyresStrip } from "./components/pitboard/TyresStrip";
 import { RivalsRow } from "./components/pitboard/RivalsRow";
 import { TrackRing } from "./components/pitboard/TrackRing";
 import { CarSettings } from "./components/pitboard/CarSettings";
-import { FreeInfoWidgets } from "./components/FreeInfoWidgets";
-import { useOverlayState } from "./contexts/useOverlayState";
+import { StintPlannerCard } from "./components/pitboard/StintPlannerCard";
+import { DashboardFit } from "./components/pitboard/DashboardFit";
 import { PitHelperPanel } from "./components/PitHelperPanel";
 import { pitCall } from "./utils/pitCall";
 import { pitboardAlert } from "./utils/pitboardAlert";
+
+type PbView = "strategy" | "dashboard" | "planner";
 
 type PitboardLayoutProps = {
   state: IfuelState | null;
@@ -26,7 +28,10 @@ type PitboardLayoutProps = {
 };
 
 export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStandingsRows, isConnected }) => {
-  const { widgetsLocked = true } = useOverlayState();
+  const [view, setView] = useState<PbView>(() => {
+    try { const v = localStorage.getItem("ifuel-pb-view"); return v === "dashboard" || v === "planner" ? v : "strategy"; } catch { return "strategy"; }
+  });
+  const pick = (v: PbView) => { setView(v); try { localStorage.setItem("ifuel-pb-view", v); } catch { /* en memoria */ } };
   const me = state?.playerCarNumber ?? null;
   const myRow = me != null ? raceStandingsRows.find((r) => String(r.carNumber) === me) : undefined;
   const remain = state?.sessionLapsRemainEx ?? null;
@@ -58,16 +63,11 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
 
   return (
     <div className="pitboard-layout pb-root app-root--free">
-      <FreeInfoWidgets state={state} rows={raceStandingsRows} pitboard />
-      <button
-        type="button"
-        className={`pb-lock${widgetsLocked ? "" : " pb-lock--on"}`}
-        onClick={() => void window.ifuelOverlay?.updateState?.({ widgetsLocked: !widgetsLocked })}
-        title={widgetsLocked ? "Widgets flotantes bloqueados: clic para moverlos" : "Widgets flotantes desbloqueados: clic para bloquear"}
-        aria-label={widgetsLocked ? "Desbloquear widgets flotantes" : "Bloquear widgets flotantes"}
-      >
-        <span aria-hidden="true">{widgetsLocked ? "🔒" : "🔓"}</span>
-      </button>
+      <div className="pb-tabs" role="tablist" aria-label="Vista del pitboard">
+        {([["strategy", "Estrategia"], ["dashboard", "Dashboard"], ["planner", "Planificador"]] as const).map(([v, l]) => (
+          <button key={v} type="button" role="tab" aria-selected={view === v} className={view === v ? "on" : ""} onClick={() => pick(v)}>{l}</button>
+        ))}
+      </div>
       <div className="pb-area-head">
         <PitboardHeader
           position={myRow?.position ?? null}
@@ -94,6 +94,10 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
           sessionFlags={flags}
         />
       </div>
+      {view === "dashboard" && <div className="pb-view"><DashboardFit state={state} /></div>}
+      {view === "planner" && <div className="pb-view"><StintPlannerCard state={state} /></div>}
+      {view === "strategy" && (
+        <>
       <div className="pb-area-standings pitboard-widget">
         <RaceStandingsWidgetContainer variant="pitboard" state={state} raceStandingsRows={raceStandingsRows} isConnected={isConnected} />
       </div>
@@ -124,6 +128,8 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
           </>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

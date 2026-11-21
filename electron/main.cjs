@@ -160,10 +160,6 @@ const DEFAULT_OVERLAY_STATE = {
   weatherVisible: true,
   carVisible: false,
   dashVisible: false, // dashboard de volante (layout libre)
-  pbDashVisible: false,
-  pbDriverVisible: false, // widgets flotantes sobre el pitboard (apagados por defecto)
-  pbWeatherVisible: false,
-  pbCarVisible: false,
   widgetsLocked: true,
   fuelSettingsVisible: false,
   replayVisible: false, // ventana de broadcast apagada por defecto
@@ -204,11 +200,7 @@ function validateOverlayState(candidate) {
     "driverVisible",
     "weatherVisible",
     "carVisible",
-    "pbDriverVisible",
-    "pbWeatherVisible",
-    "pbCarVisible",
     "dashVisible",
-    "pbDashVisible",
     "widgetsLocked",
     "fuelSettingsVisible",
     "replayVisible",
@@ -425,11 +417,7 @@ const allowedKeys = new Set([
   "driverVisible",
   "weatherVisible",
   "carVisible",
-  "pbDriverVisible",
-  "pbWeatherVisible",
-  "pbCarVisible",
   "dashVisible",
-  "pbDashVisible",
   "widgetsLocked",
   "fuelSettingsVisible",
   "fuelScale",
@@ -630,46 +618,6 @@ function buildMenuTemplate() {
           checked: overlayState.dashVisible,
           click: (item) => {
             overlayState.dashVisible = item.checked;
-            saveOverlayState();
-            sendOverlayState();
-          },
-        },
-        {
-          label: "Pitboard: show Steering-wheel dashboard",
-          type: "checkbox",
-          checked: overlayState.pbDashVisible,
-          click: (item) => {
-            overlayState.pbDashVisible = item.checked;
-            saveOverlayState();
-            sendOverlayState();
-          },
-        },
-        {
-          label: "Pitboard: show Driver card",
-          type: "checkbox",
-          checked: overlayState.pbDriverVisible,
-          click: (item) => {
-            overlayState.pbDriverVisible = item.checked;
-            saveOverlayState();
-            sendOverlayState();
-          },
-        },
-        {
-          label: "Pitboard: show Weather card",
-          type: "checkbox",
-          checked: overlayState.pbWeatherVisible,
-          click: (item) => {
-            overlayState.pbWeatherVisible = item.checked;
-            saveOverlayState();
-            sendOverlayState();
-          },
-        },
-        {
-          label: "Pitboard: show Tyres / car settings",
-          type: "checkbox",
-          checked: overlayState.pbCarVisible,
-          click: (item) => {
-            overlayState.pbCarVisible = item.checked;
             saveOverlayState();
             sendOverlayState();
           },

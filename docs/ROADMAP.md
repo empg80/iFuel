@@ -299,3 +299,8 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Cliente: `DashboardWidget.tsx` (v4 640x300: marcha con arco de RPM y delta, combustible, neumáticos, escalera de tráfico, cinta de carrera, ajustes y SoC si hay híbrido). Modelo puro en `utils/dashModel.ts`.
 - Dónde se activa: bandeja "Show Steering-wheel dashboard" (layout libre) y "Pitboard: show Steering-wheel dashboard"; tamaño en "Dashboard size"; fuente OBS `#/obs/dash`.
 - Pendiente de validar en iRacing: marcha/RPM/luces en un coche con luces (GTP/LMP2) y SoC en híbridos; modo QUALI (no hay tipo de sesión en el payload) y MAP (muestra el modo MGU-K o el freno motor, según coche).
+
+## Cambios del 21-nov (noche, sin beta)
+- Pitboard: eliminados los tres "Pitboard: show..." (y el del dashboard) y el candado de widgets flotantes, porque no podían salir de la ventana. En su lugar, selector de vista abajo a la izquierda: Estrategia (la de siempre) / Dashboard (escalado al hueco) / Planificador. Se recuerda la vista.
+- Planificador de stints (`utils/stintPlan.ts` + `StintPlannerCard`): duración, depósito, ritmo, consumo, pérdida en boxes y margen; valores automáticos desde telemetría y los que se tocan se recuerdan ("auto" los restaura). Pendiente: cambios de piloto, amarillas y vista resumida en carrera.
+- Meteo (informe beta.50, Monza 105 min): sesión seca, precipitación 0, TrackWetness 0/1 y cielo 1; no hay previsión en el SDK. La lluvia sigue sin validar: hace falta una sesión con lluvia.
