@@ -81,6 +81,7 @@ type CameraDriverPayload = {
 
 type RawMessage = {
   carData?: CarData | null;
+  speedMs?: number | null;
   trace?: PedalTrace | null;
   cars?: CompactCar[];
   fuelLevel: number;
@@ -167,6 +168,7 @@ type LapSample = {
 
 export type IfuelState = {
   carData?: CarData | null;
+  speedMs?: number | null;
   trace?: PedalTrace | null;
   cars?: CompactCar[];
   lapDistPct?: number | null;
@@ -358,6 +360,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             cameraCarNumber: rawCameraCarNumber,
             playerCarNumber: rawPlayerCarNumber,
             carData,
+            speedMs,
             trace,
             cars,
             cameraDriver,
@@ -740,6 +743,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             cameraCarNumber,
             playerCarNumber,
             carData: carData ?? null,
+            speedMs: speedMs ?? null,
             trace: trace ?? null,
             cars: cars ?? [],
             lapDistPct: typeof lapDistPct === "number" ? lapDistPct : null,

@@ -24,6 +24,20 @@ export type CarData = {
   tyres: TyreData | null;
   sectors: SectorInfo[];
   sectorStarts?: number[];
+  dash?: DashData;
+};
+
+/** Datos del dashboard de volante (marcha, régimen, luces de cambio, híbrido). */
+export type DashData = {
+  gear: number | null;
+  rpm: number | null;
+  shiftPct: number | null;
+  rpmInfo: { idle: number | null; first: number | null; shift: number | null; last: number | null; blink: number | null; redline: number | null } | null;
+  soc: number | null;
+  deployPct: number | null;
+  mguMode: number | null;
+  regen: number | null;
+  engineBraking: number | null;
 };
 
 export type PedalTrace = { hz: number; throttle: number[]; brake: number[] };

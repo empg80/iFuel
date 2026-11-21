@@ -1,5 +1,5 @@
 // N3: la misma app abierta desde OBS (fuente de navegador) en http://127.0.0.1:7071/#/obs/<widget>
-export const OBS_WIDGETS = ["fuel", "relative", "standings", "pitclear", "yellow", "driver", "weather", "car", "traffic", "pithelper"] as const;
+export const OBS_WIDGETS = ["fuel", "relative", "standings", "pitclear", "yellow", "driver", "weather", "car", "traffic", "pithelper", "dash"] as const;
 export type ObsWidget = (typeof OBS_WIDGETS)[number];
 
 export function obsWidgetFromHash(hash: string): ObsWidget | null {

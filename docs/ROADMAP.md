@@ -293,3 +293,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - C2-light: panel "Reglas de la carrera" (paradas obligatorias, tiempo mínimo en boxes, stint máximo), configurable y guardado. Fair Share y temporizador de 30 s no se muestran (iRacing ya los enseña).
 - N3: el servidor sirve la app en http://127.0.0.1:7071 y la ruta `#/obs/<widget>` pinta un solo widget con fondo transparente para fuentes de navegador de OBS.
 - Pendiente de validar en carrera: ventana de rivales, vuelta extra en multiclase, contador de boxes y OBS real.
+
+## Dashboard de volante: implementado (21-nov, sin beta todavía)
+- Servidor: `carData.dash` con Gear, RPM, ShiftIndicatorPct, SoC (EnergyERSBatteryPct), MGU-K (modo, regen) y régimen de luces (idle/first/shift/last/blink/redline del YAML); `speedMs` ahora llega al cliente.
+- Cliente: `DashboardWidget.tsx` (v4 640x300: marcha con arco de RPM y delta, combustible, neumáticos, escalera de tráfico, cinta de carrera, ajustes y SoC si hay híbrido). Modelo puro en `utils/dashModel.ts`.
+- Dónde se activa: bandeja "Show Steering-wheel dashboard" (layout libre) y "Pitboard: show Steering-wheel dashboard"; tamaño en "Dashboard size"; fuente OBS `#/obs/dash`.
+- Pendiente de validar en iRacing: marcha/RPM/luces en un coche con luces (GTP/LMP2) y SoC en híbridos; modo QUALI (no hay tipo de sesión en el payload) y MAP (muestra el modo MGU-K o el freno motor, según coche).

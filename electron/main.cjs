@@ -159,6 +159,8 @@ const DEFAULT_OVERLAY_STATE = {
   driverVisible: true,
   weatherVisible: true,
   carVisible: false,
+  dashVisible: false, // dashboard de volante (layout libre)
+  pbDashVisible: false,
   pbDriverVisible: false, // widgets flotantes sobre el pitboard (apagados por defecto)
   pbWeatherVisible: false,
   pbCarVisible: false,
@@ -174,6 +176,7 @@ const DEFAULT_OVERLAY_STATE = {
   driverScale: 1,
   weatherScale: 1,
   carScale: 1,
+  dashScale: 1,
   layoutMode: "free",
 
   fuelDetail: "compact", // "compact" (datos clave) | "full" (todos los datos) en el widget de combustible
@@ -204,6 +207,8 @@ function validateOverlayState(candidate) {
     "pbDriverVisible",
     "pbWeatherVisible",
     "pbCarVisible",
+    "dashVisible",
+    "pbDashVisible",
     "widgetsLocked",
     "fuelSettingsVisible",
     "replayVisible",
@@ -218,6 +223,7 @@ function validateOverlayState(candidate) {
     "driverScale",
     "weatherScale",
     "carScale",
+    "dashScale",
   ];
 
   for (const key of boolKeys) {
@@ -422,6 +428,8 @@ const allowedKeys = new Set([
   "pbDriverVisible",
   "pbWeatherVisible",
   "pbCarVisible",
+  "dashVisible",
+  "pbDashVisible",
   "widgetsLocked",
   "fuelSettingsVisible",
   "fuelScale",
@@ -432,6 +440,7 @@ const allowedKeys = new Set([
   "driverScale",
   "weatherScale",
   "carScale",
+  "dashScale",
   "layoutMode",
   "replayVisible",
   "overlayMode",
@@ -616,6 +625,26 @@ function buildMenuTemplate() {
           },
         },
         {
+          label: "Show Steering-wheel dashboard",
+          type: "checkbox",
+          checked: overlayState.dashVisible,
+          click: (item) => {
+            overlayState.dashVisible = item.checked;
+            saveOverlayState();
+            sendOverlayState();
+          },
+        },
+        {
+          label: "Pitboard: show Steering-wheel dashboard",
+          type: "checkbox",
+          checked: overlayState.pbDashVisible,
+          click: (item) => {
+            overlayState.pbDashVisible = item.checked;
+            saveOverlayState();
+            sendOverlayState();
+          },
+        },
+        {
           label: "Pitboard: show Driver card",
           type: "checkbox",
           checked: overlayState.pbDriverVisible,
@@ -748,6 +777,7 @@ function buildMenuTemplate() {
         scaleMenu("Driver size", "driverScale"),
         scaleMenu("Weather size", "weatherScale"),
         scaleMenu("Tyres / car size", "carScale"),
+        scaleMenu("Dashboard size", "dashScale"),
 
         { type: "separator" },
         {

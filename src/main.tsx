@@ -11,6 +11,7 @@ import "./styles/pitboard.css";
 import "./styles/pitboard2.css";
 import "./styles/fast-traffic.css";
 import "./styles/fuel-saving.css";
+import "./styles/dashboard.css";
 import "./styles/pit-helper.css";
 import "./styles/replay-theme.css";
 import { WidgetVisibilityProvider } from "./contexts/WidgetVisibilityProvider";

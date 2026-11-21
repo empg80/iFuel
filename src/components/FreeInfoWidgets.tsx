@@ -3,11 +3,12 @@ import type { IfuelState } from "../useIfuelWebSocket";
 import type { StandingsRow } from "../types/standings";
 import { useOverlayState } from "../contexts/useOverlayState";
 import { FloatingWidget } from "./FloatingWidget";
+import { DashboardWidget } from "./DashboardWidget";
 import { TyresStrip } from "./pitboard/TyresStrip";
 import { CarSettings } from "./pitboard/CarSettings";
 import { clockStr, deltaStr, lapStr, secStr } from "./pitboard/fmt";
 
-type Props = { state: IfuelState | null; rows: StandingsRow[]; pitboard?: boolean; only?: "driver" | "weather" | "car" };
+type Props = { state: IfuelState | null; rows: StandingsRow[]; pitboard?: boolean; only?: "driver" | "weather" | "car" | "dash" };
 
 type Sample = { t: number; wet: number; rain: number; chance: number };
 const WINDOW_MS = 20 * 60 * 1000;
@@ -126,6 +127,10 @@ export const FreeInfoWidgets: React.FC<Props> = ({ state, rows, pitboard = false
 
   return (
     <>
+      <FloatingWidget id={pitboard ? "pb-dash" : "dash"} visible={(!only || only === "dash") && (only === "dash" || (pitboard ? (o.pbDashVisible ?? false) : (o.dashVisible ?? false)))} scale={o.dashScale ?? 1} defaultPos={pitboard ? { x: 320, y: 480 } : { x: 700, y: 480 }}>
+        <DashboardWidget state={state} />
+      </FloatingWidget>
+
       <FloatingWidget id={pitboard ? "pb-driver" : "driver"} visible={(!only || only === "driver") && (pitboard ? (o.pbDriverVisible ?? false) : (o.driverVisible ?? true))} scale={o.driverScale ?? 1} defaultPos={pitboard ? { x: 560, y: 560 } : { x: 40, y: 330 }}>
         <div className="pb-panel fw-driver">
           <div className="fw-row">

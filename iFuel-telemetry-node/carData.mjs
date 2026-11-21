@@ -16,6 +16,9 @@ const ZONES = ["L", "M", "R"]; // izquierda / medio / derecha de la banda
 export const CAR_VARS = [
   "LapDeltaToBestLap", "LapDeltaToBestLap_OK", "PlayerTireCompound", "ThrottleRaw", "BrakeRaw", "CarLeftRight",
   "dcBrakeBias", "dcTractionControl", "dcTractionControl2", "dcABS",
+  // dashboard de volante: marcha, régimen, luces de cambio, híbrido y mapas
+  "Gear", "RPM", "ShiftIndicatorPct", "EnergyERSBatteryPct", "EnergyMGU_KLapDeployPct",
+  "dcMGUKDeployMode", "dcMGUKRegenGain", "dcEngineBraking",
   ...CORNERS.flatMap((c) => [
     `${c}coldPressure`,
     ...ZONES.map((z) => `${c}wear${z}`),
@@ -137,7 +140,7 @@ export function createCarTracker() {
      * @param {{vars:Object, sessionTime:number, lap:number, lapDistPct:number, onPitRoad:boolean,
      *   inWorld?:boolean, sectorStarts?:number[]}} s  vars: valores numéricos por nombre de variable
      */
-    update({ vars = {}, sessionTime, lap, lapDistPct, onPitRoad, inWorld = true, sectorStarts }) {
+    update({ vars = {}, sessionTime, lap, lapDistPct, onPitRoad, inWorld = true, sectorStarts, rpmInfo = null }) {
       trackSectors({ sessionTime, lapDistPct, onPitRoad, inWorld, sectorStarts });
 
       const reading = readTyres(vars);
@@ -163,6 +166,17 @@ export function createCarTracker() {
         tyres: tyres ? { ...tyres, measuredLap: tyresLap, lapsAgo: tyresLap != null ? Math.max(0, lap - tyresLap) : null } : null,
         sectors,
         sectorStarts: sectorStarts ?? [],
+        dash: {
+          gear: Number.isFinite(vars.Gear) ? vars.Gear : null, // -1 marcha atrás, 0 punto muerto
+          rpm: num(vars.RPM),
+          shiftPct: num(vars.ShiftIndicatorPct),
+          rpmInfo, // {idle, first, shift, last, blink, redline} del YAML del coche
+          soc: num(vars.EnergyERSBatteryPct),
+          deployPct: num(vars.EnergyMGU_KLapDeployPct),
+          mguMode: num(vars.dcMGUKDeployMode),
+          regen: num(vars.dcMGUKRegenGain),
+          engineBraking: num(vars.dcEngineBraking),
+        },
       };
     },
   };

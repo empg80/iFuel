@@ -11,6 +11,8 @@ declare global {
     driverVisible?: boolean;
     weatherVisible?: boolean;
     carVisible?: boolean;
+    dashVisible?: boolean;
+    pbDashVisible?: boolean;
     pbDriverVisible?: boolean;
     pbWeatherVisible?: boolean;
     pbCarVisible?: boolean;
@@ -38,6 +40,7 @@ declare global {
     driverScale?: number;
     weatherScale?: number;
     carScale?: number;
+    dashScale?: number;
 
     layoutMode?: "free" | "pitboard" | "replay"; // añade "replay"
     replayVisible?: boolean; // opcional, para saber si la ventana está abierta

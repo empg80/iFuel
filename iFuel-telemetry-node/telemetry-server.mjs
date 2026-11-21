@@ -1225,6 +1225,11 @@ standings.sort((a, b) => a.position - b.position);
       onPitRoad: !!telemetry.OnPitRoad?.value?.[0],
       inWorld: !telemetry.IsReplayPlaying?.value?.[0] && !telemetry.IsInGarage?.value?.[0] && (carIdxTrackSurface[driverIdx] ?? -1) >= 0,
       sectorStarts: (session?.SplitTimeInfo?.Sectors ?? []).map((s) => s.SectorStartPct).filter(Number.isFinite),
+      rpmInfo: {
+        idle: Number(driverInfo.DriverCarIdleRPM) || null, first: Number(driverInfo.DriverCarSLFirstRPM) || null,
+        shift: Number(driverInfo.DriverCarSLShiftRPM) || null, last: Number(driverInfo.DriverCarSLLastRPM) || null,
+        blink: Number(driverInfo.DriverCarSLBlinkRPM) || null, redline: Number(driverInfo.DriverCarRedLine) || null,
+      },
     });
 
     const payload = JSON.stringify({

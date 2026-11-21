@@ -28,7 +28,7 @@ export const ObsWidgetPage: React.FC = () => {
         <PitClearAirWidgetContainer pitClearAir={state?.pitClearAir ?? null} isConnected={isConnected} lapNumber={state?.lapNumber ?? null} earliestPitLap={state?.earliestPitLap ?? null} />
       )}
       {w === "yellow" && <YellowFlagWidgetContainer state={state} isConnected={isConnected} />}
-      {(w === "driver" || w === "weather" || w === "car") && <FreeInfoWidgets state={state} rows={raceStandingsRows} only={w} />}
+      {(w === "driver" || w === "weather" || w === "car" || w === "dash") && <FreeInfoWidgets state={state} rows={raceStandingsRows} only={w} />}
       {w === "traffic" && <FastTrafficBanner state={state} />}
       {w === "pithelper" && <PitHelperPanel helper={state?.pitHelper} />}
     </div>
