@@ -273,3 +273,10 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Decisiones de Kike 21-nov (noche)
 - E3 (instalador y firma): descartado el certificado de firma de pago. Se mantiene el zip portable; opcional más adelante un instalador sin firmar y avisar en el README del aviso de SmartScreen de Windows.
 - M4 hecho en beta.49. Siguiente beta (beta.50): C1, M5 y N3 (widgets como fuente de navegador para OBS, pensados para el layout libre). C2 espera a que Kike diga qué regla de la serie quiere.
+
+## C2 · Regla de la serie: investigación (21-nov)
+- Fuentes: iRacing "Team Driving" (https://support.iracing.com/support/solutions/articles/31000133594-team-driving), reglamentos IMSA (p. ej. parada cronometrada 2'30" en Endurance Challenge con cambio de piloto/repostaje, https://imsa.results.alkamelcloud.com/ ... AEC driver briefing) y reglas de ligas (paradas obligatorias, límite de stint, tiempo mínimo).
+- iRacing, común a todas las sesiones por equipos: Fair Share (cada piloto debe hacer 1/4 de su parte igual de vueltas; casi siempre activa en oficiales) y cambio de piloto solo en el box con temporizador de 30 s desde que el coche se detiene. iRacing ya muestra n/r(R) por piloto en Entries y un indicador "DC" en el relative.
+- Reglas propias de cada serie o liga (paradas obligatorias, tiempo mínimo de parada, máximo de tiempo al volante, juegos de neumáticos limitados): varían y no se ha confirmado que el SDK las exponga.
+- Propuesta: panel "Reglas de la carrera" configurable por el usuario (pestaña/ventana de ajustes, guardado por serie): paradas obligatorias (nº) y su progreso, tiempo mínimo de parada con cuenta atrás en boxes, máximo de stint (min o vueltas) con aviso, vueltas mínimas por piloto (fair share) con aviso. Alimenta el planificador de stints y los avisos del pitboard/spotter.
+- Automático desde iRacing donde se pueda: temporizador de 30 s del cambio de piloto y fair share (a comprobar en telemetría/YAML).
