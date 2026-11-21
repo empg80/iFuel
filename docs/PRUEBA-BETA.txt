@@ -56,6 +56,12 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.49 - CLIMA EN EL INFORME, WIDGETS EN EL PITBOARD Y RELATIVE POR CLASE
+- Informe: ahora se graba el clima de la sesión (tipo de clima, cielo, viento, humedad, niebla...) cada minuto y en cada volcado del SDK, para saber si iRacing da alguna previsión. No cambia nada en pantalla.
+- PITBOARD: widgets flotantes opcionales (Driver, Weather, Tyres/car settings), apagados por defecto. Se activan en el menú de la bandeja ("Pitboard: show ..."). Candado 🔒 en la esquina inferior izquierda del pitboard: desbloquéalo para arrastrarlos y vuelve a bloquear. La posición se recuerda.
+- RELATIVE: las tarjetas de delante y detrás llevan un degradado suave con el color de la clase del coche.
+- Qué mirar: que los widgets flotantes se puedan mover y no tapen datos importantes; que el color de clase se distinga en carreras multiclase; y, si hay lluvia o clima cambiante, mandarnos el informe aunque todo vaya bien.
+
 NOVEDAD BETA.48 - NEUMÁTICOS SIN DATO
 - En la columna TYRE, los coches de los que iRacing no da neumático (fuera de pista, desconectados o que no han salido) muestran un guion gris "–" en vez de quedar en blanco.
 - Colores por compuesto: Soft rojo, Medium amarillo, Hard blanco, Inter verde, Wet azul.

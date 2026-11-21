@@ -21,8 +21,11 @@ const short = (n?: string | null) => {
 const Card: React.FC<{ side: "ahead" | "behind"; car: RelativeCar; cls?: Record<number, number> }> = ({ side, car, cls }) => {
   const d = car?.deltaLastToMe ?? null;
   const tone = d == null ? "" : d >= 0 ? "bc--good" : "bc--bad";
+  // M4: tinte de la clase del coche (degradado suave desde la izquierda)
+  const ci = car?.classId != null ? (cls?.[car.classId] ?? 0) % 6 : null;
+  const tint = ci != null ? ({ ["--tint" as string]: `var(--class-${ci})` } as React.CSSProperties) : undefined;
   return (
-    <div className={`bc ${tone}`}>
+    <div className={`bc ${tone}${ci != null ? " bc--tinted" : ""}`} style={tint}>
       <span className="bc__side">{side === "ahead" ? "▲" : "▼"}</span>
       <b className="bc__num">{car?.carNum ?? "--"}</b>
       <ClassBadge small classId={car?.classId ?? null} classPosition={car?.classPosition ?? null} classColorIndexById={cls} />

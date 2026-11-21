@@ -33,3 +33,15 @@ test("las variables del volcado de diagnóstico (SNAPSHOT_VARS) también existen
   const unknown = SNAPSHOT_VARS.filter((n) => !new RegExp(`^\\s+${n}: TelemetryVariable`, "m").test(types));
   assert.deepEqual(unknown, [], `No existen en el SDK: ${unknown.join(", ")}`);
 });
+
+test("weatherDump recoge los campos de clima de la sesión y de la telemetría", async () => {
+  const { weatherDump } = await import("../telemetry-server.mjs");
+  const session = { WeekendInfo: { TrackWeatherType: "Dynamic", TrackSkies: "Partly Cloudy", TrackName: "x", WeekendOptions: { WeatherType: "Dynamic", Foo: 1 } } };
+  const out = weatherDump(session, (n) => (n === "Precipitation" ? { value: [0.4] } : null));
+  assert.equal(out.info.TrackWeatherType, "Dynamic");
+  assert.equal(out.info.TrackName, undefined);
+  assert.deepEqual(out.options, { WeatherType: "Dynamic" });
+  assert.deepEqual(out.telemetry.Precipitation, [0.4]);
+  assert.equal(out.telemetry.WindVel, null);
+  assert.deepEqual(weatherDump(undefined, () => null).info, {});
+});

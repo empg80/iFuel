@@ -264,3 +264,8 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Confirmación de Kike sobre la beta.47 (21-nov)
 - No vio nada raro durante la carrera de Monza (GT4); por eso las NOTAS.txt iban vacías. Con el informe sin errores, quedan VALIDADOS en pista: standings con neumático, stint y duración de parada, y el spotter sin fallos apreciables en esa sesión.
 - Beta.48 (guion en neumático sin dato) pendiente de probar.
+
+## Beta.49 (21-nov)
+- Clima: `_weather` cada minuto en la grabación y `weather` en el volcado del SDK (WeekendInfo/WeekendOptions + variables de telemetría). Pendiente: revisar con un informe de una sesión con clima cambiante si hay previsión.
+- Widgets flotantes en el pitboard (Driver, Weather, Tyres/car), opcionales y apagados por defecto; candado propio. Fuel y Relative flotantes quedan fuera de esta primera versión (tienen su propia posición en el layout libre).
+- M4: tarjetas del relative con degradado del color de clase.

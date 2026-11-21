@@ -91,7 +91,34 @@ const SNAPSHOT_VARS = [
   "CarIdxEstTime", "CarIdxF2Time", "CarIdxLapDistPct", "CarIdxLapCompleted", "CarIdxPosition",
   "CarIdxClassPosition", "CarIdxClass", "CarIdxOnPitRoad", "CarIdxTrackSurface",
   "TrackTemp", "TrackTempCrew", "AirTemp",
+  // clima (para comprobar si iRacing expone alguna previsión o solo el estado actual)
+  "TrackWetness", "Skies", "AirDensity", "AirPressure", "WindVel", "WindDir", "RelativeHumidity",
+  "FogLevel", "Precipitation", "SolarAltitude",
 ];
+
+// Campos de clima del YAML de sesión (WeekendInfo y WeekendOptions) y variables de telemetría de clima.
+const WEATHER_INFO_KEYS = [
+  "TrackWeatherType", "TrackSkies", "TrackSurfaceTemp", "TrackAirTemp", "TrackWindVel", "TrackWindDir",
+  "TrackRelativeHumidity", "TrackFogLevel",
+];
+const WEATHER_OPTION_KEYS = ["WeatherType", "Skies", "WindDirection", "WindSpeed", "WeatherTemp", "RelativeHumidity", "FogLevel"];
+const WEATHER_TELEMETRY = ["TrackWetness", "Skies", "WindVel", "WindDir", "RelativeHumidity", "FogLevel", "Precipitation", "AirTemp", "TrackTemp"];
+
+// Una línea de clima para el informe: lo que dice la sesión y lo que mide la telemetría. Cada minuto se graba una,
+// así se ve si algo (p. ej. una previsión) cambia a lo largo de la carrera.
+export function weatherDump(session, readVar) {
+  const weekend = session?.WeekendInfo ?? {};
+  const telemetry = {};
+  for (const name of WEATHER_TELEMETRY) {
+    const v = readVar(name);
+    telemetry[name] = v ? Array.from(v.value ?? []).slice(0, 4) : null;
+  }
+  return {
+    info: pick(weekend, WEATHER_INFO_KEYS),
+    options: pick(weekend.WeekendOptions, WEATHER_OPTION_KEYS),
+    telemetry,
+  };
+}
 
 const pick = (obj, keys) =>
   Object.fromEntries(keys.filter((k) => obj && k in obj).map((k) => [k, obj[k]]));
@@ -1237,7 +1264,15 @@ standings.sort((a, b) => a.position - b.position);
 });
 
 
-    if (diag.recorder) diag.recorder.write(payload + "\n");
+    if (diag.recorder) {
+      diag.recorder.write(payload + "\n");
+      if (Date.now() - (diag.lastWeatherAt ?? 0) > 60_000) {
+        diag.lastWeatherAt = Date.now();
+        try {
+          diag.recorder.write(JSON.stringify({ _weather: { t: Date.now(), ...weatherDump(session, (n) => safeTelemetryVariable(sdk, n)) } }) + "\n");
+        } catch { /* el clima es solo diagnóstico */ }
+      }
+    }
 
     wss.clients.forEach((client) => {
       if (client.readyState === 1) {
@@ -1534,6 +1569,7 @@ if (origin && !allowedOrigins.has(origin)) {
         "TrackName", "TrackDisplayName", "TrackLength", "TrackLengthOfficial", "SeriesID",
         "SeasonID", "SessionID", "SubSessionID", "EventType", "Category", "NumCarClasses",
       ]),
+      weather: weatherDump(session, (n) => (diag.sdk ? safeTelemetryVariable(diag.sdk, n) : null)),
       driverInfo: pick(session.DriverInfo, [
         "DriverCarIdx", "DriverCarFuelKgPerLtr", "DriverCarFuelMaxLtr", "DriverCarMaxFuelPct",
         "DriverCarEstLapTime", "DriverPitTrkPct", "DriverCarVersion",

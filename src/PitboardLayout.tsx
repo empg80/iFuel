@@ -11,6 +11,8 @@ import { TyresStrip } from "./components/pitboard/TyresStrip";
 import { RivalsRow } from "./components/pitboard/RivalsRow";
 import { TrackRing } from "./components/pitboard/TrackRing";
 import { CarSettings } from "./components/pitboard/CarSettings";
+import { FreeInfoWidgets } from "./components/FreeInfoWidgets";
+import { useOverlayState } from "./contexts/useOverlayState";
 import { PitHelperPanel } from "./components/PitHelperPanel";
 import { pitCall } from "./utils/pitCall";
 import { pitboardAlert } from "./utils/pitboardAlert";
@@ -23,6 +25,7 @@ type PitboardLayoutProps = {
 };
 
 export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStandingsRows, isConnected }) => {
+  const { widgetsLocked = true } = useOverlayState();
   const me = state?.playerCarNumber ?? null;
   const myRow = me != null ? raceStandingsRows.find((r) => String(r.carNumber) === me) : undefined;
   const remain = state?.sessionLapsRemainEx ?? null;
@@ -54,6 +57,16 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
 
   return (
     <div className="pitboard-layout pb-root app-root--free">
+      <FreeInfoWidgets state={state} rows={raceStandingsRows} pitboard />
+      <button
+        type="button"
+        className={`pb-lock${widgetsLocked ? "" : " pb-lock--on"}`}
+        onClick={() => void window.ifuelOverlay?.updateState?.({ widgetsLocked: !widgetsLocked })}
+        title={widgetsLocked ? "Widgets flotantes bloqueados: clic para moverlos" : "Widgets flotantes desbloqueados: clic para bloquear"}
+        aria-label={widgetsLocked ? "Desbloquear widgets flotantes" : "Bloquear widgets flotantes"}
+      >
+        <span aria-hidden="true">{widgetsLocked ? "🔒" : "🔓"}</span>
+      </button>
       <div className="pb-area-head">
         <PitboardHeader
           position={myRow?.position ?? null}

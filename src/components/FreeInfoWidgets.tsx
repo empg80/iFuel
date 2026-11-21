@@ -7,7 +7,7 @@ import { TyresStrip } from "./pitboard/TyresStrip";
 import { CarSettings } from "./pitboard/CarSettings";
 import { clockStr, deltaStr, lapStr, secStr } from "./pitboard/fmt";
 
-type Props = { state: IfuelState | null; rows: StandingsRow[] };
+type Props = { state: IfuelState | null; rows: StandingsRow[]; pitboard?: boolean };
 
 type Sample = { t: number; wet: number; rain: number; chance: number };
 const WINDOW_MS = 20 * 60 * 1000;
@@ -105,7 +105,7 @@ function WeatherCard({ state }: { state: IfuelState }) {
 }
 
 /** Datos del pitboard que el layout libre no tenía: piloto (posición, incidentes, vueltas, sectores), clima, neumáticos y ajustes. */
-export const FreeInfoWidgets: React.FC<Props> = ({ state, rows }) => {
+export const FreeInfoWidgets: React.FC<Props> = ({ state, rows, pitboard = false }) => {
   const o = useOverlayState();
   if (!state) return null;
   const me = state.playerCarNumber ?? null;
@@ -126,7 +126,7 @@ export const FreeInfoWidgets: React.FC<Props> = ({ state, rows }) => {
 
   return (
     <>
-      <FloatingWidget id="driver" visible={o.driverVisible ?? true} scale={o.driverScale ?? 1} defaultPos={{ x: 40, y: 330 }}>
+      <FloatingWidget id={pitboard ? "pb-driver" : "driver"} visible={pitboard ? (o.pbDriverVisible ?? false) : (o.driverVisible ?? true)} scale={o.driverScale ?? 1} defaultPos={pitboard ? { x: 560, y: 560 } : { x: 40, y: 330 }}>
         <div className="pb-panel fw-driver">
           <div className="fw-row">
             {cell("Pos", <>{myRow?.position ?? "–"}{rows.length ? <small>/{rows.length}</small> : null}</>, "fw-me")}
@@ -150,11 +150,11 @@ export const FreeInfoWidgets: React.FC<Props> = ({ state, rows }) => {
         </div>
       </FloatingWidget>
 
-      <FloatingWidget id="weather" visible={o.weatherVisible ?? true} scale={o.weatherScale ?? 1} defaultPos={{ x: 40, y: 500 }}>
+      <FloatingWidget id={pitboard ? "pb-weather" : "weather"} visible={pitboard ? (o.pbWeatherVisible ?? false) : (o.weatherVisible ?? true)} scale={o.weatherScale ?? 1} defaultPos={pitboard ? { x: 560, y: 660 } : { x: 40, y: 500 }}>
         <WeatherCard state={state} />
       </FloatingWidget>
 
-      <FloatingWidget id="car" visible={(o.carVisible ?? false) && !!hasCarData} scale={o.carScale ?? 1} defaultPos={{ x: 40, y: 580 }}>
+      <FloatingWidget id={pitboard ? "pb-car" : "car"} visible={(pitboard ? (o.pbCarVisible ?? false) : (o.carVisible ?? false)) && !!hasCarData} scale={o.carScale ?? 1} defaultPos={pitboard ? { x: 560, y: 460 } : { x: 40, y: 580 }}>
         <div className="fw-car">
           <TyresStrip tyres={car?.tyres ?? null} compound={car?.compound ?? null} />
           <CarSettings car={car} />
