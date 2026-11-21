@@ -269,3 +269,7 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Clima: `_weather` cada minuto en la grabación y `weather` en el volcado del SDK (WeekendInfo/WeekendOptions + variables de telemetría). Pendiente: revisar con un informe de una sesión con clima cambiante si hay previsión.
 - Widgets flotantes en el pitboard (Driver, Weather, Tyres/car), opcionales y apagados por defecto; candado propio. Fuel y Relative flotantes quedan fuera de esta primera versión (tienen su propia posición en el layout libre).
 - M4: tarjetas del relative con degradado del color de clase.
+
+## Decisiones de Kike 21-nov (noche)
+- E3 (instalador y firma): descartado el certificado de firma de pago. Se mantiene el zip portable; opcional más adelante un instalador sin firmar y avisar en el README del aviso de SmartScreen de Windows.
+- M4 hecho en beta.49. Siguiente beta (beta.50): C1, M5 y N3 (widgets como fuente de navegador para OBS, pensados para el layout libre). C2 espera a que Kike diga qué regla de la serie quiere.
