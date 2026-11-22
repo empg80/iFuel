@@ -1643,6 +1643,14 @@ if (origin && !allowedOrigins.has(origin)) {
         "SeasonID", "SessionID", "SubSessionID", "EventType", "Category", "NumCarClasses",
       ]),
       weather: weatherDump(session, (n) => (diag.sdk ? safeTelemetryVariable(diag.sdk, n) : null)),
+      // diagnóstico de la parrilla: de dónde sale el orden de salida
+      grid: {
+        qualifyResults: (session.QualifyResultsInfo?.Results ?? []).slice(0, 80).map((r) => ({ CarIdx: r.CarIdx, Position: r.Position, ClassPosition: r.ClassPosition })),
+        sessions: (session.SessionInfo?.Sessions ?? []).map((x) => ({
+          SessionNum: x.SessionNum, SessionType: x.SessionType,
+          ResultsPositions: (x.ResultsPositions ?? []).slice(0, 80).map((r) => ({ CarIdx: r.CarIdx, Position: r.Position })),
+        })),
+      },
       driverInfo: pick(session.DriverInfo, [
         "DriverCarIdx", "DriverCarFuelKgPerLtr", "DriverCarFuelMaxLtr", "DriverCarMaxFuelPct",
         "DriverCarEstLapTime", "DriverPitTrkPct", "DriverCarVersion",
