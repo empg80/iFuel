@@ -20,6 +20,7 @@ import { buildPitPasses } from "./pitPasses.mjs";
 import { estimateRivalStops } from "./rivalStops.mjs";
 import { createStaticHandler } from "./staticServer.mjs";
 import { createLivePositions } from "./livePositions.mjs";
+import { qualifyGridRanks } from "./gridOrder.mjs";
 import { fuelSaving, finishInfo, computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createTrackHistory, sessionKind, historyKey } from "./trackHistory.mjs";
 import { computePitHelper, parsePitLimitKph } from "./pitHelper.mjs";
@@ -909,7 +910,15 @@ if (carsForStandings.length === 0) {
     if (!d || d.CarIsPaceCar || d.IsSpectator || !(pct >= 0) || (carIdxTrackSurface[idx] ?? -1) < 0) continue;
     grid.push({ idx, totalProgress: (carIdxLap[idx] ?? 0) + pct });
   }
-  grid.sort((a, b) => b.totalProgress - a.totalProgress);
+  // Primero el orden de la clasificación (parrilla real); quien no esté en ella va detrás, por progreso en pista
+  const ranks = qualifyGridRanks(session);
+  grid.sort((a, b) => {
+    const ra = ranks?.get(a.idx), rb = ranks?.get(b.idx);
+    if (ra != null && rb != null) return ra - rb;
+    if (ra != null) return -1;
+    if (rb != null) return 1;
+    return b.totalProgress - a.totalProgress;
+  });
   grid.forEach((g, i) => carsForStandings.push({ idx: g.idx, pos: i + 1, totalProgress: g.totalProgress }));
 }
 
