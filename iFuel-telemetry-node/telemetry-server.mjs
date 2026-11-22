@@ -19,6 +19,7 @@ import { computePitClearAirSuggestion } from "./pitClearAir.mjs";
 import { buildPitPasses } from "./pitPasses.mjs";
 import { estimateRivalStops } from "./rivalStops.mjs";
 import { createStaticHandler } from "./staticServer.mjs";
+import { createLivePositions } from "./livePositions.mjs";
 import { fuelSaving, finishInfo, computeFuelPlan, updateTimeLatch, updateLeaderFinished } from "./fuelPlan.mjs";
 import { createTrackHistory, sessionKind, historyKey } from "./trackHistory.mjs";
 import { computePitHelper, parsePitLimitKph } from "./pitHelper.mjs";
@@ -275,6 +276,7 @@ function startTelemetryLoop(
   let timeWasRunning = false; // se vio el reloj de sesión corriendo (>1 s)
   let timeExpired = false;    // el reloj llegó a 0: solo queda cruzar la meta
   const weatherTracker = createWeatherTracker();
+  const livePositions = createLivePositions();
   let histEntry = null; // histórico del circuito+coche actual (se envía al cliente)
   let histLapSeen = null; // última vuelta completada ya registrada en el histórico
   let histLapHadPit = false;
@@ -390,6 +392,7 @@ const carIdxLapCompleted = telemetry.CarIdxLapCompleted?.value ?? [];
         resetPitAndStintState();
         pitLossTracker.reset();
         weatherTracker.reset();
+        livePositions.reset();
         fuelModel.reset(); histLapSeen = null; histLapHadPit = false;
         pitDecision.reset(); timeWasRunning = false; timeExpired = false; leaderState = { finished: false, pct: null };
         paceLaps.length = 0; paceLastLap = null;
@@ -919,6 +922,14 @@ const leaderLapTime = leaderEntry
 const currentSessionType = (session?.SessionInfo?.Sessions ?? []).find(
   (x) => x.SessionNum === telemetry.SessionNum?.value?.[0],
 )?.SessionType;
+// Posición en vivo (solo carrera en marcha): se reordena por progreso en pista en vez de esperar a la línea de meta
+const liveRace = !!currentSessionType && /race/i.test(currentSessionType) && telemetry.SessionState?.value?.[0] === 4;
+const livePos = liveRace
+  ? livePositions.update(carsForStandings.map((c) => ({
+      idx: c.idx, pos: c.pos, lap: carIdxLap[c.idx] ?? -1, pct: carIdxLapDistPct[c.idx] ?? -1,
+      valid: (carIdxTrackSurface[c.idx] ?? 0) >= 0,
+    })))
+  : (livePositions.reset(), null);
 const standingsGaps = computeStandingsGaps(
   carsForStandings.map((c) => ({
     idx: c.idx, pos: c.pos, lap: carIdxLap[c.idx] ?? -1, pct: carIdxLapDistPct[c.idx] ?? -1,
@@ -962,7 +973,8 @@ const inPit = !!carIdxOnPitRoad[idx];
 
 rivalInputs.push({ carNumber: String(carNum ?? ""), classId, position: pos, stintLapCount, completedStints: pitState.completedStints ?? [], inPit });
 standings.push({
-  position: pos,
+  position: livePos?.get(idx) ?? pos,
+  officialPosition: pos,
   carNumber: String(carNum ?? ""),
   classId,
   driverName,
@@ -987,7 +999,7 @@ standings.push({
 
 }
 
-// ordenar por posición oficial
+// ordenar por posición (en vivo en carrera, oficial en el resto)
 standings.sort((a, b) => a.position - b.position);
 
 

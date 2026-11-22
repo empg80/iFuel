@@ -1,3 +1,4 @@
+import React from "react";
 // components/RaceStandingsWidget.tsx
 import clsx from "clsx";
 import type { RaceStandingsWidgetProps, StandingsRow } from "../types/standings";
@@ -39,6 +40,39 @@ function formatPit(sec: number | null): string {
   return sec.toFixed(1);
 }
 
+/** Anima los cambios de fila (FLIP) y destella en verde/rojo al ganar o perder posición. */
+function useRowMotion(root: React.RefObject<HTMLDivElement | null>, rows: StandingsRow[]) {
+  const tops = React.useRef(new Map<string, number>());
+  const poss = React.useRef(new Map<string, number>());
+  React.useLayoutEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const nextTops = new Map<string, number>();
+    const nextPos = new Map<string, number>();
+    const byCar = new Map(rows.map((r) => [r.carNumber, r.position]));
+    el.querySelectorAll<HTMLElement>("[data-car]").forEach((node) => {
+      const car = node.dataset.car ?? "";
+      const top = node.offsetTop;
+      nextTops.set(car, top);
+      const pos = byCar.get(car);
+      if (pos != null) nextPos.set(car, pos);
+      if (reduce) return;
+      const prevTop = tops.current.get(car);
+      if (prevTop != null && prevTop !== top && Math.abs(prevTop - top) < 600) {
+        node.animate([{ transform: `translateY(${prevTop - top}px)` }, { transform: "translateY(0)" }], { duration: 380, easing: "cubic-bezier(.2,.8,.2,1)" });
+      }
+      const prevPos = poss.current.get(car);
+      if (prevPos != null && pos != null && prevPos !== pos) {
+        const rgb = pos < prevPos ? "67,230,160" : "255,77,94";
+        node.animate([{ boxShadow: `inset 0 0 0 999px rgba(${rgb},.38)` }, { boxShadow: `inset 0 0 0 999px rgba(${rgb},0)` }], { duration: 1100, easing: "ease-out" });
+      }
+    });
+    tops.current = nextTops;
+    poss.current = nextPos;
+  }, [root, rows]);
+}
+
 export function RaceStandingsWidget({
   rows,
   myCarNumber,
@@ -50,6 +84,8 @@ export function RaceStandingsWidget({
   // Top 10 de cada clase + 3 por delante y 3 por detrás de ti si no estás entre ellos
   const groups = fitStandings(rows, myCarNumber, maxRows);
   const multi = groups.length > 1;
+  const tableRef = React.useRef<HTMLDivElement>(null);
+  useRowMotion(tableRef, rows);
   const classLists = new Map<number, StandingsRow[]>();
   for (const r of [...rows].sort((a, b) => a.position - b.position)) {
     const l = classLists.get(r.classId) ?? [];
@@ -69,7 +105,7 @@ export function RaceStandingsWidget({
           </div>
         ) : null}
       </div>
-      <div className={clsx("race-standings__table", multi && "race-standings__table--multi")}>
+      <div ref={tableRef} className={clsx("race-standings__table", multi && "race-standings__table--multi")}>
         <div className="race-standings__row race-standings__row--header">
           <span>POS</span>
           {multi && <span>CLS</span>}
@@ -111,6 +147,7 @@ export function RaceStandingsWidget({
                 return (
                   <div
                     key={row.carNumber}
+                    data-car={row.carNumber}
                     className={clsx(
                       "race-standings__row",
                       `race-standings__row--class-${classColorIndex}`,

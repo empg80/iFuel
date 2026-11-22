@@ -304,3 +304,8 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Pitboard: eliminados los tres "Pitboard: show..." (y el del dashboard) y el candado de widgets flotantes, porque no podían salir de la ventana. En su lugar, selector de vista abajo a la izquierda: Estrategia (la de siempre) / Dashboard (escalado al hueco) / Planificador. Se recuerda la vista.
 - Planificador de stints (`utils/stintPlan.ts` + `StintPlannerCard`): duración, depósito, ritmo, consumo, pérdida en boxes y margen; valores automáticos desde telemetría y los que se tocan se recuerdan ("auto" los restaura). Pendiente: cambios de piloto, amarillas y vista resumida en carrera.
 - Meteo (informe beta.50, Monza 105 min): sesión seca, precipitación 0, TrackWetness 0/1 y cielo 1; no hay previsión en el SDK. La lluvia sigue sin validar: hace falta una sesión con lluvia.
+
+## Posiciones en vivo (22-nov, sin beta)
+- Servidor: `livePositions.mjs` reordena la clasificación por progreso en pista (vuelta + %) solo en carrera en marcha; `position` pasa a ser la en vivo y `officialPosition` la oficial de iRacing. Histéresis de ~3 m para duelos rueda con rueda, tolerancia al desfase de 1 vuelta al cruzar meta, y coches sin dato conservan su puesto.
+- Cliente: la posición de clase del relative sigue el orden en vivo; el standings anima los cambios de fila (deslizamiento) y destella verde/rojo al ganar/perder posición.
+- Validar en carrera: que los adelantamientos se vean al momento y que no haya parpadeos en duelos ni saltos al cruzar meta o en boxes.

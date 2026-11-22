@@ -661,12 +661,26 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             }
           }
 
-          const relativeAhead = relative?.ahead ?? null;
-          const relativeBehind = relative?.behind ?? null;
+          // Posición de clase en vivo (el servidor ya ordena los standings por progreso en pista)
+          const liveClassPos = new Map<string, number>();
+          {
+            const perClass = new Map<number, number>();
+            for (const c of [...(standingsRaw ?? [])].sort((a, b) => a.position - b.position)) {
+              const n = (perClass.get(c.classId) ?? 0) + 1;
+              perClass.set(c.classId, n);
+              liveClassPos.set(String(c.carNumber), n);
+            }
+          }
+          const withLive = <T extends { carNum: number | string | null; classPosition?: number | null; position?: number | null } | null>(c: T): T => {
+            const n = c ? liveClassPos.get(String(c.carNum ?? "")) : undefined;
+            return c && n ? { ...c, classPosition: n, ...(c.position != null ? { position: n } : {}) } : c;
+          };
+          const relativeAhead = withLive(relative?.ahead ?? null);
+          const relativeBehind = withLive(relative?.behind ?? null);
           const relativeMyPosition = relative?.myPosition ?? null;
 
-          const onTrackAhead = relativeOnTrack?.ahead ?? null;
-          const onTrackBehind = relativeOnTrack?.behind ?? null;
+          const onTrackAhead = withLive(relativeOnTrack?.ahead ?? null);
+          const onTrackBehind = withLive(relativeOnTrack?.behind ?? null);
 
           const standings: StandingsRow[] =
             standingsRaw?.map((car) => ({
