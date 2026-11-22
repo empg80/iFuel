@@ -328,3 +328,8 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 2. Mostrar/ocultar overlay en libre no volvía a mostrar: ahora opacidad 0 en vez de hide()/show().
 3. Plan de carrera: "V31.78… meta" con decimales; ahora entero.
 4. Planificador: pérdida en boxes automática desde la medida de la sesión.
+
+## Analizador .ibt: primera versión en beta.61 (23-nov) - pendiente validar
+- Hecho: lector .ibt (`iFuel-telemetry-node/ibt/ibtReader.mjs`), análisis (`ibtAnalyzer.mjs`, en un worker para no bloquear el servidor) y pestaña Análisis en el pitboard. Probado con los .ibt de Monza (Ligier P320) y Silverstone (P217).
+- Método: vueltas por cruce de línea (LapLastLapTime de iRacing llega con retraso y no se usa), rejilla de 5 m, curvas = mínimos de velocidad de la mejor vuelta (fusiona chicanes), pérdida por curva = tiempo acumulado en la zona desde su frenada hasta la siguiente.
+- Pendiente: probar con sesiones largas (5+ vueltas limpias), ajustar detección de curvas rápidas sin frenada, comparar contra una vuelta de referencia elegida (otra sesión), y exportar el informe.

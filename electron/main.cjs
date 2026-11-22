@@ -11,8 +11,10 @@ const {
   shell,
   nativeImage,
   clipboard,
+  dialog,
 } = require("electron");
 const fs = require("fs");
+const { Worker } = require("worker_threads");
 const path = require("path");
 const util = require("util");
 const { pathToFileURL } = require("url");
@@ -400,6 +402,66 @@ ipcMain.on("overlay:mouse-capture", (event, capture) => {
   if (!mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return;
   if (!windowIsOverlay || !overlayState.widgetsLocked) return;
   mainWindow.setIgnoreMouseEvents(!capture, { forward: true });
+});
+
+// --- Análisis de vueltas desde .ibt (telemetría a disco de iRacing)
+const ibtAllowed = new Set(); // rutas elegidas con el diálogo; las de la carpeta de iRacing se validan por carpeta
+const ibtDir = () => path.join(app.getPath("documents"), "iRacing", "telemetry");
+const isIbtAllowed = (p) => {
+  if (typeof p !== "string" || !/\.ibt$/i.test(p)) return false;
+  const resolved = path.resolve(p);
+  return ibtAllowed.has(resolved) || path.dirname(resolved) === path.resolve(ibtDir());
+};
+
+ipcMain.handle("ibt:list", () => {
+  const dir = ibtDir();
+  try {
+    const files = fs.readdirSync(dir)
+      .filter((n) => /\.ibt$/i.test(n))
+      .map((n) => {
+        const full = path.join(dir, n);
+        const st = fs.statSync(full);
+        return { path: full, name: n, size: st.size, mtimeMs: st.mtimeMs };
+      })
+      .sort((a, b) => b.mtimeMs - a.mtimeMs)
+      .slice(0, 40);
+    return { dir, exists: true, files };
+  } catch {
+    return { dir, exists: false, files: [] };
+  }
+});
+
+ipcMain.handle("ibt:pick", async (event) => {
+  if (!mainWindow || event.sender !== mainWindow.webContents) return null;
+  const res = await dialog.showOpenDialog(mainWindow, {
+    title: "Abrir telemetría .ibt",
+    defaultPath: fs.existsSync(ibtDir()) ? ibtDir() : app.getPath("documents"),
+    filters: [{ name: "Telemetría iRacing", extensions: ["ibt"] }],
+    properties: ["openFile"],
+  });
+  if (res.canceled || !res.filePaths[0]) return null;
+  const p = path.resolve(res.filePaths[0]);
+  ibtAllowed.add(p);
+  return { path: p, name: path.basename(p) };
+});
+
+ipcMain.handle("ibt:analyze", (event, filePath) => {
+  if (!mainWindow || event.sender !== mainWindow.webContents) return { ok: false, error: "Origen no válido" };
+  if (!isIbtAllowed(filePath)) return { ok: false, error: "Archivo no permitido" };
+  const baseDir = isDev ? path.join(__dirname, "..") : path.join(__dirname, "..", "..");
+  const workerPath = path.join(baseDir, "iFuel-telemetry-node", "ibt", "ibtWorker.mjs");
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (v) => { if (!done) { done = true; resolve(v); } };
+    try {
+      const w = new Worker(workerPath, { workerData: { path: path.resolve(filePath) } });
+      w.once("message", (m) => finish(m));
+      w.once("error", (e) => finish({ ok: false, error: String(e?.message ?? e) }));
+      w.once("exit", (code) => finish({ ok: false, error: `El análisis terminó sin resultado (código ${code})` }));
+    } catch (e) {
+      finish({ ok: false, error: String(e?.message ?? e) });
+    }
+  });
 });
 
 ipcMain.handle("overlay:get-state", () => {

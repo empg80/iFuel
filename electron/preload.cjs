@@ -40,6 +40,11 @@ contextBridge.exposeInMainWorld("ifuelOverlay", {
     return () => ipcRenderer.removeListener("spotter:phrases", listener);
   },
 
+  /** Análisis de vueltas desde .ibt */
+  ibtList: () => ipcRenderer.invoke("ibt:list"),
+  ibtPick: () => ipcRenderer.invoke("ibt:pick"),
+  ibtAnalyze: (p) => ipcRenderer.invoke("ibt:analyze", p),
+
   getState: () => ipcRenderer.invoke("overlay:get-state"),
 
   /**

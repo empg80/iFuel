@@ -15,10 +15,11 @@ import { CarSettings } from "./components/pitboard/CarSettings";
 import { StintPlannerCard } from "./components/pitboard/StintPlannerCard";
 import { DashboardFit } from "./components/pitboard/DashboardFit";
 import { PitHelperPanel } from "./components/PitHelperPanel";
+import { AnalysisView } from "./components/pitboard/AnalysisView";
 import { pitCall } from "./utils/pitCall";
 import { pitboardAlert } from "./utils/pitboardAlert";
 
-type PbView = "strategy" | "dashboard" | "planner";
+type PbView = "strategy" | "dashboard" | "planner" | "analysis";
 
 type PitboardLayoutProps = {
   state: IfuelState | null;
@@ -29,7 +30,7 @@ type PitboardLayoutProps = {
 
 export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStandingsRows, isConnected }) => {
   const [view, setView] = useState<PbView>(() => {
-    try { const v = localStorage.getItem("ifuel-pb-view"); return v === "dashboard" || v === "planner" ? v : "strategy"; } catch { return "strategy"; }
+    try { const v = localStorage.getItem("ifuel-pb-view"); return v === "dashboard" || v === "planner" || v === "analysis" ? v : "strategy"; } catch { return "strategy"; }
   });
   const pick = (v: PbView) => { setView(v); try { localStorage.setItem("ifuel-pb-view", v); } catch { /* en memoria */ } };
   const me = state?.playerCarNumber ?? null;
@@ -64,7 +65,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
   return (
     <div className="pitboard-layout pb-root app-root--free">
       <div className="pb-tabs" role="tablist" aria-label="Vista del pitboard">
-        {([["strategy", "Estrategia"], ["dashboard", "Dashboard"], ["planner", "Planificador"]] as const).map(([v, l]) => (
+        {([["strategy", "Estrategia"], ["dashboard", "Dashboard"], ["planner", "Planificador"], ["analysis", "Análisis"]] as const).map(([v, l]) => (
           <button key={v} type="button" role="tab" aria-selected={view === v} className={view === v ? "on" : ""} onClick={() => pick(v)}>{l}</button>
         ))}
       </div>
@@ -96,6 +97,7 @@ export const PitboardLayout: React.FC<PitboardLayoutProps> = ({ state, raceStand
       </div>
       {view === "dashboard" && <div className="pb-view"><DashboardFit state={state} /></div>}
       {view === "planner" && <div className="pb-view"><StintPlannerCard state={state} /></div>}
+      {view === "analysis" && <div className="pb-view"><AnalysisView /></div>}
       {view === "strategy" && (
         <>
       <div className="pb-area-standings pitboard-widget">

@@ -50,6 +50,9 @@ declare global {
     updateState?(partial: Partial<IfuelOverlayState>): Promise<unknown>;
     getSpotterPhrases?(): Promise<unknown>;
     onSpotterPhrases?(callback: (phrases: unknown) => void): () => void;
+    ibtList?(): Promise<{ dir: string; exists: boolean; files: { path: string; name: string; size: number; mtimeMs: number }[] }>;
+    ibtPick?(): Promise<{ path: string; name: string } | null>;
+    ibtAnalyze?(path: string): Promise<{ ok: boolean; result?: unknown; error?: string }>;
   }
 
   interface Window {

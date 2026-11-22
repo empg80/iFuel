@@ -56,6 +56,17 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.61 - PESTAÑA ANALISIS (TELEMETRIA .IBT)
+---------------------------------------------------
+Nueva pestaña "Análisis" en la ventana del pitboard (junto a Estrategia, Dashboard y Planificador). Lee los .ibt que iRacing guarda en
+Documentos\iRacing\telemetry (hay que activar la grabación en pista: Alt+L por defecto, o telemetryDiskFile=1 en app.ini; ~4 MB por minuto).
+Elige un archivo y pulsa Analizar: compara cada vuelta limpia (sin boxes) con tu mejor vuelta de esa sesión.
+- Tabla de vueltas con diferencia vs la mejor; "Dónde pierdes más" (media por curva) con frases (frenas antes/después, presión de freno, velocidad mínima, gas tras el vértice).
+- Gráficas de velocidad, freno, acelerador y tiempo perdido acumulado por distancia, con las curvas marcadas. Pulsa otra vuelta de la tabla para compararla.
+- Tabla de curvas (velocidad mínima, punto de frenada, freno máximo, gas) y consistencia (σ).
+Qué mirar: que detecte bien las curvas del circuito, que las frases tengan sentido y que con 5+ vueltas limpias los resultados sean útiles. Con pocas vueltas avisa.
+Limitaciones: es una comparación contra tu mejor vuelta, sin modelo físico del coche; las curvas rápidas sin frenada solo se miden por velocidad mínima.
+
 NOVEDAD BETA.60 - AVISO DE LIMITADOR COHERENTE
 ----------------------------------------------
 La franja superior del pitboard decía "Limitador activo" en el pit lane aunque estuviera apagado. Ahora dice "Limitador desactivado" si el pit helper y el dashboard marcan LIM OFF.
