@@ -56,9 +56,15 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.58 - MENUS REORGANIZADOS Y EN ESPAÑOL
+---------------------------------------------------
+Menú de bandeja, de arriba abajo: Bloquear widgets / Mostrar-ocultar / Overlay sobre el simulador; Widgets (cada uno con Mostrar y Tamaño; Combustible añade
+Detalle y panel de ajustes); Pantalla y posición (disposición, overlay sobre el simulador, pantalla, bloqueo, restablecer posiciones); Spotter; OBS: copiar URL de widget;
+Avanzado (servidor, diagnóstico, recargar); Prueba BETA; Salir. Qué mirar: que todo se encuentre donde toca y que cada opción siga funcionando (mostrar/ocultar, tamaños, pantalla, bloqueo, spotter).
+
 NOVEDAD BETA.57 - MENU DE BANDEJA PARA OBS
 ------------------------------------------
-Menú de bandeja > "OBS: copy widget URL (browser source)": elige un widget y copia su URL al portapapeles. En OBS: Fuentes > + > Navegador > pega la URL
+Menú de bandeja > "OBS: copiar URL de widget": elige un widget y copia su URL al portapapeles. En OBS: Fuentes > + > Navegador > pega la URL
 y pon el tamaño a mano (el dashboard mide 640x300). iFuel debe estar abierto. Qué mirar: que la URL copiada cargue el widget con datos en vivo en OBS.
 
 NOVEDAD BETA.56 - VELOCIDAD EN EL DASHBOARD Y PIT HELPER MOVIBLE
@@ -94,7 +100,7 @@ NOVEDAD BETA.52 - POSICIONES EN VIVO, PARRILLA DE FORMACION Y ANIMACION DEL STAN
 
 NOVEDAD BETA.51 - DASHBOARD DE VOLANTE, PLANIFICADOR DE STINTS Y PITBOARD CON VISTAS
 - PITBOARD: abajo a la izquierda hay tres botones: Estrategia (la de siempre), Dashboard y Planificador. Se recuerda la última vista.
-- DASHBOARD: marcha con anillo de RPM (se ilumina al llegar al régimen de cambio y parpadea al pasarte), delta, velocidad, combustible, neumáticos, tráfico, cinta de carrera, ajustes y SoC si el coche es híbrido. En el layout libre: menú de bandeja "Show Steering-wheel dashboard" y "Dashboard size". En OBS: http://127.0.0.1:7071/#/obs/dash
+- DASHBOARD: marcha con anillo de RPM (se ilumina al llegar al régimen de cambio y parpadea al pasarte), delta, velocidad, combustible, neumáticos, tráfico, cinta de carrera, ajustes y SoC si el coche es híbrido. En el layout libre: menú de bandeja > Widgets > "Dashboard de volante" (Mostrar y Tamaño). En OBS: http://127.0.0.1:7071/#/obs/dash
 - PLANIFICADOR DE STINTS (vista del pitboard): duración, depósito, ritmo, consumo, pérdida en boxes y margen. Los valores salen de la telemetría ("auto"); lo que toques se recuerda.
 - QUITADO: los "Pitboard: show..." de la bandeja y el candado de widgets flotantes del pitboard.
 - Qué mirar: en un coche con luces de cambio (GTP/LMP2), que marcha, RPM y luces coincidan con el coche; el SoC en híbridos; el campo MAP del dashboard (¿qué ajuste te interesa ahí?); que el planificador coja bien consumo y ritmo tras unas vueltas; y que el cambio de vista del pitboard funcione con el ratón.
@@ -159,7 +165,7 @@ NOVEDAD BETA.39 - BOTONES EN EL LAYOUT LIBRE Y VENTANA DEL PITBOARD RECORDADA
 - Pitboard (y cualquier ventana normal): se recuerda la posicion, el tamano y si estaba maximizada; al abrirla vuelve al monitor donde la dejaste. Si ese monitor ya no esta conectado, abre en el principal.
 
 NOVEDAD BETA.38 - LAYOUT LIBRE CON LOS DATOS DEL PITBOARD
-- Widgets nuevos (menu Overlay > Show ...): Driver (posicion, incidentes propios, vuelta, tiempo, ultima/mejor/record, delta, sectores), Weather (estado, prob. lluvia, mojado, temperaturas, viento) y Tyres / car settings (desgaste, bias, TC, ABS; apagado por defecto). Arrastrables con los widgets desbloqueados y con su propio tamano.
+- Widgets nuevos (menu Widgets > cada widget > Mostrar): Driver (posicion, incidentes propios, vuelta, tiempo, ultima/mejor/record, delta, sectores), Weather (estado, prob. lluvia, mojado, temperaturas, viento) y Tyres / car settings (desgaste, bias, TC, ABS; apagado por defecto). Arrastrables con los widgets desbloqueados y con su propio tamano.
 - Clic sobre el widget de Fuel: alterna compacto / completo (funciona tambien con el overlay bloqueado).
 - Panel de ajustes de Fuel: CLEAR AIR +/- segundos de aire limpio (1-10 s) para el pit clear air.
 

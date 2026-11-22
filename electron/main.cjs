@@ -514,14 +514,14 @@ function scaleMenu(label, key) {
   };
 }
 
-function buildMenuTemplate() {
+function buildLegacyMenuTemplate() {
   const primaryDisplay = screen.getPrimaryDisplay();
   return [
     {
-      label: "Layout",
+      label: "Disposición",
       submenu: [
         {
-          label: "Free",
+          label: "Libre",
           type: "radio",
           checked: overlayState.layoutMode === "free",
           click: () => {
@@ -542,7 +542,7 @@ function buildMenuTemplate() {
           },
         },
         {
-          label: "Replay / Broadcast", 
+          label: "Replay / Retransmisión",
           type: "radio",
           checked: overlayState.layoutMode === "replay",
           click: () => {
@@ -647,15 +647,15 @@ function buildMenuTemplate() {
         },
         { type: "separator" },
         {
-          label: "Overlay over simulator (transparent, always on top)",
+          label: "Overlay sobre el simulador (transparente, siempre visible)",
           type: "checkbox",
           checked: overlayState.overlayMode,
           click: () => toggleOverlayMode(),
         },
         {
-          label: "Overlay display",
+          label: "Pantalla del overlay",
           submenu: screen.getAllDisplays().map((d, i) => ({
-            label: `Display ${i + 1} (${d.bounds.width}x${d.bounds.height})${d.id === primaryDisplay.id ? " - primary" : ""}`,
+            label: `Pantalla ${i + 1} (${d.bounds.width}x${d.bounds.height})${d.id === primaryDisplay.id ? " - principal" : ""}`,
             type: "radio",
             checked: (overlayState.overlayDisplayId ?? primaryDisplay.id) === d.id,
             click: () => {
@@ -666,7 +666,7 @@ function buildMenuTemplate() {
           })),
         },
         {
-          label: "Reset widget positions",
+          label: "Restablecer posiciones de los widgets",
           click: () => {
             // Borra las posiciones guardadas y recarga: los widgets vuelven a su sitio por defecto
             if (!mainWindow) return;
@@ -678,7 +678,7 @@ function buildMenuTemplate() {
           },
         },
         {
-          label: "Lock widgets (click-through)  Ctrl+Shift+L",
+          label: "Bloquear widgets (clics atraviesan)  Ctrl+Shift+L",
           type: "checkbox",
           checked: overlayState.widgetsLocked,
           click: (item) => {
@@ -753,16 +753,16 @@ function buildMenuTemplate() {
       ],
     },
     {
-      label: "OBS: copy widget URL (browser source)",
+      label: "OBS: copiar URL de widget",
       submenu: [
-        ["fuel", "Fuel"], ["relative", "Relative"], ["standings", "Standings"], ["pitclear", "Pit clear air"],
-        ["yellow", "Yellow / debris"], ["driver", "Driver"], ["weather", "Weather"], ["car", "Car"],
-        ["traffic", "Traffic"], ["pithelper", "Pit lane helper"], ["dash", "Steering-wheel dashboard (640x300)"],
+        ["fuel", "Combustible"], ["relative", "Relative"], ["standings", "Clasificación"], ["pitclear", "Pit clear air"],
+        ["yellow", "Amarilla / escombros"], ["driver", "Piloto"], ["weather", "Meteo"], ["car", "Coche"],
+        ["traffic", "Tráfico"], ["pithelper", "Calle de boxes"], ["dash", "Dashboard de volante (640x300)"],
       ].map(([id, label]) => ({
         label,
         click: () => {
           clipboard.writeText(`http://127.0.0.1:7071/#/obs/${id}`);
-          new Notification({ title: "iFuel", body: `URL copiada: /#/obs/${id}. En OBS: Fuentes > + > Navegador > pega la URL.` }).show();
+          new Notification({ title: "iFuel", body: `URL copiada: /#/obs/${id}. En OBS: Fuentes > + > Navegador > pega la URL y fija el tamaño.` }).show();
         },
       })),
     },
@@ -770,10 +770,10 @@ function buildMenuTemplate() {
       label: "Spotter",
       submenu: [
         ...[
-          ["spotterEnabled", "Enable audio spotter"],
-          ["spotterTones", "Side tones (stereo beep)"],
-          ["spotterVoice", "Side voice (Izquierda / Derecha / Libre)"],
-          ["spotterAlerts", "Voice alerts (fast class, yellow/debris, fuel, box)"],
+          ["spotterEnabled", "Activar spotter de audio"],
+          ["spotterTones", "Tonos laterales (pitido estéreo)"],
+          ["spotterVoice", "Voz lateral (Izquierda / Derecha / Libre)"],
+          ["spotterAlerts", "Avisos de voz (clase rápida, amarilla/escombros, combustible, box)"],
         ].map(([key, label]) => ({
           label,
           type: "checkbox",
@@ -785,17 +785,17 @@ function buildMenuTemplate() {
           },
         })),
         {
-          label: "Voice alerts to say",
+          label: "Avisos de voz a decir",
           submenu: [
-            ["clear", "Libre (side clear)"],
-            ["fastClass", "Fast class behind"],
-            ["yellow", "Yellow / debris / stopped car"],
-            ["fuel", "Fuel critical"],
-            ["window", "Pit window open"],
-            ["box", "Box this lap"],
-            ["lastLap", "Last lap"],
-            ["checkered", "Checkered flag"],
-            ["rain", "Rain (starts / stops / risk)"],
+            ["clear", "Libre (lateral despejado)"],
+            ["fastClass", "Clase rápida detrás"],
+            ["yellow", "Amarilla / escombros / coche parado"],
+            ["fuel", "Combustible crítico"],
+            ["window", "Ventana de parada abierta"],
+            ["box", "Box esta vuelta"],
+            ["lastLap", "Última vuelta"],
+            ["checkered", "Bandera a cuadros"],
+            ["rain", "Lluvia (empieza / para / riesgo)"],
           ].map(([id, label]) => ({
             label,
             type: "checkbox",
@@ -810,18 +810,18 @@ function buildMenuTemplate() {
           })),
         },
         {
-          label: "Edit phrases (opens spotter-frases.json)",
+          label: "Editar frases (abre spotter-frases.json)",
           click: () => {
             readSpotterPhrases(); // crea el archivo si no existe
             shell.openPath(spotterPhrasesPath);
           },
         },
         {
-          label: "Voice",
+          label: "Voz",
           submenu: [
-            ["claude", "Claude (natural, Latin American)"],
-            ["dave", "Dave (natural, Spain)"],
-            ["system", "Windows system voice"],
+            ["claude", "Claude (natural, latinoamericana)"],
+            ["dave", "Dave (natural, España)"],
+            ["system", "Voz del sistema de Windows"],
           ].map(([id, label]) => ({
             label,
             type: "radio",
@@ -835,7 +835,7 @@ function buildMenuTemplate() {
         },
         { type: "separator" },
         {
-          label: "Volume",
+          label: "Volumen",
           submenu: [0.3, 0.5, 0.8, 1].map((v) => ({
             label: `${Math.round(v * 100)}%`,
             type: "radio",
@@ -848,7 +848,7 @@ function buildMenuTemplate() {
           })),
         },
         {
-          label: "Test sound",
+          label: "Probar sonido",
           click: () => {
             overlayState.spotterTestNonce = (overlayState.spotterTestNonce || 0) + 1;
             sendOverlayState();
@@ -860,7 +860,7 @@ function buildMenuTemplate() {
       label: "Server",
       submenu: [
         {
-          label: "Restart telemetry server",
+          label: "Reiniciar servidor de telemetría",
           click: async () => {
             await stopTelemetryServerInElectron();
             await startTelemetryServerInElectron();
@@ -872,12 +872,12 @@ function buildMenuTemplate() {
       label: "Diagnostics",
       submenu: [
         recordingFile
-          ? { label: "Stop recording session", click: () => stopRecording() }
-          : { label: "Start recording session", click: () => startRecording() },
-        { label: "Save SDK snapshot", click: () => saveSnapshot() },
+          ? { label: "Detener grabación de la sesión", click: () => stopRecording() }
+          : { label: "Iniciar grabación de la sesión", click: () => startRecording() },
+        { label: "Guardar snapshot del SDK", click: () => saveSnapshot() },
         { type: "separator" },
         {
-          label: "Open data folder (logs, recordings)",
+          label: "Abrir carpeta de datos (logs, grabaciones)",
           click: () => shell.openPath(app.getPath("userData")),
         },
       ],
@@ -885,15 +885,91 @@ function buildMenuTemplate() {
     ...(isBetaBuild
       ? [
           {
-            label: "BETA test",
+            label: "Prueba BETA",
             submenu: [
-              { label: "Open test guide", click: () => openTestGuide() },
-              { label: "Generate report now (zip)", click: () => generateBetaReport({ reveal: true }) },
-              { label: "Open reports folder", click: () => shell.openPath(betaReportsDir()) },
+              { label: "Abrir guía de la prueba", click: () => openTestGuide() },
+              { label: "Generar informe ahora (zip)", click: () => generateBetaReport({ reveal: true }) },
+              { label: "Abrir carpeta de informes", click: () => shell.openPath(betaReportsDir()) },
             ],
           },
         ]
       : []),
+  ];
+}
+
+// Menú principal reorganizado: lo de uso frecuente primero (widgets), luego pantalla, spotter, OBS y avanzado.
+function buildMenuTemplate() {
+  const old = buildLegacyMenuTemplate();
+  const find = (label) => old.find((i) => i.label === label);
+  const save = () => { saveOverlayState(); sendOverlayState(); };
+  const show = (label, key) => ({
+    label: "Mostrar", type: "checkbox", checked: overlayState[key],
+    click: (item) => { overlayState[key] = item.checked; save(); },
+  });
+  const size = (key) => [
+    { type: "separator" },
+    { label: "Tamaño", enabled: false },
+    ...SCALE_OPTIONS.map((v) => ({
+      label: `${Math.round(v * 100)}%`, type: "radio", checked: overlayState[key] === v,
+      click: () => { overlayState[key] = v; save(); },
+    })),
+  ];
+  const widget = (label, visKey, scaleKey, extra = []) => ({
+    label, submenu: [show(label, visKey), ...extra, ...(scaleKey ? size(scaleKey) : [])],
+  });
+  const fuelExtra = [
+    { type: "separator" },
+    { label: "Detalle", enabled: false },
+    ...[["compact", "Compacto (datos clave)"], ["full", "Completo (todos los datos)"]].map(([mode, label]) => ({
+      label, type: "radio", checked: overlayState.fuelDetail === mode,
+      click: () => { overlayState.fuelDetail = mode; save(); },
+    })),
+    { type: "separator" },
+    {
+      label: "Panel de ajustes de combustible", type: "checkbox", checked: overlayState.fuelSettingsVisible,
+      click: (item) => { overlayState.fuelSettingsVisible = item.checked; save(); },
+    },
+  ];
+  const legacyOverlay = find("Overlay").submenu;
+  const pick = (label) => legacyOverlay.find((i) => i.label === label);
+  return [
+    {
+      label: "Widgets",
+      submenu: [
+        widget("Combustible", "fuelVisible", "fuelScale", fuelExtra),
+        widget("Dashboard de volante", "dashVisible", "dashScale"),
+        widget("Relative / Standing", "standingBattleVisible", "relativeScale"),
+        widget("Clasificación (standings)", "standingsVisible", "standingsScale"),
+        widget("Piloto (posición / incidentes / vueltas)", "driverVisible", "driverScale"),
+        widget("Meteo", "weatherVisible", "weatherScale"),
+        widget("Neumáticos / coche", "carVisible", "carScale"),
+        widget("Bandera amarilla", "yellowVisible", "yellowScale"),
+        widget("Pit Clear Air (beta)", "pitClearAirVisible", "pitClearScale"),
+      ],
+    },
+    {
+      label: "Pantalla y posición",
+      submenu: [
+        find("Disposición"),
+        { type: "separator" },
+        pick("Overlay sobre el simulador (transparente, siempre visible)"),
+        pick("Pantalla del overlay"),
+        pick("Bloquear widgets (clics atraviesan)  Ctrl+Shift+L"),
+        pick("Restablecer posiciones de los widgets"),
+      ],
+    },
+    find("Spotter"),
+    find("OBS: copiar URL de widget"),
+    {
+      label: "Avanzado",
+      submenu: [
+        { label: "Servidor de telemetría", submenu: find("Server").submenu },
+        { label: "Diagnóstico", submenu: find("Diagnostics").submenu },
+        { type: "separator" },
+        { label: "Recargar widgets", role: "reload" },
+      ],
+    },
+    ...(find("Prueba BETA") ? [find("Prueba BETA")] : []),
   ];
 }
 
@@ -941,14 +1017,14 @@ function trayIconPath() {
 function buildTrayTemplate() {
   return [
     {
-      label: "Lock widgets (click-through)  Ctrl+Shift+L",
+      label: "Bloquear widgets (clics atraviesan)  Ctrl+Shift+L",
       type: "checkbox",
       checked: overlayState.widgetsLocked,
       click: () => toggleLock(),
     },
-    { label: "Show / hide overlay  Ctrl+Shift+H", click: () => toggleVisible() },
+    { label: "Mostrar / ocultar overlay  Ctrl+Shift+H", click: () => toggleVisible() },
     {
-      label: "Overlay over simulator",
+      label: "Overlay sobre el simulador",
       type: "checkbox",
       checked: overlayState.overlayMode,
       click: () => toggleOverlayMode(),
@@ -956,7 +1032,7 @@ function buildTrayTemplate() {
     { type: "separator" },
     ...buildMenuTemplate().map((item) => ({ label: item.label, submenu: item.submenu })),
     { type: "separator" },
-    { label: "Quit iFuel", click: () => app.quit() },
+    { label: "Salir de iFuel", click: () => app.quit() },
   ];
 }
 
