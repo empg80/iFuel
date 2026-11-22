@@ -8,7 +8,7 @@ test("el estado del hook reenvía los datos que usan las tarjetas", () => {
   const start = src.indexOf("const nextState: IfuelState = {");
   assert.ok(start > 0);
   const block = src.slice(start, start + 6000);
-  for (const k of ["fuelPlan", "rivalPits", "raceFinish", "weather", "pitHelper", "trackHistory", "pitClearAir", "fastTraffic", "yellowWarning", "standings", "carData", "speedMs"]) {
+  for (const k of ["fuelPlan", "rivalPits", "raceFinish", "weather", "pitHelper", "trackHistory", "pitClearAir", "fastTraffic", "yellowWarning", "standings", "carData", "speedMs", "engineWarnings"]) {
     assert.match(block, new RegExp(`\\b${k}\\b`), `falta ${k} en nextState`);
   }
 });

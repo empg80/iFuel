@@ -57,3 +57,6 @@
 .dash-set span{font-size:8px;letter-spacing:.12em;color:var(--m)}.dash-set b{font-size:16px;font-weight:700}
 .dash-set.map{background:rgba(255,184,61,.12);border-color:rgba(255,184,61,.35)}.dash-set.map span,.dash-set.map b{color:var(--a)}
 .dash-soc{gap:6px}.dash-soc .dash-bar{flex:1;height:5px}.dash-soc b{font-size:14px}
+
+.dash-rpmarc{transition:stroke-dasharray .28s linear}
+.dash-lim{position:absolute;top:-30px;left:50%;transform:translateX(-50%);padding:1px 8px;border-radius:6px;background:var(--a,#ffb83d);color:#10151f;font-size:15px;font-weight:800;letter-spacing:.08em}

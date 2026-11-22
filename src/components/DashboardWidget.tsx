@@ -25,6 +25,8 @@ export const DashboardWidget: React.FC<{ state: IfuelState | null }> = ({ state 
   const call = pitCall(state?.pitClearAir ?? undefined, lap || null);
   const rpmF = rpmFraction(dash);
   const sh = shiftState(dash);
+  // bit 0x10 de EngineWarnings = limitador de pit activo
+  const limiterOn = ((state?.engineWarnings ?? 0) & 0x10) !== 0;
   const delta = car?.delta ?? null;
   const kmh = state?.speedMs != null ? Math.round(state.speedMs * 3.6) : null;
   const remaining = plan?.remainingLaps ?? null;
@@ -100,10 +102,11 @@ export const DashboardWidget: React.FC<{ state: IfuelState | null }> = ({ state 
           <svg viewBox="0 0 168 168" role="img" aria-label="RPM y delta">
             <defs><linearGradient id="dashrpm" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#43e6a0" /><stop offset=".6" stopColor="#ffb83d" /><stop offset="1" stopColor="#ff4d5e" /></linearGradient></defs>
             <circle cx="84" cy="84" r="76" fill="none" stroke="#1a2538" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${ARC} 477`} transform="rotate(135 84 84)" />
-            <circle cx="84" cy="84" r="76" fill="none" stroke="url(#dashrpm)" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${Math.max(0.01, rpmF * ARC)} 477`} transform="rotate(135 84 84)" />
+            <circle cx="84" cy="84" r="76" fill="none" stroke="url(#dashrpm)" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${Math.max(0.01, rpmF * ARC)} 477`} className="dash-rpmarc" transform="rotate(135 84 84)" />
           </svg>
           <div className="dash-ring__c">
             <div className="dash-gear">{gearLabel(dash?.gear)}</div>
+            {limiterOn && <div className="dash-lim">LIM</div>}
             <div className={`dash-delta ${tClass}`}>{deltaStr(delta)}</div>
             <div className="dash-speed">{kmh ?? "–"}<small> KM/H</small></div>
           </div>

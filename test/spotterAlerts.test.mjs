@@ -29,13 +29,28 @@ test("amarilla/debris con distancia redondeada, una sola vez", () => {
 });
 test("combustible crítico, ventana abierta y box esta vuelta (solo en el flanco)", () => {
   let r = alertsFor(initialAlertMemory(), { fuelStatus: "critical", windowStatus: "window", nowMs: 0 });
-  assert.deepEqual(r.say, ["Combustible crítico", "Ventana de parada abierta"]);
-  r = alertsFor(r.mem, { fuelStatus: "critical", windowStatus: "window", nowMs: 1 });
-  assert.deepEqual(r.say, []);
-  r = alertsFor(r.mem, { windowStatus: "window", pitLocked: true, pitSuggestedLap: 9, pitNextLap: 9, nowMs: 2 });
+  assert.deepEqual(r.say, ["Combustible crítico"]);
+  r = alertsFor(r.mem, { fuelStatus: "critical", windowStatus: "window", nowMs: 2500 });
+  assert.deepEqual(r.say, ["Ventana de parada abierta"]);
+  r = alertsFor(r.mem, { windowStatus: "window", pitLocked: true, pitSuggestedLap: 9, pitNextLap: 9, nowMs: 2600 });
   assert.deepEqual(r.say, ["Entra a boxes esta vuelta"]);
-  r = alertsFor(r.mem, { windowStatus: "window", pitLocked: true, pitSuggestedLap: 9, pitNextLap: 9, nowMs: 3 });
+  r = alertsFor(r.mem, { windowStatus: "window", pitLocked: true, pitSuggestedLap: 9, pitNextLap: 9, nowMs: 2700 });
   assert.deepEqual(r.say, []);
+});
+test("ventana: si el estado oscila no se repite el aviso; tras 15 s cerrada vuelve a avisar", () => {
+  let r = alertsFor(initialAlertMemory(), { windowStatus: "window", nowMs: 0 });
+  r = alertsFor(r.mem, { windowStatus: "window", nowMs: 2100 });
+  assert.deepEqual(r.say, ["Ventana de parada abierta"]);
+  let said = 0;
+  for (let t = 2350; t < 12000; t += 250) {
+    r = alertsFor(r.mem, { windowStatus: Math.floor(t / 250) % 2 ? "no-stop" : "window", nowMs: t });
+    said += r.say.length;
+  }
+  assert.equal(said, 0);
+  for (let t = 12000; t <= 28000; t += 1000) r = alertsFor(r.mem, { windowStatus: "no-stop", nowMs: t });
+  r = alertsFor(r.mem, { windowStatus: "window", nowMs: 28500 });
+  r = alertsFor(r.mem, { windowStatus: "window", nowMs: 31000 });
+  assert.deepEqual(r.say, ["Ventana de parada abierta"]);
 });
 test("última vuelta y bandera a cuadros avisan una vez; se pueden silenciar", () => {
   let r = alertsFor(initialAlertMemory(), { lastLap: true, nowMs: 0 });

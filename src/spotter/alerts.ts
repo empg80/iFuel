@@ -29,6 +29,8 @@ export type AlertMemory = {
   yellowKey: string | null;
   fuelCritical: boolean;
   windowOpen: boolean;
+  windowOpenSince: number | null;
+  windowClosedSince: number | null;
   boxLap: number | null;
   lastLap: boolean;
   checkered: boolean;
@@ -36,10 +38,13 @@ export type AlertMemory = {
 };
 
 export const initialAlertMemory = (): AlertMemory => ({
-  fastCar: null, fastAt: -1e9, yellowKey: null, fuelCritical: false, windowOpen: false, boxLap: null, lastLap: false, checkered: false, weather: "dry",
+  fastCar: null, fastAt: -1e9, yellowKey: null, fuelCritical: false, windowOpen: false, windowOpenSince: null, windowClosedSince: null, boxLap: null, lastLap: false, checkered: false, weather: "dry",
 });
 
 const FAST_REPEAT_MS = 40000;
+// La ventana debe mantenerse abierta 2 s para avisar y cerrada 15 s para poder volver a avisar (el estado puede oscilar)
+const WINDOW_OPEN_HOLD_MS = 2000;
+const WINDOW_CLOSE_HOLD_MS = 15000;
 
 function roundMeters(m: number): number {
   return m < 100 ? Math.round(m / 10) * 10 : Math.round(m / 50) * 50;
@@ -82,8 +87,18 @@ export function alertsFor(mem: AlertMemory, i: AlertInput): { say: string[]; mem
   next.fuelCritical = crit;
 
   const open = i.windowStatus === "window" || i.windowStatus === "extra-stop";
-  if (open && !mem.windowOpen && on("window")) say.push(P.windowOpen);
-  next.windowOpen = open;
+  if (open) {
+    next.windowClosedSince = null;
+    next.windowOpenSince = mem.windowOpenSince ?? i.nowMs;
+    if (!mem.windowOpen && i.nowMs - next.windowOpenSince >= WINDOW_OPEN_HOLD_MS) {
+      if (on("window")) say.push(P.windowOpen);
+      next.windowOpen = true;
+    }
+  } else {
+    next.windowOpenSince = null;
+    next.windowClosedSince = mem.windowClosedSince ?? i.nowMs;
+    if (mem.windowOpen && i.nowMs - next.windowClosedSince >= WINDOW_CLOSE_HOLD_MS) next.windowOpen = false;
+  }
 
   if (i.pitLocked && i.pitSuggestedLap != null && i.pitSuggestedLap === i.pitNextLap && i.pitNextLap !== mem.boxLap) {
     if (on("box")) say.push(P.boxNow);

@@ -7,12 +7,13 @@
 //   para que un duelo rueda con rueda no parpadee.
 // - Un salto de ~1 vuelta hacia atrás es el desfase de un tick entre CarIdxLap y el % al cruzar meta: se ignora.
 
-export function createLivePositions({ eps = 0.0006 } = {}) {
+export function createLivePositions({ eps = 0.0006, confirm = 2 } = {}) {
   const prevProgress = new Map();
+  const streak = new Map(); // idx → ticks seguidos superando con margen al coche de delante (evita rebotes A-B-A)
   let prevOrder = [];
 
   return {
-    reset() { prevProgress.clear(); prevOrder = []; },
+    reset() { prevProgress.clear(); streak.clear(); prevOrder = []; },
     /**
      * @param {{idx:number, pos:number, lap:number, pct:number, valid?:boolean}[]} cars  pos = posición oficial (>0)
      * @returns {Map<number, number>} idx → posición en vivo
@@ -36,10 +37,15 @@ export function createLivePositions({ eps = 0.0006 } = {}) {
       const seen = new Set(seed.map((m) => m.idx));
       const fresh = movable.filter((m) => !seen.has(m.idx)).sort((a, b) => b.p - a.p);
       const arr = [...seed, ...fresh];
+      // un coche solo sube si supera con margen al de delante durante `confirm` ticks seguidos
+      for (let i = 0; i < arr.length; i++) {
+        const ahead = i > 0 ? arr[i - 1] : null;
+        streak.set(arr[i].idx, ahead && arr[i].p - ahead.p > eps ? (streak.get(arr[i].idx) ?? 0) + 1 : 0);
+      }
       // inserción: un coche sube si supera con margen al de delante
       for (let i = 1; i < arr.length; i++) {
         let j = i;
-        while (j > 0 && arr[j].p - arr[j - 1].p > eps) { [arr[j - 1], arr[j]] = [arr[j], arr[j - 1]]; j--; }
+        while (j > 0 && arr[j].p - arr[j - 1].p > eps && (streak.get(arr[j].idx) ?? 0) >= confirm) { [arr[j - 1], arr[j]] = [arr[j], arr[j - 1]]; j--; }
       }
       prevOrder = arr.map((m) => m.idx);
       // reparto: los huecos libres, de mejor a peor, para los movibles en su orden

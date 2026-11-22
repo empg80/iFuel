@@ -269,6 +269,8 @@ function loadOverlayState() {
     // Se completa con los valores por defecto: un JSON guardado por una versión
     // anterior (sin claves nuevas) ya no resetea todos los ajustes.
     const merged = { ...DEFAULT_OVERLAY_STATE, ...parsed };
+    // Claves obsoletas (p. ej. pbDriverVisible de betas anteriores): se descartan al cargar
+    for (const k of Object.keys(merged)) if (!(k in DEFAULT_OVERLAY_STATE)) delete merged[k];
     if (!validateOverlayState(merged)) throw new Error("Invalid overlay state");
     return merged;
   } catch {

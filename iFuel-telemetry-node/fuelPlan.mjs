@@ -20,6 +20,12 @@ const LAP_MODE_MAX = 1000; // SessionLapsRemainEx = 32767 significa "sin límite
  * DESPUÉS de mí (él recibe la bandera a cuadros y yo todavía tengo que dar otra vuelta).
  * `leader` = {pct, lapTime} del líder si no soy yo.
  */
+// Histéresis de la vuelta extra: cuando líder y yo cruzaríamos meta casi a la vez (|dif| < margen) mantenemos la decisión previa
+// para que el plan no oscile entre N y N+1 vueltas (ventana de parada abriéndose/cerrándose).
+const EXTRA_LAP_MARGIN_S = 3;
+let extraLapHold = null;
+export function resetExtraLapHold() { extraLapHold = null; }
+
 function timedLaps({ T, pct, lapTime, leader }) {
   const toLine = (1 - pct) * lapTime;
   const k = T <= toLine ? 0 : Math.ceil((T - toLine) / lapTime);
@@ -29,7 +35,12 @@ function timedLaps({ T, pct, lapTime, leader }) {
   const toLineL = (1 - leader.pct) * leader.lapTime;
   const kL = T <= toLineL ? 0 : Math.ceil((T - toLineL) / leader.lapTime);
   const tLeader = toLineL + kL * leader.lapTime;
-  return mine + (tMine < tLeader - 0.01 ? 1 : 0);
+  const diff = tLeader - tMine;
+  let extra;
+  if (extraLapHold === null || Math.abs(diff) > EXTRA_LAP_MARGIN_S) extra = diff > 0.01;
+  else extra = extraLapHold;
+  extraLapHold = extra;
+  return mine + (extra ? 1 : 0);
 }
 
 /**

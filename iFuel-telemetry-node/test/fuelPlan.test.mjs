@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { lapsToRun, computeFuelPlan } from "../fuelPlan.mjs";
+import { lapsToRun, computeFuelPlan, resetExtraLapHold } from "../fuelPlan.mjs";
 import { createFuelModel } from "../fuelModel.mjs";
 
 test("lapsToRun: carrera por vueltas descuenta la fracción de la vuelta en curso", () => {
@@ -186,4 +186,16 @@ test("finishInfo: multiclase, cruzo antes que el líder general → vuelta extra
   assert.equal(finishInfo({ ...base, leader: { pct: 0.3, lapTime: 107 } }).extraLap, true);
   assert.equal(finishInfo({ ...base, leader: { pct: 0.95, lapTime: 107 } }).extraLap, false);
   assert.equal(finishInfo({ ...base, leader: null }), null);
+});
+
+test("lapsToRun: la vuelta extra no oscila cuando líder y yo cruzamos meta casi a la vez (histéresis)", () => {
+  resetExtraLapHold();
+  const base = { lapsRemain: 32767, timeRemain: 250, lapTime: 100, myPct: 0.55 }; // yo cruzo meta en t=345
+  const at = (pct) => lapsToRun({ ...base, leader: { pct, lapTime: 100 } });
+  const a = at(0.3); // líder cruza en 270: antes que yo, sin vuelta extra
+  assert.equal(at(0.55), a); // empate: se mantiene
+  assert.equal(at(0.54), a); // el líder pasaría 1 s después, pero está dentro del margen: se mantiene
+  assert.equal(at(0.501), a + 1); // 4,9 s después: decisión clara, vuelta extra
+  assert.equal(at(0.56), a + 1); // vuelve a estar dentro del margen: se mantiene
+  resetExtraLapHold();
 });

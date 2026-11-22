@@ -56,6 +56,17 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.53 - CORRECCIONES DE LA BETA.52
+--------------------------------------------
+Qué mirar:
+- Dashboard: el arco de RPM sube con más suavidad y aparece "LIM" (ámbar) sobre la marcha cuando el limitador de pits está activo.
+  Confirma que LIM sale al entrar en el pit lane y se apaga al salir (el bit del limitador aún no está validado en coche real).
+- Spotter: tras repostar, "ventana de parada abierta" debe sonar una sola vez por parada (y solo si se mantiene abierta unos segundos).
+- Plan: con el reloj casi agotado y un líder de otra clase, el nº de vueltas restantes ya no debería saltar entre N y N+1.
+- Standings: menos rebotes de posición en duelos (un adelantamiento se confirma en 2 muestras, ~0,5 s).
+- overlay-state.json: se limpian las claves antiguas al arrancar.
+No incluido (pendiente): mantener el orden de parrilla justo tras la salida (bajón a ~13 coches).
+
 NOVEDAD BETA.52 - POSICIONES EN VIVO, PARRILLA DE FORMACION Y ANIMACION DEL STANDINGS
 - STANDINGS EN VIVO (carrera): la posición se actualiza cuando te adelantan o adelantas en pista, no al cruzar meta. Las filas se deslizan a su sitio y destellan en verde (ganas puesto) o rojo (pierdes). La posición de clase del relative sigue el mismo orden.
 - PARRILLA DE FORMACION: ahora aparecen todos los coches (antes solo tú), ordenados según los resultados de la clasificación; si no hay, por su sitio en pista.
