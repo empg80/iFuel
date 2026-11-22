@@ -899,6 +899,20 @@ for (let idx = 0; idx < carIdxPosition.length; idx++) {
   carsForStandings.push({ idx, pos, totalProgress });
 }
 
+// Parrilla de formación / antes de la salida iRacing deja CarIdxPosition en 0 para todos: solo salías tú. Si nadie tiene
+// posición, se ordena a los coches que están en el mundo por su progreso en pista (el pole es el más cercano a la línea).
+if (carsForStandings.length === 0) {
+  const grid = [];
+  for (let idx = 0; idx < carIdxLapDistPct.length; idx++) {
+    const pct = carIdxLapDistPct[idx];
+    const d = drivers.find((x) => x.CarIdx === idx);
+    if (!d || d.CarIsPaceCar || d.IsSpectator || !(pct >= 0) || (carIdxTrackSurface[idx] ?? -1) < 0) continue;
+    grid.push({ idx, totalProgress: (carIdxLap[idx] ?? 0) + pct });
+  }
+  grid.sort((a, b) => b.totalProgress - a.totalProgress);
+  grid.forEach((g, i) => carsForStandings.push({ idx: g.idx, pos: i + 1, totalProgress: g.totalProgress }));
+}
+
 // Tu coche siempre aparece: tras un incidente, reset a boxes o grúa iRacing puede dejar CarIdxPosition en 0
 // y entonces desaparecías de la tabla. Se coloca tras el último clasificado, con su progreso real.
 if (driverIdx != null && driverIdx >= 0 && !carsForStandings.some((c) => c.idx === driverIdx)
