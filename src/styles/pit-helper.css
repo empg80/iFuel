@@ -15,3 +15,4 @@
 .pit-helper--pitboard { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; justify-content: center; }
 .pit-helper--pitboard .pit-helper__speed b { font-size: 64px; }
 @keyframes pit-helper-blink { 50% { box-shadow: 0 0 0 4px rgba(255,77,77,.55); } }
+.pit-helper--ghost{border-style:dashed;border-color:#7f93b0;background:rgba(8,12,20,.8);text-align:center;font-weight:700;cursor:move}

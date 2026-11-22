@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.56 - VELOCIDAD EN EL DASHBOARD Y PIT HELPER MOVIBLE
+----------------------------------------------------------------
+Qué mirar: (1) el dashboard vuelve a mostrar los km/h y el aviso LIMITADOR. (2) El widget de la calle de boxes ("Velocidad OK / Tu box")
+se puede mover: con Ctrl+Shift+L desbloqueado verás un marcador discontinuo "Calle de boxes" incluso fuera del pit lane; arrástralo y se guarda la posición.
+
 NOVEDAD BETA.55 - VELOCIDAD EN EL DASHBOARD
 -------------------------------------------
 Qué mirar: el dashboard vuelve a mostrar los km/h (el servidor no enviaba la velocidad al cliente) y el aviso LIMITADOR usa ya el dato directo.
