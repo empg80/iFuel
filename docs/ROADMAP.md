@@ -309,3 +309,12 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Servidor: `livePositions.mjs` reordena la clasificación por progreso en pista (vuelta + %) solo en carrera en marcha; `position` pasa a ser la en vivo y `officialPosition` la oficial de iRacing. Histéresis de ~3 m para duelos rueda con rueda, tolerancia al desfase de 1 vuelta al cruzar meta, y coches sin dato conservan su puesto.
 - Cliente: la posición de clase del relative sigue el orden en vivo; el standings anima los cambios de fila (deslizamiento) y destella verde/rojo al ganar/perder posición.
 - Validar en carrera: que los adelantamientos se vean al momento y que no haya parpadeos en duelos ni saltos al cruzar meta o en boxes.
+
+## Notas de pruebas de beta.52 (22-nov, Silverstone multiclase, GTP) - PENDIENTE, sin tocar
+1. Dashboard de volante: poca fluidez al subir RPM (datos a ~4 Hz). Interpolar en el cliente entre muestras (o subir la frecuencia de ese dato).
+2. Dashboard: indicar si el limitador de pits está activo. `EngineWarnings` (bit del limitador) ya llega al servidor (`engineWarnings`), falta mandarlo al dashboard como aviso "LIM" y comprobar el bit en un coche real.
+3. Spotter repite "ventana de parada abierta" tras repostar (vueltas 15-18 del informe): `windowStatus` oscila window/no-stop ~25 veces. Causa: en `timedLaps` (fuelPlan.mjs) la vuelta extra se decide con `tMine < tLeader - 0.01`, un filo con el líder de otra clase y el reloj casi agotado; `remainingLaps` alterna 8,1 y 9,1 y con 28,1 L y 3,21 L/v la necesidad salta de 0 a 1,8 L. Arreglo previsto: histéresis en la vuelta extra, que el spotter exija que la ventana se mantenga unos segundos y avise una sola vez por parada. También hace parpadear el plan en el pitboard.
+4. Standings en vivo: ~10 % de los cambios de posición son rebotes A-B-A (268 de 2.700 en la sesión); afinar la histéresis.
+5. Parrilla: en el informe `grid` solo trae una sesión de práctica, sin resultados de clasificación: validar el orden de la formación en una carrera real.
+6. `playerCarNumber` pasa de 99 a 29 durante el informe y el 29 no aparece en el standings: revisar.
+7. overlay-state.json conserva claves antiguas (`pbDriverVisible`, `pbWeatherVisible`, `pbCarVisible`): limpiar al cargar.
