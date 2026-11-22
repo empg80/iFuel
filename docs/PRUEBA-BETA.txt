@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.57 - MENU DE BANDEJA PARA OBS
+------------------------------------------
+Menú de bandeja > "OBS: copy widget URL (browser source)": elige un widget y copia su URL al portapapeles. En OBS: Fuentes > + > Navegador > pega la URL
+y pon el tamaño a mano (el dashboard mide 640x300). iFuel debe estar abierto. Qué mirar: que la URL copiada cargue el widget con datos en vivo en OBS.
+
 NOVEDAD BETA.56 - VELOCIDAD EN EL DASHBOARD Y PIT HELPER MOVIBLE
 ----------------------------------------------------------------
 Qué mirar: (1) el dashboard vuelve a mostrar los km/h y el aviso LIMITADOR. (2) El widget de la calle de boxes ("Velocidad OK / Tu box")

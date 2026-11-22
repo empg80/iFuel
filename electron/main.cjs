@@ -10,6 +10,7 @@ const {
   screen,
   shell,
   nativeImage,
+  clipboard,
 } = require("electron");
 const fs = require("fs");
 const path = require("path");
@@ -750,6 +751,20 @@ function buildMenuTemplate() {
           },
         },
       ],
+    },
+    {
+      label: "OBS: copy widget URL (browser source)",
+      submenu: [
+        ["fuel", "Fuel"], ["relative", "Relative"], ["standings", "Standings"], ["pitclear", "Pit clear air"],
+        ["yellow", "Yellow / debris"], ["driver", "Driver"], ["weather", "Weather"], ["car", "Car"],
+        ["traffic", "Traffic"], ["pithelper", "Pit lane helper"], ["dash", "Steering-wheel dashboard (640x300)"],
+      ].map(([id, label]) => ({
+        label,
+        click: () => {
+          clipboard.writeText(`http://127.0.0.1:7071/#/obs/${id}`);
+          new Notification({ title: "iFuel", body: `URL copiada: /#/obs/${id}. En OBS: Fuentes > + > Navegador > pega la URL.` }).show();
+        },
+      })),
     },
     {
       label: "Spotter",
