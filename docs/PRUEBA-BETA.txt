@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.60 - AVISO DE LIMITADOR COHERENTE
+----------------------------------------------
+La franja superior del pitboard decía "Limitador activo" en el pit lane aunque estuviera apagado. Ahora dice "Limitador desactivado" si el pit helper y el dashboard marcan LIM OFF.
+Qué mirar: en el pit lane con limitador puesto y sin ponerlo, que la franja, el pit helper y el dashboard coincidan.
+
 NOVEDAD BETA.59 - OBS COMO EL LAYOUT LIBRE, MOSTRAR/OCULTAR Y PLAN DE CARRERA
 ---------------------------------------------------------------------------
 - OBS: los widgets de las fuentes de navegador usan ya el mismo estilo que el layout libre (antes Combustible y Clasificación salían sin estilo).

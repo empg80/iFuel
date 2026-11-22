@@ -29,3 +29,8 @@ test("alerta: debris lejano sin cifra y pit lane con exceso", () => {
   const a = pitboardAlert({ pitHelper: { status: "speeding", limitKph: 60, boxDistM: 85 } });
   assert.equal(a.tone, "danger"); assert.match(a.msg, /REDUCE VELOCIDAD · límite 60 · tu box a 85 m/);
 });
+
+test("pitboardAlert: no dice 'Limitador activo' si el limitador está apagado", () => {
+  assert.equal(pitboardAlert({ pitHelper: { status: "ok", limitKph: 80, boxDistM: 0, limiterOn: false } }).msg, "Limitador desactivado");
+  assert.equal(pitboardAlert({ pitHelper: { status: "ok", limitKph: 80, boxDistM: 0, limiterOn: true } }).msg, "Limitador activo");
+});

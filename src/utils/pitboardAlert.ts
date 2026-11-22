@@ -3,7 +3,7 @@ export type AlertTone = "danger" | "warn" | "info" | "ok";
 export type PitboardAlert = { tone: AlertTone; tag: string; msg: string } | null;
 
 export type AlertSource = {
-  pitHelper?: { status: string; limitKph: number | null; boxDistM: number | null } | null;
+  pitHelper?: { status: string; limitKph: number | null; boxDistM: number | null; limiterOn?: boolean } | null;
   myPenalty?: "black" | "dq" | "repair" | "warn" | null;
   yellow?: { active: boolean; type?: "incident" | "debris" | null; distanceMeters: number | null; carNum?: number | string | null } | null;
   fastTraffic?: { carNum: string | null; catchInSeconds: number; classId?: number | null; lapping?: boolean; blueFlag?: boolean } | null;
@@ -26,7 +26,7 @@ export function pitboardAlert(s: AlertSource): PitboardAlert {
     const box = (h.boxDistM != null && h.boxDistM > 3 ? ` · tu box a ${Math.round(h.boxDistM)} m` : "") + (s.refuelL != null && s.refuelL > 0.5 ? ` · REPOSTAR ${s.refuelL.toFixed(0)} L` : "");
     if (h.status === "speeding") return { tone: "danger", tag: "PIT LANE", msg: `REDUCE VELOCIDAD${h.limitKph ? ` · límite ${Math.round(h.limitKph)}` : ""}${box}` };
     if (h.status === "no-limiter") return { tone: "warn", tag: "PIT LANE", msg: `ACTIVA EL LIMITADOR${box}` };
-    return { tone: "ok", tag: "PIT LANE", msg: `Limitador activo${box}` };
+    return { tone: "ok", tag: "PIT LANE", msg: `${h.limiterOn === false ? "Limitador desactivado" : "Limitador activo"}${box}` };
   }
   if (s.checkered) return { tone: "info", tag: "META", msg: "BANDERA A CUADROS" };
   if (s.myPenalty === "black" || s.myPenalty === "dq") return { tone: "danger", tag: "SANCIÓN", msg: s.myPenalty === "dq" ? "DESCALIFICADO" : "BANDERA NEGRA · cumple la sanción en boxes" };
