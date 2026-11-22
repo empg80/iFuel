@@ -56,6 +56,15 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.59 - OBS COMO EL LAYOUT LIBRE, MOSTRAR/OCULTAR Y PLAN DE CARRERA
+---------------------------------------------------------------------------
+- OBS: los widgets de las fuentes de navegador usan ya el mismo estilo que el layout libre (antes Combustible y Clasificación salían sin estilo).
+  Fija el tamaño de cada fuente a mano; si es menor que el widget se recorta.
+- Mostrar/ocultar overlay (Ctrl+Shift+H) en layout libre con overlay: ahora oculta con opacidad 0 y vuelve a mostrar sin cambiar de layout.
+- Pestaña Estrategia: la vuelta de meta del plan sale como número entero (V32 meta), no con decimales.
+- Planificador: la pérdida en boxes parte de la medida en tu sesión (si la hay) en vez de 38 s fijos.
+Qué mirar: OBS con fuel y standings; Ctrl+Shift+H dos veces seguidas en layout libre con overlay.
+
 NOVEDAD BETA.58 - MENUS REORGANIZADOS Y EN ESPAÑOL
 ---------------------------------------------------
 Menú de bandeja, de arriba abajo: Bloquear widgets / Mostrar-ocultar / Overlay sobre el simulador; Widgets (cada uno con Mostrar y Tamaño; Combustible añade

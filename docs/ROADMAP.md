@@ -322,3 +322,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Notas de pruebas de beta.56 (22-nov) - PENDIENTE (solo anotado)
 1. Validado por Kike en iRacing: km/h del dashboard, aviso LIMITADOR y pit helper movible. Queda por validar la salida a OBS.
 2. Opción de edición de widgets "solo visibles / mostrar todos": al desbloquear (Ctrl+Shift+L) poder elegir entre ver únicamente los widgets activos para moverlos, o mostrar todos los existentes (también los que solo aparecen por evento, como el banner de banderas o el pit helper) para colocarlos aunque no estén activos. Ahora cada widget gestiona su propio marcador; unificarlo en una opción del menú de bandeja.
+
+## Notas de pruebas de beta.58 (22-nov, noche) - HECHO en beta.59 (pendiente validar)
+1. Widgets de OBS sin el estilo del layout libre (Combustible/Clasificación): faltaba la clase `app-root--free` en la raíz de OBS.
+2. Mostrar/ocultar overlay en libre no volvía a mostrar: ahora opacidad 0 en vez de hide()/show().
+3. Plan de carrera: "V31.78… meta" con decimales; ahora entero.
+4. Planificador: pérdida en boxes automática desde la medida de la sesión.

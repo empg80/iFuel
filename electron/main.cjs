@@ -999,10 +999,26 @@ function toggleOverlayMode() {
   sendOverlayState();
 }
 
+// En overlay no se usa hide()/show(): en Windows una ventana transparente que se oculta y se vuelve a mostrar puede quedar
+// sin pintar (había que cambiar de layout para recuperarla). Se oculta con opacidad 0 y sin capturar el ratón.
+let overlayHidden = false;
 function toggleVisible() {
   if (!mainWindow) return;
+  if (windowIsOverlay) {
+    overlayHidden = !overlayHidden;
+    if (overlayHidden) {
+      mainWindow.setOpacity(0);
+      mainWindow.setIgnoreMouseEvents(true);
+    } else {
+      mainWindow.setOpacity(1);
+      const display = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
+      overlayWindow.applyOverlayBehavior(mainWindow, { locked: overlayState.widgetsLocked, bounds: display.bounds });
+      if (!mainWindow.isVisible()) mainWindow.showInactive();
+      mainWindow.webContents.invalidate();
+    }
+    return;
+  }
   if (mainWindow.isVisible()) mainWindow.hide();
-  else if (windowIsOverlay) mainWindow.showInactive();
   else mainWindow.show();
 }
 
@@ -1256,6 +1272,7 @@ function createWindow() {
     trackWindowBounds(win);
   }
   windowIsOverlay = overlay;
+  overlayHidden = false;
 
   hardenWebContents(win);
   createMenu();

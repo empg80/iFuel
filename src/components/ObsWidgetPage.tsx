@@ -20,7 +20,7 @@ export const ObsWidgetPage: React.FC = () => {
   }
   const w = widget as ObsWidget;
   return (
-    <div className="obs-root">
+    <div className="obs-root app-root--free">
       {w === "fuel" && <FuelWidgetContainer state={state} isConnected={isConnected} sendMessage={sendMessage} />}
       {w === "relative" && <RelativeWidgetContainer state={state} isConnected={isConnected} />}
       {w === "standings" && <RaceStandingsWidgetContainer state={state} raceStandingsRows={raceStandingsRows} isConnected={isConnected} />}

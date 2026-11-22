@@ -55,7 +55,7 @@ export const PitPlanCard: React.FC<{ state: IfuelState | null }> = ({ state }) =
         {total && stops.map((s) => <i key={s} className="pb-plan__stop" style={{ left: `${pct(s)}%` }} />)}
         <i className="pb-plan__now" />
       </div>
-      <div className="pb-plan__axis"><span>V{lap || "–"} ahora</span><span>{winS != null && winE != null ? `Ventana V${winS}–V${winE}` : ""}</span><span>{total ? `V${total} meta` : ""}</span></div>
+      <div className="pb-plan__axis"><span>V{lap || "–"} ahora</span><span>{winS != null && winE != null ? `Ventana V${winS}–V${winE}` : ""}</span><span>{total ? `V${Math.max(lap, Math.ceil(total) - 1)} meta` : ""}</span></div>
 
       <FuelSavingLine saving={plan?.saving} />
 
