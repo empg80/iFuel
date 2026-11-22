@@ -1284,6 +1284,8 @@ standings.sort((a, b) => a.position - b.position);
   sessionFlags,
   airTemp,
   trackTemp,
+  speedMs: telemetry.Speed?.value?.[0] ?? null,
+  engineWarnings: telemetry.EngineWarnings?.value?.[0] ?? 0,
   relative,
   relativeOnTrack,
   classColorIndexById,

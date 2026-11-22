@@ -56,6 +56,10 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.55 - VELOCIDAD EN EL DASHBOARD
+-------------------------------------------
+Qué mirar: el dashboard vuelve a mostrar los km/h (el servidor no enviaba la velocidad al cliente) y el aviso LIMITADOR usa ya el dato directo.
+
 NOVEDAD BETA.54 - AVISO DE LIMITADOR VISIBLE EN EL DASHBOARD
 -----------------------------------------------------------
 Qué mirar: con el limitador de pits puesto, el dashboard muestra un badge ámbar "LIMITADOR" arriba del anillo de RPM y el anillo se
