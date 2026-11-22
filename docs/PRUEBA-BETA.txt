@@ -56,6 +56,11 @@ C. Al terminar
    - Rellena NOTAS.txt si quieres (viene dentro del zip; también puedes mandarme las notas aparte).
    - Envíame el .zip y las capturas.
 
+NOVEDAD BETA.54 - AVISO DE LIMITADOR VISIBLE EN EL DASHBOARD
+-----------------------------------------------------------
+Qué mirar: con el limitador de pits puesto, el dashboard muestra un badge ámbar "LIMITADOR" arriba del anillo de RPM y el anillo se
+ilumina en ámbar. Ahora se activa con EngineWarnings o con el dato del panel Pit helper (el mismo que usa su "LIM ON").
+
 NOVEDAD BETA.53 - CORRECCIONES DE LA BETA.52
 --------------------------------------------
 Qué mirar:
