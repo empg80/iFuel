@@ -1,6 +1,14 @@
 iFUEL BETA - GUIA DE LA PRUEBA
 ==============================
 
+NOVEDAD BETA.63 - TORRE DEL REPLAY POR CATEGORIAS
+-------------------------------------------------
+  - Clase unica: muestra hasta 20 coches. Con mas de 20, fija los 3 primeros y el resto baja con un scroll muy suave.
+  - Varias clases: la torre rota por fases (General, luego cada categoria). Cada fase dura 10 s (la de la categoria del coche en pantalla, 15 s). Una barra fina indica cuanto falta para el cambio.
+  - En las fases de categoria, posicion y hueco son dentro de la categoria.
+Que mirar: que las fases roten, que el coche en pantalla siga resaltado y que el orden dentro de cada categoria sea correcto.
+Duracion de fase: localStorage "ifuel-replay-phase-s" (segundos).
+
 NOVEDAD BETA.62 - LAYOUT DE REPLAY ESTILO RETRANSMISION
 -------------------------------------------------------
 Elige el layout "Replay" y abre un replay en iRacing. Tres widgets:

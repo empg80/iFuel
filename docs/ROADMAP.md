@@ -345,3 +345,6 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Servidor: `cameraDriver` ahora trae rpm, marcha, velocidad derivada (avance de LapDistPct / SessionTime, suavizada), neumatico y pit; payload con sessionTimeOfDay, sessionTimeTotal, sessionLapsTotal, sessionElapsed, sessionName, sessionType.
 - Limites del SDK en replay: sin acelerador/freno de otros coches; km/h aproximada.
 - Huecos transparentes (logo/trazado) para poner la imagen en OBS. Guias de huecos y nombre de serie: localStorage `ifuel-replay-guides`=1 y `ifuel-replay-series`; pendiente exponerlos en el menu de bandeja.
+
+## Torre del replay por fases (23-nov noche) - hecho en beta.63, pendiente validar
+- src/utils/towerPhases.ts (con test): fases General + una por categoria; hueco y posicion dentro de la clase; fase del coche en pantalla 1,5x. Clase unica: 20 coches; mas de 20: 3 fijos + scroll suave.

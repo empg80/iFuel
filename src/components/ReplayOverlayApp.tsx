@@ -20,6 +20,7 @@ export const ReplayOverlayApp: React.FC = () => {
 
   // Nombre de la serie (opcional): localStorage "ifuel-replay-series". Guías de huecos: "ifuel-replay-guides" = "1".
   const seriesName = readLs("ifuel-replay-series");
+  const phaseSeconds = Number(readLs("ifuel-replay-phase-s")) || 10;
   const guides = readLs("ifuel-replay-guides") === "1";
 
   return (
@@ -29,6 +30,7 @@ export const ReplayOverlayApp: React.FC = () => {
         rows={raceStandingsRows}
         focusCar={state.cameraDriver?.carNumber ?? null}
         seriesName={seriesName}
+        phaseSeconds={phaseSeconds}
       />
       <BroadcastCircuit state={state} />
       <BroadcastCar state={state} rows={raceStandingsRows} />

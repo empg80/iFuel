@@ -1,12 +1,11 @@
 // src/components/ReplayBroadcast.tsx
 // Layout de replay estilo retransmisión: torre de tiempos, circuito y datos del coche en pantalla.
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { StandingsRow } from "../types/standings";
 import type { IfuelState } from "../useIfuelWebSocket";
-import { formatLapTimeSeconds, formatLeaderGap } from "../utils/relativeFormat";
-
-const TOWER_ROWS = 10;
+import { formatLapTimeSeconds } from "../utils/relativeFormat";
+import { TOWER_MAX_ROWS, TOWER_PINNED, buildPhases, phaseDurationMs, phaseRows, type TowerRow } from "../utils/towerPhases";
 
 export function fmtClock(sec: number | null | undefined): string {
   if (sec == null || !Number.isFinite(sec) || sec < 0) return "--:--";
@@ -57,20 +56,58 @@ type TowerProps = {
   rows: StandingsRow[];
   focusCar: string | null;
   seriesName: string;
+  phaseSeconds?: number;
 };
 
-export const BroadcastTower: React.FC<TowerProps> = ({ state, rows, focusCar, seriesName }) => {
-  const sorted = useMemo(() => [...rows].sort((a, b) => a.position - b.position), [rows]);
-  const sameCar = (r: StandingsRow) =>
-    !!focusCar && r.carNumber.replace(/^0+/, "") === focusCar.replace(/^0+/, "");
-  const top = sorted.slice(0, TOWER_ROWS);
-  const focusRow = sorted.find(sameCar);
-  const extra = focusRow && !top.includes(focusRow) ? focusRow : null;
+export const BroadcastTower: React.FC<TowerProps> = ({ state, rows, focusCar, seriesName, phaseSeconds = 10 }) => {
+  const norm = (n: string) => n.replace(/^0+/, "");
+  const focusRow = focusCar ? rows.find((r) => norm(r.carNumber) === norm(focusCar)) : undefined;
+  const focusClass = focusRow?.classId ?? null;
 
-  const color = (classId: number): string => {
-    const idx = state.classColorIndexById?.[classId];
-    return idx == null ? "#5b6b86" : `var(--class-${((idx % 6) + 6) % 6}, #5b6b86)`;
+  const phases = useMemo(() => buildPhases(rows), [rows]);
+  const phaseKeys = phases.map((p) => p.key).join("|");
+  const [phaseIdx, setPhaseIdx] = useState(0);
+  const idx = phaseIdx < phases.length ? phaseIdx : 0;
+  const phase = phases[idx];
+  const durMs = phaseDurationMs(phaseSeconds, phase, focusClass);
+
+  useEffect(() => {
+    if (phases.length <= 1) return;
+    const t = setTimeout(() => setPhaseIdx((i) => (i + 1) % phases.length), durMs);
+    return () => clearTimeout(t);
+  }, [idx, durMs, phaseKeys, phases.length]);
+
+  const list = useMemo(() => phaseRows(rows, phase), [rows, phase]);
+  const pinned = list.length > TOWER_MAX_ROWS ? list.slice(0, TOWER_PINNED) : list;
+  const rest = list.length > TOWER_MAX_ROWS ? list.slice(TOWER_PINNED) : [];
+
+  // scroll muy suave del resto (solo si hay más de 20 coches en la fase)
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = 0;
+    if (rest.length === 0) return;
+    let dir = 1;
+    let pause = 0;
+    const iv = setInterval(() => {
+      const e = scrollRef.current;
+      if (!e) return;
+      const max = e.scrollHeight - e.clientHeight;
+      if (max <= 0) return;
+      if (pause > 0) { pause -= 1; return; }
+      e.scrollTop += 0.4 * dir;
+      if (e.scrollTop >= max) { e.scrollTop = max; dir = -1; pause = 60; }
+      else if (e.scrollTop <= 0) { e.scrollTop = 0; dir = 1; pause = 60; }
+    }, 30);
+    return () => clearInterval(iv);
+  }, [phase.key, rest.length > 0]);
+
+  const colorOf = (classId: number): string => {
+    const i = state.classColorIndexById?.[classId];
+    return i == null ? "#5b6b86" : `var(--class-${((i % 6) + 6) % 6}, #5b6b86)`;
   };
+  const className = (classId: number | null): string =>
+    classId == null ? "General" : (state.classNames?.[classId] ?? `Clase ${classId}`);
 
   const total = state.sessionTimeTotal;
   const hasTime = total != null && total > 0 && total < 86400;
@@ -81,32 +118,31 @@ export const BroadcastTower: React.FC<TowerProps> = ({ state, rows, focusCar, se
     hasLaps && remainLaps != null && remainLaps >= 0 && remainLaps < 32000
       ? Math.min(lapsTotal as number, (lapsTotal as number) - remainLaps + 1)
       : null;
-
   const timeText = hasTime
     ? `Tiempo ${fmtClock(state.sessionElapsed)} / ${fmtClock(total)}`
     : state.sessionTimeRemain != null && state.sessionTimeRemain > 0 && state.sessionTimeRemain < 86400
       ? `Quedan ${fmtClock(state.sessionTimeRemain)}`
       : "Sesión";
   const lapText = hasLaps && lapNow != null ? `Vuelta ${lapNow}/${lapsTotal}` : "";
-
   const flag = state.yellowWarning?.active ? "yellow" : "green";
+  const phaseColor = phase.classId != null ? colorOf(phase.classId) : "#22d3ee";
 
-  const renderRow = (r: StandingsRow) => (
+  const renderRow = (r: TowerRow) => (
     <div
-      key={`${r.position}-${r.carNumber}`}
-      className={"bc-row" + (sameCar(r) ? " is-focus" : "")}
-      style={{ ["--cc" as string]: color(r.classId) } as CSSProperties}
+      key={`${r.carNumber}`}
+      className={"bc-row" + (!!focusCar && norm(r.carNumber) === norm(focusCar) ? " is-focus" : "")}
+      style={{ ["--cc" as string]: colorOf(r.classId) } as CSSProperties}
     >
-      <span className="bc-row__pos">{r.position}</span>
+      <span className="bc-row__pos">{r.shownPos}</span>
       <span className="bc-row__cls" />
       <span className="bc-row__num">{r.carNumber}</span>
       <span className="bc-row__name">{shortName(r.driverName)}</span>
-      <span className="bc-row__gap">{r.position === 1 ? "Líder" : formatLeaderGap(r.gapToLeader, r.lapsDown)}</span>
+      <span className="bc-row__gap">{r.gapText}</span>
     </div>
   );
 
   return (
-    <div className="bc-tower bc-cn">
+    <div className="bc-tower bc-cn" style={{ ["--ph" as string]: phaseColor } as CSSProperties}>
       <div className="bc-tower__head">
         <div className="bc-slot bc-slot--logo" data-slot="logo">logo</div>
         <div className="bc-tower__title">
@@ -122,13 +158,32 @@ export const BroadcastTower: React.FC<TowerProps> = ({ state, rows, focusCar, se
         <span>{timeText}</span>
         <span>{lapText}</span>
       </div>
-      {top.map(renderRow)}
-      {extra && (
+      {phases.length > 1 && (
         <>
-          <div className="bc-row bc-row--sep">···</div>
-          {renderRow(extra)}
+          <div className="bc-phases">
+            {phases.map((p, i) => (
+              <span
+                key={p.key}
+                className={i === idx ? "on" : ""}
+                style={i === idx ? ({ background: p.classId != null ? colorOf(p.classId) : "#22d3ee" } as CSSProperties) : undefined}
+              >
+                {className(p.classId)}
+              </span>
+            ))}
+          </div>
+          <div className="bc-phasebar">
+            <i key={`${phase.key}-${idx}`} style={{ animationDuration: `${durMs}ms` }} />
+          </div>
         </>
       )}
+      <div key={phase.key} className={"bc-tower__list" + (rest.length ? " has-scroll" : "")}>
+        <div className={rest.length ? "bc-pin" : ""}>{pinned.map(renderRow)}</div>
+        {rest.length > 0 && (
+          <div className="bc-scroll" ref={scrollRef}>
+            {rest.map(renderRow)}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

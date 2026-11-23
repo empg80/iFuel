@@ -85,3 +85,16 @@
 .bc-car__stats small { display: block; color: var(--bc-mute); font-size: 12px; font-weight: 500; margin-bottom: 3px; }
 .bc-car__stats b { font-size: 30px; font-weight: 700; }
 .bc-car__pit b { background: #fbbf24; color: #1a1200; border-radius: 6px; padding: 2px 8px; font-size: 22px; }
+
+/* fases por categoría y scroll */
+.bc-phases { display: flex; gap: 2px; margin-top: 2px; }
+.bc-phases span { flex: 1; text-align: center; background: var(--bc-ink); color: var(--bc-mute); font-size: 14px; font-weight: 600; padding: 3px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bc-phases span.on { color: var(--bc-dark-on-cyan); }
+.bc-phasebar { height: 3px; background: var(--bc-ink); margin-top: 2px; }
+.bc-phasebar i { display: block; height: 3px; width: 100%; background: var(--ph, var(--bc-cyan)); transform-origin: left; animation: bc-phase linear forwards; }
+@keyframes bc-phase { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.bc-tower__list { animation: bc-fade 0.35s ease-out; }
+@keyframes bc-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.bc-pin { border-left: 3px solid var(--ph, var(--bc-violet)); margin-top: 2px; }
+.bc-pin .bc-row:first-child { margin-top: 0; }
+.bc-scroll { position: relative; overflow: hidden; height: calc(17 * 30px); margin-top: 2px; }
