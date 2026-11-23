@@ -339,3 +339,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Planificador de stints, extras: nº de pilotos con rotación, tiempo extra por cambio de piloto, máximo al volante por stint y por piloto (con aviso), % de carrera bajo amarilla (menos consumo y ritmo más lento), vista "Ahora" en carrera (stint actual, vueltas hasta la parada, repostaje, piloto actual y siguiente). El servidor envía `raceRunning`.
 - Pendiente de la lista: parrilla tras la salida (esperar otro informe con ese momento), bug replay → layout libre, optimización, README, release.
 - Análisis .ibt (23-nov, tras el .ibt largo de Monza GT4: 317 MB, 287k registros, 37 vueltas limpias, análisis en 0,6 s): frenada con huecos tolerados (la T1 salía con 5 m), frenada de chicane hasta 250 m del vértice, vuelta ideal y potencial por curva, evolución de la sesión y consumo por vuelta.
+
+## Layout de replay estilo TV (23-nov) - hecho en beta.62, pendiente validar con un replay
+- Tres widgets (src/components/ReplayBroadcast.tsx, src/styles/replay-broadcast.css): torre con hueco de logo y tiempo/vueltas, circuito con hueco de trazado y hora del simulador, coche en pantalla. Tipografia Barlow Condensed, paleta tinta/cian/violeta.
+- Servidor: `cameraDriver` ahora trae rpm, marcha, velocidad derivada (avance de LapDistPct / SessionTime, suavizada), neumatico y pit; payload con sessionTimeOfDay, sessionTimeTotal, sessionLapsTotal, sessionElapsed, sessionName, sessionType.
+- Limites del SDK en replay: sin acelerador/freno de otros coches; km/h aproximada.
+- Huecos transparentes (logo/trazado) para poner la imagen en OBS. Guias de huecos y nombre de serie: localStorage `ifuel-replay-guides`=1 y `ifuel-replay-series`; pendiente exponerlos en el menu de bandeja.

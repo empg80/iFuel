@@ -1,9 +1,15 @@
 // src/components/ReplayOverlayApp.tsx
 import React from "react";
 import { useIfuelWebSocket } from "../useIfuelWebSocket";
-import { ReplayTowerWidget } from "./ReplayTowerWidget";
-import { DriverFocusWidgetContainer } from "./DriverFocusWidgetContainer";
-import { TrackInfoWidgetContainer } from "./TrackInfoWidgetContainer";
+import { BroadcastCar, BroadcastCircuit, BroadcastTower } from "./ReplayBroadcast";
+
+function readLs(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? "";
+  } catch {
+    return "";
+  }
+}
 
 export const ReplayOverlayApp: React.FC = () => {
   const { state, isConnected, raceStandingsRows } = useIfuelWebSocket(
@@ -12,21 +18,20 @@ export const ReplayOverlayApp: React.FC = () => {
 
   if (!isConnected || !state) return null;
 
-  const cameraDriver = state.cameraDriver ?? null;
+  // Nombre de la serie (opcional): localStorage "ifuel-replay-series". Guías de huecos: "ifuel-replay-guides" = "1".
+  const seriesName = readLs("ifuel-replay-series");
+  const guides = readLs("ifuel-replay-guides") === "1";
 
   return (
-    <div className="replay-root">
-      <TrackInfoWidgetContainer state={state} />
-
-      <ReplayTowerWidget
+    <div className={"replay-root bc-root" + (guides ? " bc-guides" : "")}>
+      <BroadcastTower
         state={state}
         rows={raceStandingsRows}
-        seriesName="iFuel Replay"
+        focusCar={state.cameraDriver?.carNumber ?? null}
+        seriesName={seriesName}
       />
-      <DriverFocusWidgetContainer
-        rows={raceStandingsRows}
-        cameraDriver={cameraDriver}
-      />
+      <BroadcastCircuit state={state} />
+      <BroadcastCar state={state} rows={raceStandingsRows} />
     </div>
   );
 };

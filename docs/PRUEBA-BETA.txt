@@ -1,6 +1,16 @@
 iFUEL BETA - GUIA DE LA PRUEBA
 ==============================
 
+NOVEDAD BETA.62 - LAYOUT DE REPLAY ESTILO RETRANSMISION
+-------------------------------------------------------
+Elige el layout "Replay" y abre un replay en iRacing. Tres widgets:
+  - Torre de tiempos (arriba izquierda): hueco para el logo de la serie, tiempo de sesion / vueltas y top 10 (el coche en pantalla va resaltado; si va fuera del top 10 se añade debajo).
+  - Circuito (arriba derecha): nombre, longitud, hueco para el trazado, aire/pista/viento/lluvia y hora del simulador.
+  - Coche en pantalla (abajo): posicion, dorsal, piloto, coche, mejor vuelta, km/h, marcha, RPM y neumatico.
+Que mirar: que cambie al cambiar de camara, que km/h sea razonable (se calcula desde el avance en pista: es aproximada),
+que marcha/RPM/neumatico salgan y que los huecos de logo y trazado queden vacios para poner tu imagen en OBS.
+Tambien: widgets de evento movibles (pit helper, trafico) y planificador/analizador mejorados.
+
 Esta beta graba sola la sesión de prueba. Tú solo tienes que jugar, y al cerrar iFuel
 se genera UN archivo .zip con todo lo necesario. Tiempo: unos 30-40 minutos.
 

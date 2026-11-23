@@ -42,6 +42,8 @@ const MAX_MESSAGE_BYTES = 16 * 1024; // 16 KB
 // El SDK nativo (irsdk-node) solo se carga cuando hace falta: así el módulo se puede importar
 // y probar en cualquier sistema inyectando un SDK simulado (options.createSdk / isSimRunning).
 let irsdkModulePromise = null;
+// velocidad derivada del coche en cámara (replay: no hay CarIdxSpeed); se suaviza con una EMA
+let camSpeedState = { idx: -1, t: 0, pct: 0, kph: null };
 function loadIRacingSDK() {
   irsdkModulePromise ??= import("irsdk-node").then((m) => m.IRacingSDK ?? m.default?.IRacingSDK);
   return irsdkModulePromise;
@@ -78,6 +80,7 @@ const TELEMETRY_VARS = [
   "AirTemp", "CamCarIdx", "CarIdxBestLapTime", "CarIdxClass", "CarIdxClassPosition", "CarIdxEstTime",
   "CarIdxLap", "CarIdxLapCompleted", "CarIdxLapDistPct", "CarIdxLastLapTime",
   "CarIdxOnPitRoad", "CarIdxPosition", "CarIdxSessionFlags", "CarIdxTireCompound", "PlayerCarMyIncidentCount", "EngineWarnings", "Precipitation", "RelativeHumidity", "Skies", "TrackWetness", "WindDir", "WindVel", "CarIdxTrackSurface", "FuelLevel", "IsInGarage",
+  "CarIdxRPM", "CarIdxGear", "SessionTimeOfDay", "SessionTimeTotal", "SessionLapsTotal",
   "IsReplayPlaying", "Lap", "LapCompleted", "LapDistPct", "LapLastLapTime", "OnPitRoad",
   "PlayerCarIdx", "SessionFlags", "SessionLapsRemainEx", "SessionNum", "SessionTime",
   "SessionState", "SessionTimeRemain", "Speed", "TrackTemp", "TrackTempCrew",
@@ -508,6 +511,23 @@ const debugCamera = {
   camDistPct: carIdxLapDistPct[camCarIdx] ?? null,
 };
 
+// Velocidad del coche en cámara a partir del avance de LapDistPct entre ticks (SessionTime también avanza en replay).
+function camSpeedKph(idx) {
+  const pct = carIdxLapDistPct[idx];
+  const st = camSpeedState;
+  if (!trackLengthMeters || !Number.isFinite(pct) || pct < 0) { camSpeedState = { idx, t: sessionTime, pct: -1, kph: null }; return null; }
+  if (st.idx !== idx || st.pct < 0) { camSpeedState = { idx, t: sessionTime, pct, kph: null }; return null; }
+  const dt = sessionTime - st.t;
+  if (dt <= 0.05) return st.kph;
+  let dp = pct - st.pct;
+  if (dp < -0.5) dp += 1;
+  if (dp < 0 || dp > 0.2) { camSpeedState = { idx, t: sessionTime, pct, kph: null }; return null; }
+  const raw = (dp * trackLengthMeters / dt) * 3.6;
+  const kph = st.kph == null ? raw : st.kph * 0.5 + raw * 0.5;
+  camSpeedState = { idx, t: sessionTime, pct, kph };
+  return Math.round(kph);
+}
+
 // Datos del coche en cámara para el Driver Focus
 const cameraDriver = (() => {
   if (camCarIdx == null || camCarIdx < 0) return null;
@@ -528,6 +548,12 @@ const cameraDriver = (() => {
     driverName: driver?.UserName ?? String(carNum || `#${camCarIdx}`),
     carModel: driver?.CarPath ?? "",
     bestLapSeconds,
+    rpm: Number.isFinite(telemetry.CarIdxRPM?.value?.[camCarIdx]) && telemetry.CarIdxRPM.value[camCarIdx] > 0
+      ? Math.round(telemetry.CarIdxRPM.value[camCarIdx]) : null,
+    gear: Number.isFinite(telemetry.CarIdxGear?.value?.[camCarIdx]) ? telemetry.CarIdxGear.value[camCarIdx] : null,
+    speedKph: camSpeedKph(camCarIdx),
+    tireName: tireNameByIndex.get(carIdxTire[camCarIdx]) || null,
+    onPitRoad: !!carIdxOnPitRoad[camCarIdx],
   };
 })();
 
@@ -1327,7 +1353,13 @@ standings.sort((a, b) => a.position - b.position);
   carData,
   trace: trace.snapshot(),
   debugCamera,
-  cameraDriver, 
+  cameraDriver,
+  sessionTimeOfDay: telemetry.SessionTimeOfDay?.value?.[0] ?? null,
+  sessionTimeTotal: telemetry.SessionTimeTotal?.value?.[0] ?? null,
+  sessionLapsTotal: telemetry.SessionLapsTotal?.value?.[0] ?? null,
+  sessionElapsed: sessionTime,
+  sessionName: ((session?.SessionInfo?.Sessions ?? []).find((x) => x.SessionNum === telemetry.SessionNum?.value?.[0]) ?? {}).SessionName ?? null,
+  sessionType: ((session?.SessionInfo?.Sessions ?? []).find((x) => x.SessionNum === telemetry.SessionNum?.value?.[0]) ?? {}).SessionType ?? null,
 
    //  datos para TrackInfoWidget
   trackName,

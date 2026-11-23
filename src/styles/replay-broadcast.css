@@ -1,0 +1,87 @@
+/* Layout de replay estilo retransmisión TV. Solo actúa dentro de .bc-root. */
+.bc-root {
+  --bc-ink: rgba(11, 15, 25, 0.94);
+  --bc-ink-2: #1c2438;
+  --bc-cyan: #22d3ee;
+  --bc-violet: #7c3aed;
+  --bc-mute: #8fa0bb;
+  --bc-dark-on-cyan: #04202a;
+  font-family: "Barlow", "Barlow Condensed", system-ui, sans-serif;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.bc-root .bc-cn {
+  font-family: "Barlow Condensed", "Barlow Semi Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* hueco para logo / trazado: transparente (se pone la imagen encima desde OBS) */
+.bc-root .bc-slot {
+  color: transparent;
+  font-size: 0;
+  border: 1.5px dashed transparent;
+  border-radius: 8px;
+}
+.bc-root.bc-guides .bc-slot {
+  border-color: #5b6b86;
+  color: #7d8ca6;
+  font-size: 11px;
+  font-family: "Barlow", sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- torre ---------- */
+.bc-tower { position: fixed; left: 2.2vw; top: 4vh; width: 29vw; max-width: 520px; min-width: 300px; }
+.bc-tower__head { display: flex; align-items: center; background: var(--bc-ink); border-radius: 10px 10px 0 0; overflow: hidden; position: relative; }
+.bc-slot--logo { width: 58px; height: 58px; margin: 6px; flex: none; }
+.bc-tower__title { flex: 1; padding: 6px 12px 6px 2px; min-width: 0; }
+.bc-tower__a { font-size: 22px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bc-tower__b { font-size: 14px; font-weight: 600; color: var(--bc-cyan); }
+.bc-flag { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
+.bc-flag--green { background: #a3e635; }
+.bc-flag--yellow { background: #fbbf24; }
+.bc-tower__time { display: flex; justify-content: space-between; align-items: center; background: var(--bc-violet); padding: 5px 14px; font-size: 17px; font-weight: 600; }
+.bc-row { display: flex; align-items: center; gap: 8px; background: var(--bc-ink); height: 28px; margin-top: 2px; padding-right: 14px; font-size: 18px; font-weight: 600; border-radius: 0 6px 6px 0; }
+.bc-row__pos { width: 32px; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bc-ink-2); }
+.bc-row__cls { width: 4px; height: 60%; border-radius: 2px; background: var(--cc, #5b6b86); }
+.bc-row__num { width: 34px; color: var(--bc-mute); font-weight: 500; text-align: right; }
+.bc-row__name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bc-row__gap { color: var(--bc-mute); font-weight: 500; }
+.bc-row.is-focus { background: var(--bc-cyan); color: var(--bc-dark-on-cyan); }
+.bc-row.is-focus .bc-row__pos { background: var(--bc-dark-on-cyan); color: var(--bc-cyan); }
+.bc-row.is-focus .bc-row__cls { background: var(--bc-dark-on-cyan); }
+.bc-row.is-focus .bc-row__num,
+.bc-row.is-focus .bc-row__gap { color: var(--bc-dark-on-cyan); }
+.bc-row--sep { justify-content: center; height: 14px; color: var(--bc-mute); font-size: 12px; border-radius: 0; }
+
+/* ---------- circuito ---------- */
+.bc-circuit { position: fixed; right: 2.2vw; top: 4vh; width: 25vw; max-width: 440px; min-width: 260px; }
+.bc-circuit__head { background: var(--bc-ink); padding: 8px 16px; border-radius: 10px 10px 0 0; border-bottom: 3px solid var(--bc-cyan); }
+.bc-circuit__a { font-size: 24px; font-weight: 700; line-height: 1; }
+.bc-circuit__b { font-size: 14px; color: var(--bc-mute); font-weight: 500; }
+.bc-circuit__map { background: var(--bc-ink); margin-top: 2px; padding: 8px; }
+.bc-slot--map { width: 100%; height: 120px; }
+.bc-circuit__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 2px; }
+.bc-circuit__grid div { background: var(--bc-ink); padding: 6px 14px; font-size: 13px; color: var(--bc-mute); line-height: 1.1; }
+.bc-circuit__grid b { display: block; font-size: 20px; color: #fff; font-weight: 600; }
+.bc-circuit__clock { display: flex; justify-content: space-between; align-items: center; background: var(--bc-violet); padding: 6px 16px; margin-top: 2px; border-radius: 0 0 10px 10px; font-size: 17px; font-weight: 600; }
+
+/* ---------- coche en pantalla ---------- */
+.bc-car { position: fixed; left: 50%; transform: translateX(-50%); bottom: 5vh; width: 68vw; max-width: 1300px; min-width: 640px; display: flex; height: 72px; border-radius: 12px; overflow: hidden; }
+.bc-car__pos { background: var(--bc-cyan); color: var(--bc-dark-on-cyan); width: 78px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; line-height: 0.9; flex: none; }
+.bc-car__pos small { font-size: 12px; letter-spacing: 0.1em; }
+.bc-car__num { background: var(--bc-violet); width: 70px; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 700; flex: none; }
+.bc-car__name { background: var(--bc-ink); flex: 1; padding: 0 18px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.bc-car__a { font-size: 28px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bc-car__b { font-size: 14px; color: var(--bc-mute); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bc-car__stats { background: rgba(11, 15, 25, 0.96); display: flex; align-items: center; padding: 0 6px; flex: none; }
+.bc-car__stats > div { text-align: center; padding: 0 14px; border-left: 1px solid #26314a; line-height: 1; min-width: 70px; }
+.bc-car__stats > div:first-child { border-left: 0; }
+.bc-car__stats small { display: block; color: var(--bc-mute); font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+.bc-car__stats b { font-size: 30px; font-weight: 700; }
+.bc-car__pit b { background: #fbbf24; color: #1a1200; border-radius: 6px; padding: 2px 8px; font-size: 22px; }

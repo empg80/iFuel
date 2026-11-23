@@ -77,6 +77,11 @@ type CameraDriverPayload = {
   driverName: string;
   carModel: string;
   bestLapSeconds: number | null;
+  rpm?: number | null;
+  gear?: number | null;
+  speedKph?: number | null;
+  tireName?: string | null;
+  onPitRoad?: boolean;
 } | null;
 
 type RawMessage = {
@@ -124,6 +129,12 @@ type RawMessage = {
   cameraCarNumber?: string | number | null;
   playerCarNumber?: string | number | null;
   cameraDriver?: CameraDriverPayload;
+  sessionTimeOfDay?: number | null;
+  sessionTimeTotal?: number | null;
+  sessionLapsTotal?: number | null;
+  sessionElapsed?: number | null;
+  sessionName?: string | null;
+  sessionType?: string | null;
 
   // datos para TrackInfoWidget
   trackName?: string;
@@ -228,6 +239,12 @@ export type IfuelState = {
   playerCarNumber?: string | null;
   isReplayPlaying: boolean;
   cameraDriver?: CameraDriverPayload | null;
+  sessionTimeOfDay?: number | null;
+  sessionTimeTotal?: number | null;
+  sessionLapsTotal?: number | null;
+  sessionElapsed?: number | null;
+  sessionName?: string | null;
+  sessionType?: string | null;
 
   // Track info
   trackName?: string;
@@ -370,6 +387,12 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             trace,
             cars,
             cameraDriver,
+            sessionTimeOfDay,
+            sessionTimeTotal,
+            sessionLapsTotal,
+            sessionElapsed,
+            sessionName,
+            sessionType,
             trackName,
             trackLength,
             windSpeed,
@@ -772,6 +795,12 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             onPitRoad: !!onPitRoad,
             isReplayPlaying: !!isReplayPlaying,
             cameraDriver: cameraDriver ?? null,
+            sessionTimeOfDay: sessionTimeOfDay ?? null,
+            sessionTimeTotal: sessionTimeTotal ?? null,
+            sessionLapsTotal: sessionLapsTotal ?? null,
+            sessionElapsed: sessionElapsed ?? null,
+            sessionName: sessionName ?? null,
+            sessionType: sessionType ?? null,
             // Track info
             trackName: trackName ?? "",
             trackLength: trackLength ?? "",
