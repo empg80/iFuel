@@ -80,6 +80,8 @@ test("ibt: separa vueltas, elige la mejor, encuentra las 2 curvas y detecta la f
   const c = a.corners[0];
   assert.ok(c.tips.some((t) => /antes/.test(t)), `tips: ${c.tips.join("|")}`);
   assert.ok(c.lossAvgS > 0);
+  assert.ok(a.summary.idealS <= a.summary.bestS + 1e-9); // la vuelta ideal nunca es peor que la mejor
+  assert.ok(a.corners.every((c) => c.potentialS >= 0));
   assert.equal(a.profile.laps.length, 2);
   assert.equal(a.profile.laps[0].speed.length, a.profile.laps[1].speed.length);
 });

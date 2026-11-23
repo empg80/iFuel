@@ -193,7 +193,7 @@
 .pb-planner__empty{opacity:.7}
 
 /* Pestaña Análisis (.ibt) */
-.pb-an{display:flex;flex-direction:column;gap:10px;padding:12px;font-size:13px}
+.pb-an{display:flex;flex-direction:column;gap:10px;padding:12px 12px 56px;font-size:13px}
 .pb-an__bar{display:flex;gap:8px;align-items:center}
 .pb-an__bar select{flex:1;min-width:0;background:rgba(255,255,255,.08);color:inherit;border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 8px;font:inherit}
 .pb-an__bar button{background:rgba(255,255,255,.1);border:0;color:inherit;border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
@@ -233,3 +233,4 @@
 .pb-planner__now{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;padding:10px 14px;border-radius:12px;background:rgba(92,176,255,.14);border:1px solid rgba(92,176,255,.35);font-size:18px}
 .pb-planner__now b{font-size:22px}.pb-planner__now small{font-size:14px;opacity:.75}
 .pb-planner__warn{padding:8px 12px;border-radius:10px;background:rgba(255,181,71,.14);color:#ffcf85;font-size:14px}
+.pb-an__dot{fill:#ff9f43;cursor:pointer;vector-effect:non-scaling-stroke}.pb-an__dot.best{fill:#5aa9ff}

@@ -7,6 +7,7 @@ const CHANNELS = ["SessionTime", "Lap", "LapDistPct", "LapLastLapTime", "Speed",
 export const STEP_M = 5;
 
 const KPH = 3.6;
+const MAX_BRAKE_GAP_MERGED = 50; // en chicanes la frenada acaba en el primer vértice, hasta 250 m antes del último
 const MAX_BRAKE_GAP = 20; // muestras (100 m): una frenada que acaba más lejos del vértice no es de esta curva
 const mean = (a) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : null);
 const std = (a) => { if (a.length < 2) return null; const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1)); };
@@ -109,32 +110,49 @@ function detectCorners(ref) {
     for (let k = 1; k <= far; k++) { before = Math.max(before, v[(i - k + n) % n]); after = Math.max(after, v[(i + k) % n]); }
     if (Math.min(before, after) - v[i] >= prom) cand.push(i);
   }
+  const merged = new Set(); // vértices que absorbieron a otro (chicanes): la frenada puede acabar más lejos del vértice
   // mínimos consecutivos sin recuperar velocidad (p. ej. una chicane o una curva doble) se fusionan en una sola curva
   for (let i = 0; i < cand.length - 1;) {
     const a = cand[i], b = cand[i + 1];
     if (fwd(a, b, n) * STEP_M > 300) { i++; continue; }
     let peak = -Infinity;
     for (let q = a; q !== b; q = (q + 1) % n) peak = Math.max(peak, v[q]);
-    if (peak - Math.max(v[a], v[b]) < 15) { cand.splice(v[a] <= v[b] ? i + 1 : i, 1); } else i++;
+    if (peak - Math.max(v[a], v[b]) < 15) { merged.add(v[a] <= v[b] ? a : b); cand.splice(v[a] <= v[b] ? i + 1 : i, 1); } else i++;
   }
   // inicio de frenada: tramo contiguo con freno > 0.08 más cercano al vértice (hasta 600 m antes)
   const backM = (list, c, len) => (list.length > 1 ? fwd(list[(c - 1 + list.length) % list.length], list[c], len) * STEP_M : 600);
   const corners = cand.map((apex, c) => {
     let bs = null;
     const lim = Math.round(Math.min(600, backM(cand, c, n)) / STEP_M);
-    let k = 0;
-    while (k < lim && ref.brake[(apex - k + n) % n] <= 0.08) k++; // hasta encontrar freno hacia atrás
-    if (k < lim && k <= MAX_BRAKE_GAP) {
-      while (k < lim && ref.brake[(apex - k + n) % n] > 0.08) k++;
-      bs = (apex - k + 1 + n) % n;
-    }
-    return { id: c + 1, apex, brakeStart: bs };
+    const reg = findBrakeRegion((j) => ref.brake[(apex - j + n) % n], lim, merged.has(apex) ? MAX_BRAKE_GAP_MERGED : MAX_BRAKE_GAP);
+    if (reg) bs = (apex - reg.e + 1 + n) % n;
+    return { id: c + 1, apex, brakeStart: bs, merged: merged.has(apex) };
   });
   // zona de cada curva: desde su inicio de frenada (o 150 m antes del vértice) hasta el inicio de la siguiente
   corners.forEach((c, i) => { c.backM = Math.min(600, fwd(corners[(i - 1 + corners.length) % corners.length].apex, c.apex, n) * STEP_M || 600); });
   corners.forEach((c) => { c.zoneStart = c.brakeStart ?? ((c.apex - Math.round(150 / STEP_M) + n) % n); });
   corners.forEach((c, i) => { c.zoneEnd = corners[(i + 1) % corners.length].zoneStart; });
   return corners;
+}
+
+
+/**
+ * Tramo de frenada más cercano al vértice, buscando hacia atrás. `at(j)` = freno j muestras antes del vértice.
+ * Tolera huecos de hasta 4 muestras (20 m) con freno bajo dentro de la misma frenada. Devuelve {k, e} (k = distancia
+ * al final de la frenada, e = al inicio, en muestras) o null.
+ */
+function findBrakeRegion(at, lim, maxGapStart) {
+  let k = 0;
+  while (k < lim && at(k) <= 0.08) k++;
+  if (k >= lim || k > maxGapStart) return null;
+  let e = k, low = 0;
+  while (e < lim) {
+    if (at(e) > 0.08) low = 0;
+    else if (++low > 4) break;
+    e++;
+  }
+  e -= low; // el tramo termina en la última muestra con freno
+  return { k, e };
 }
 
 /** Posición circular: distancia desde `from` hasta `to` hacia delante, en muestras. */
@@ -148,26 +166,20 @@ function cornerMetrics(lap, c, n, ref) {
   const r = Math.round(40 / STEP_M);
   for (let k = -r; k <= r; k++) { const q = (c.apex + k + n) % n; if (lap.speed[q] < vmin) { vmin = lap.speed[q]; apex = q; } }
   // frenada: tramo con freno > 0.08 más cercano al vértice
-  let k = 0;
-  while (k < lookBack && get(lap.brake, apex - k) <= 0.08) k++;
-  let brakeStartM = null, brakeLenM = null, peak = null, brakeEnd = null;
-  if (k < lookBack && k <= MAX_BRAKE_GAP) {
-    let e = k;
-    while (e < lookBack && get(lap.brake, apex - e) > 0.08) e++;
-    const s = apex - e + 1;
-    brakeStartM = (((s % n) + n) % n) * STEP_M;
-    brakeLenM = (e - k) * STEP_M;
+  let brakeStartM = null, brakeLenM = null, peak = null;
+  const reg = findBrakeRegion((j) => get(lap.brake, apex - j), lookBack, c.merged ? MAX_BRAKE_GAP_MERGED : MAX_BRAKE_GAP);
+  if (reg) {
+    const s0 = apex - reg.e + 1;
+    brakeStartM = (((s0 % n) + n) % n) * STEP_M;
+    brakeLenM = (reg.e - reg.k) * STEP_M;
     peak = 0;
-    for (let q = k; q < e; q++) peak = Math.max(peak, get(lap.brake, apex - q));
-    brakeEnd = apex - k;
+    for (let q = reg.k; q < reg.e; q++) peak = Math.max(peak, get(lap.brake, apex - q));
   }
   // salida: primer punto tras el vértice con acelerador > 0.5 (si ya estaba, el mismo vértice)
   let thr = 0;
   while (thr < lookFwd && get(lap.throttle, apex + thr) < 0.5) thr++;
   const exit = (thr < lookFwd ? thr : null);
   const at100 = get(lap.speed, apex + Math.round(100 / STEP_M));
-  const dist = (i) => (fwd(c.zoneStart, ((i % n) + n) % n, n)) * STEP_M;
-  void brakeEnd; void dist; void ref;
   return {
     minKph: vmin, apexM: apex * STEP_M, brakeStartM, brakeLenM, peakBrake: peak,
     throttleOnM: exit != null ? ((apex + exit) % n) * STEP_M : null, throttleAfterApexM: exit != null ? exit * STEP_M : null,
@@ -181,6 +193,13 @@ function zoneLoss(lap, ref, zs, ze, n) {
   const total = lap.t[n - 1] - ref.t[n - 1];
   if (zs <= ze) return dlt(ze === n ? n - 1 : ze) - dlt(zs);
   return (total - dlt(zs)) + dlt(ze); // la zona cruza la línea de meta
+}
+
+/** Tiempo (s) que tarda una vuelta en recorrer una zona circular. */
+function zoneTime(l, zs, ze, n) {
+  const t = l.rs.t;
+  const at = (i) => t[Math.min(i, n - 1)];
+  return zs <= ze ? at(ze) - at(zs) : l.timeS - at(zs) + at(ze);
 }
 
 export function analyzeIbt(src) {
@@ -206,8 +225,9 @@ export function analyzeIbt(src) {
     const rs = complete ? resample(d, lp, L, true) : null;
     // LapLastLapTime de iRacing llega con retraso: el tiempo sale del cruce de línea entre una vuelta y la siguiente
     const timeS = complete ? crossTime(d, raw[k + 1].i0, L) - crossTime(d, lp.i0, L) : null;
+    const fuelUsedL = complete && d.FuelLevel && pit === 0 ? d.FuelLevel[lp.i0] - d.FuelLevel[raw[k + 1].i0] : null;
     laps.push({
-      n: lp.n, timeS, complete, pitS: pit / r.tickRate, offTrackS: off / r.tickRate,
+      n: lp.n, timeS, fuelUsedL: fuelUsedL > 0 ? fuelUsedL : null, complete, pitS: pit / r.tickRate, offTrackS: off / r.tickRate,
       clean: complete && pit === 0, rs,
       reason: !complete ? "incompleta" : pit > 0 ? "pasa por boxes" : null,
     });
@@ -232,11 +252,16 @@ export function analyzeIbt(src) {
     const others = rows.filter((x) => x.lap !== best.n);
     const lossAvg = mean(others.map((x) => x.loss));
     const incidents = others.filter((x) => x.loss > 2).map((x) => ({ lap: x.lap, lossS: x.loss }));
+    // potencial: mejor tiempo de esta zona en cualquier vuelta comparable frente al de la vuelta de referencia
+    const zt = comparable.map((l) => ({ lap: l.n, s: zoneTime(l, c.zoneStart, c.zoneEnd, n) }));
+    const bestZone = zt.reduce((a, b) => (b.s < a.s ? b : a));
+    const refZone = zoneTime(best, c.zoneStart, c.zoneEnd, n);
     return {
+      potentialS: Math.max(0, refZone - bestZone.s), bestZoneLap: bestZone.lap, bestZoneS: bestZone.s,
       id: c.id, apexM: Math.round(c.apex * STEP_M), zoneStartM: c.zoneStart * STEP_M, zoneEndM: c.zoneEnd * STEP_M,
       ref: rm, rows, lossAvgS: lossAvg,
       stats: {
-        minKphStd: std(rows.map((x) => x.minKph)), brakeStartStdM: std(rows.map((x) => x.brakeStartM).filter((v) => v != null)),
+        minKphStd: std(rows.map((x) => x.minKph)), brakeStartStdM: std(rows.map((x) => x.brakeStartM).filter((v) => v != null && rm.brakeStartM != null && Math.abs(v - rm.brakeStartM) < 100)),
         lossStdS: std(others.map((x) => x.loss)),
       },
       incidents,
@@ -253,7 +278,10 @@ export function analyzeIbt(src) {
     },
     laps: laps.map(publicLap),
     reference: { lap: best.n, timeS: best.timeS },
-    summary: { cleanLaps: clean.length, comparableLaps: comparable.length, bestS: best.timeS, meanS: mean(times), stdS: std(times) },
+    summary: {
+      cleanLaps: clean.length, comparableLaps: comparable.length, bestS: best.timeS, meanS: mean(times), stdS: std(times),
+      idealS: best.timeS - perCorner.reduce((a, p) => a + p.potentialS, 0), fuelPerLapL: mean(comparable.map((l) => l.fuelUsedL).filter((v) => v != null)),
+    },
     corners: perCorner.map(({ rows, ...p }) => ({ ...p, rows })),
     topLosses: losses.slice(0, 5).map((p) => ({ id: p.id, apexM: p.apexM, lossAvgS: p.lossAvgS, tips: p.tips, incidents: p.incidents })),
     profile: profileOf(ref, comparable, best),
@@ -261,7 +289,7 @@ export function analyzeIbt(src) {
 }
 
 function publicLap(l) {
-  return { n: l.n, timeS: l.timeS, complete: l.complete, clean: l.clean, pitS: l.pitS, offTrackS: l.offTrackS, reason: l.reason };
+  return { n: l.n, timeS: l.timeS, fuelUsedL: l.fuelUsedL ?? null, complete: l.complete, clean: l.clean, pitS: l.pitS, offTrackS: l.offTrackS, reason: l.reason };
 }
 
 /** Frases comparando la media de las otras vueltas con la referencia. Solo se dicen diferencias claras. */

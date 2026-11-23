@@ -39,6 +39,26 @@ const Chart: React.FC<{
   );
 };
 
+/** Evolución de tiempos de vuelta de la sesión (vueltas limpias); pulsa un punto para compararla. */
+const LapTrend: React.FC<{ laps: IbtAnalysis["laps"]; best: number; sel: number | null; onPick: (n: number) => void }> = ({ laps, best, sel, onPick }) => {
+  const pts = laps.filter((l) => l.clean && l.timeS != null) as (IbtAnalysis["laps"][number] & { timeS: number })[];
+  const max = best * 1.04;
+  const W = 1000, H = 90;
+  const x = (i: number) => (pts.length < 2 ? W / 2 : (i / (pts.length - 1)) * (W - 20) + 10);
+  const y = (t: number) => H - 8 - ((Math.min(t, max) - best) / (max - best)) * (H - 16);
+  return (
+    <div className="pb-an__chart">
+      <span className="pb-lbl">Evolución de la sesión (vueltas limpias · eje: de tu mejor a +4 %)</span>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Evolución de tiempos de vuelta">
+        <path d={pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.timeS).toFixed(1)}`).join("")} className="pb-an__line cur" fill="none" />
+        {pts.map((p, i) => (
+          <circle key={p.n} cx={x(i)} cy={y(p.timeS)} r={p.n === sel ? 7 : 4} className={p.timeS === best ? "pb-an__dot best" : "pb-an__dot"} onClick={() => onPick(p.n)}><title>{`V${p.n} · ${lapStr(p.timeS)}`}</title></circle>
+        ))}
+      </svg>
+    </div>
+  );
+};
+
 /** Pestaña Análisis: informe de vueltas desde los .ibt que iRacing guarda en Documentos\iRacing\telemetry. */
 export const AnalysisView: React.FC = () => {
   const api = typeof window !== "undefined" ? window.ifuelOverlay : undefined;
@@ -111,7 +131,9 @@ export const AnalysisView: React.FC = () => {
             {rep.summary && (
               <span className="pb-an__sum">
                 Mejor <b className="pb-num">{lapStr(rep.summary.bestS)}</b> · media <b className="pb-num">{lapStr(rep.summary.meanS)}</b>
-                {rep.summary.stdS != null && <> · σ <b className="pb-num">{rep.summary.stdS.toFixed(2)} s</b></>} · {rep.summary.comparableLaps} vueltas comparables
+                {rep.summary.stdS != null && <> · σ <b className="pb-num">{rep.summary.stdS.toFixed(2)} s</b></>}
+                {rep.summary.idealS != null && <> · ideal <b className="pb-num">{lapStr(rep.summary.idealS)}</b> <small>({sgn(rep.summary.idealS - rep.summary.bestS)} s)</small></>}
+                {rep.summary.fuelPerLapL != null && <> · <b className="pb-num">{rep.summary.fuelPerLapL.toFixed(2)} L/v</b></>} · {rep.summary.comparableLaps} vueltas comparables
               </span>
             )}
           </div>
@@ -119,6 +141,8 @@ export const AnalysisView: React.FC = () => {
           {rep.summary && rep.summary.comparableLaps < 3 && !rep.error && (
             <div className="pb-an__note">Pocas vueltas limpias ({rep.summary.comparableLaps}): las comparaciones y la consistencia mejoran con 5 o más.</div>
           )}
+
+          {rep.laps.filter((l) => l.clean && l.timeS != null).length > 4 && <LapTrend laps={rep.laps} best={rep.reference?.timeS ?? 0} sel={lapSel} onPick={(n) => rep.profile?.laps.some((p) => p.lap === n) && n !== rep.reference?.lap && setLapSel(n)} />}
 
           <div className="pb-an__grid">
             <div className="pb-an__col">
@@ -176,7 +200,7 @@ export const AnalysisView: React.FC = () => {
                 <>
                   <span className="pb-lbl pb-an__h">Curvas (referencia = tu mejor vuelta)</span>
                   <table className="pb-an__tbl">
-                    <thead><tr><th>Curva</th><th>m</th><th>Mín km/h</th><th>Frena en</th><th>Freno máx</th><th>Gas tras vértice</th><th>Pérdida media</th><th>σ mín km/h</th></tr></thead>
+                    <thead><tr><th>Curva</th><th>m</th><th>Mín km/h</th><th>Frena en</th><th>Freno máx</th><th>Gas tras vértice</th><th>Pérdida media</th><th>Potencial</th><th>σ mín km/h</th></tr></thead>
                     <tbody>
                       {rep.corners.map((c) => (
                         <tr key={c.id}>
@@ -184,7 +208,7 @@ export const AnalysisView: React.FC = () => {
                           <td>{c.ref.brakeStartM != null ? `${Math.round(c.ref.brakeStartM)} m` : "sin freno"}</td>
                           <td>{c.ref.peakBrake != null ? `${Math.round(c.ref.peakBrake * 100)} %` : "–"}</td>
                           <td>{c.ref.throttleAfterApexM != null ? `+${Math.round(c.ref.throttleAfterApexM)} m` : "–"}</td>
-                          <td>{sgn(c.lossAvgS, 3)}</td><td>{c.stats.minKphStd != null ? c.stats.minKphStd.toFixed(1) : "–"}</td>
+                          <td>{sgn(c.lossAvgS, 3)}</td><td>{c.potentialS != null ? `−${c.potentialS.toFixed(3)} (V${c.bestZoneLap})` : "–"}</td><td>{c.stats.minKphStd != null ? c.stats.minKphStd.toFixed(1) : "–"}</td>
                         </tr>
                       ))}
                     </tbody>
