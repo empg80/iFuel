@@ -163,6 +163,7 @@ const DEFAULT_OVERLAY_STATE = {
   weatherVisible: true,
   carVisible: false,
   dashVisible: false, // dashboard de volante (layout libre)
+  showAllWidgets: true, // al desbloquear, mostrar también los widgets que solo salen por evento (para colocarlos)
   widgetsLocked: true,
   fuelSettingsVisible: false,
   replayVisible: false, // ventana de broadcast apagada por defecto
@@ -204,6 +205,7 @@ function validateOverlayState(candidate) {
     "weatherVisible",
     "carVisible",
     "dashVisible",
+    "showAllWidgets",
     "widgetsLocked",
     "fuelSettingsVisible",
     "replayVisible",
@@ -483,6 +485,7 @@ const allowedKeys = new Set([
   "weatherVisible",
   "carVisible",
   "dashVisible",
+  "showAllWidgets",
   "widgetsLocked",
   "fuelSettingsVisible",
   "fuelScale",
@@ -1017,6 +1020,11 @@ function buildMenuTemplate() {
         pick("Overlay sobre el simulador (transparente, siempre visible)"),
         pick("Pantalla del overlay"),
         pick("Bloquear widgets (clics atraviesan)  Ctrl+Shift+L"),
+        {
+          label: "Al desbloquear, mostrar también widgets de evento (pit helper, tráfico)",
+          type: "checkbox", checked: overlayState.showAllWidgets,
+          click: (item) => { overlayState.showAllWidgets = item.checked; save(); },
+        },
         pick("Restablecer posiciones de los widgets"),
       ],
     },

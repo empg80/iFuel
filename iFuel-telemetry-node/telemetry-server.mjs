@@ -1315,6 +1315,8 @@ standings.sort((a, b) => a.position - b.position);
   fuelPlan,
   rivalPits,
   raceFinish,
+  raceRunning: /race/i.test((session?.SessionInfo?.Sessions ?? []).find((x) => x.SessionNum === telemetry.SessionNum?.value?.[0])?.SessionType ?? "")
+    && telemetry.SessionState?.value?.[0] === 4,
   trackHistory: histEntry ? { best: histEntry.best, fuelPerLap: histEntry.fuelPerLap } : null,
   yellowWarning,
   fastTraffic,

@@ -112,6 +112,7 @@ type RawMessage = {
   fuelPlan?: FuelPlan | null;
   rivalPits?: RivalPits | null;
   raceFinish?: RaceFinish | null;
+  raceRunning?: boolean;
 
   yellowWarning?: YellowWarning;
   fastTraffic?: FastTraffic | null;
@@ -214,6 +215,7 @@ export type IfuelState = {
   fuelPlan?: FuelPlan | null;
   rivalPits?: RivalPits | null;
   raceFinish?: RaceFinish | null;
+  raceRunning?: boolean;
 
   yellowWarning?: YellowWarning;
   fastTraffic?: FastTraffic | null;
@@ -352,6 +354,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             fuelPlan,
             rivalPits,
             raceFinish,
+            raceRunning,
             yellowWarning,
             fastTraffic,
             weather,
@@ -755,6 +758,7 @@ export function useIfuelWebSocket(url: string, options: IfuelOptions = {}) {
             fuelPlan: fuelPlan ?? null,
             rivalPits: rivalPits ?? null,
             raceFinish: raceFinish ?? null,
+            raceRunning: !!raceRunning,
             pitClearAir: pitClearAir ?? null,
             standings,
             cameraCarNumber,

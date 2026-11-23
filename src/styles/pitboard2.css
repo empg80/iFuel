@@ -228,3 +228,8 @@
 .pb-an__zero{stroke:rgba(255,255,255,.3);stroke-width:1;vector-effect:non-scaling-stroke}
 .pb-an__marks{position:relative;height:14px;font-size:10px;color:#6f798b}
 .pb-an__marks span{position:absolute;transform:translateX(-50%)}
+
+.pb-planner__fields{grid-template-columns:repeat(6,minmax(0,1fr))}
+.pb-planner__now{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;padding:10px 14px;border-radius:12px;background:rgba(92,176,255,.14);border:1px solid rgba(92,176,255,.35);font-size:18px}
+.pb-planner__now b{font-size:22px}.pb-planner__now small{font-size:14px;opacity:.75}
+.pb-planner__warn{padding:8px 12px;border-radius:10px;background:rgba(255,181,71,.14);color:#ffcf85;font-size:14px}

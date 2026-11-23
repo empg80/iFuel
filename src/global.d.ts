@@ -12,6 +12,7 @@ declare global {
     weatherVisible?: boolean;
     carVisible?: boolean;
     dashVisible?: boolean;
+    showAllWidgets?: boolean;
     widgetsLocked?: boolean;
     /** La ventana principal es ahora mismo un overlay transparente sobre el juego (lo calcula main). */
     overlayActive?: boolean;

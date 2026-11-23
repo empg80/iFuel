@@ -17,3 +17,28 @@ test("planificador: sin paradas si llega, y entradas inválidas → null", () =>
   assert.equal(planStints({ durationS: 1800, tankL: 100, lapS: 0, fuelPerLap: 2, pitLossS: 30, marginLaps: 1 }), null);
   assert.equal(planStints({ durationS: 1800, tankL: 2, lapS: 100, fuelPerLap: 2, pitLossS: 30, marginLaps: 1 }), null);
 });
+
+test("planificador: máximo al volante por stint fuerza más paradas y reparte pilotos en rotación", () => {
+  const base = { durationS: 10800, tankL: 100, lapS: 100, fuelPerLap: 2, pitLossS: 40, marginLaps: 1 };
+  const free = planStints(base);
+  const lim = planStints({ ...base, drivers: 3, driverChangeS: 20, maxDriveS: 2400 });
+  assert.ok(lim.stops > free.stops);
+  assert.ok(lim.stints.every((s) => s.driveS <= 2400 + 1e-6));
+  assert.deepEqual(lim.stints.slice(0, 4).map((s) => s.driver), [0, 1, 2, 0]);
+  assert.ok(lim.driverTotals.length === 3);
+});
+test("planificador: avisa si un piloto supera su máximo total y con 1 piloto no suma el cambio", () => {
+  const base = { durationS: 10800, tankL: 100, lapS: 100, fuelPerLap: 2, pitLossS: 40, marginLaps: 1 };
+  const w = planStints({ ...base, drivers: 2, maxTotalS: 3600 });
+  assert.ok(w.warnings.some((x) => /máximo al volante/.test(x)));
+  const a = planStints({ ...base, driverChangeS: 60 }); // 1 piloto: el cambio no cuenta
+  const b = planStints(base);
+  assert.equal(a.totalLaps, b.totalLaps);
+});
+test("planificador: las amarillas esperadas alargan el stint (menos paradas o stints en vueltas más largos)", () => {
+  const base = { durationS: 10800, tankL: 60, lapS: 100, fuelPerLap: 2.5, pitLossS: 40, marginLaps: 1 };
+  const g = planStints(base);
+  const y = planStints({ ...base, yellowPct: 20 });
+  assert.ok(y.maxStintLaps > g.maxStintLaps);
+  assert.ok(y.totalLaps < g.totalLaps);
+});

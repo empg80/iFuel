@@ -333,3 +333,8 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Hecho: lector .ibt (`iFuel-telemetry-node/ibt/ibtReader.mjs`), análisis (`ibtAnalyzer.mjs`, en un worker para no bloquear el servidor) y pestaña Análisis en el pitboard. Probado con los .ibt de Monza (Ligier P320) y Silverstone (P217).
 - Método: vueltas por cruce de línea (LapLastLapTime de iRacing llega con retraso y no se usa), rejilla de 5 m, curvas = mínimos de velocidad de la mejor vuelta (fusiona chicanes), pérdida por curva = tiempo acumulado en la zona desde su frenada hasta la siguiente.
 - Pendiente: probar con sesiones largas (5+ vueltas limpias), ajustar detección de curvas rápidas sin frenada, comparar contra una vuelta de referencia elegida (otra sesión), y exportar el informe.
+
+## Preparado para la beta.62 (23-nov) - sin empaquetar, pendiente de validar
+- Edición de widgets: opción "Al desbloquear, mostrar también widgets de evento" (menú Pantalla y posición, activa por defecto). Pit helper y tráfico rápido son ahora arrastrables y con marcador discontinuo; posiciones guardadas.
+- Planificador de stints, extras: nº de pilotos con rotación, tiempo extra por cambio de piloto, máximo al volante por stint y por piloto (con aviso), % de carrera bajo amarilla (menos consumo y ritmo más lento), vista "Ahora" en carrera (stint actual, vueltas hasta la parada, repostaje, piloto actual y siguiente). El servidor envía `raceRunning`.
+- Pendiente de la lista: parrilla tras la salida (esperar otro informe con ese momento), bug replay → layout libre, optimización, README, release.
