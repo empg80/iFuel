@@ -12,6 +12,7 @@ const {
   nativeImage,
   clipboard,
   dialog,
+  session,
 } = require("electron");
 const fs = require("fs");
 const { Worker } = require("worker_threads");
@@ -39,6 +40,8 @@ let quitting = false;
 let replayWindow = null;
 
 const isDev = !app.isPackaged; // dev vs producción [web:17]
+// Solo en desarrollo se admite cargar la UI desde el servidor de Vite; en la app instalada se ignora la variable de entorno
+const DEV_START_URL = isDev ? process.env.ELECTRON_START_URL : undefined;
 
 // Versión beta (0.x.y-beta.N): graba la sesión sola y genera un informe .zip al cerrar
 const isBetaBuild = betaReport.isBeta(app.getVersion());
@@ -81,13 +84,57 @@ function setupFileLogging() {
 }
 setupFileLogging();
 
-// Endurece un BrowserWindow: sin ventanas nuevas y sin navegar fuera de la propia app
+// Origen permitido para cargar/navegar y para aceptar IPC: la propia app (dist/ por file://, o Vite en desarrollo)
+const APP_DIST_URL = require("url").pathToFileURL(path.join(__dirname, "..", "dist")).href;
+// Se compara decodificado y en minúsculas: Windows puede variar la letra de unidad y los %20 entre APIs
+const normUrl = (u) => {
+  try {
+    return decodeURIComponent(u).replace(/\\/g, "/").toLowerCase();
+  } catch {
+    return String(u).toLowerCase();
+  }
+};
+const APP_DIST_NORM = normUrl(APP_DIST_URL);
+function isAppUrl(url) {
+  if (typeof url !== "string") return false;
+  if (DEV_START_URL) return url.startsWith(DEV_START_URL);
+  const n = normUrl(url);
+  if (n === APP_DIST_NORM || n.startsWith(APP_DIST_NORM + "/")) return true;
+  // Respaldo por si Windows formatea la ruta de otra forma: la única página file:// posible es dist/index.html
+  return /^file:\/\/.*\/dist\/index\.html(#.*)?$/.test(n);
+}
+
+// Endurece un BrowserWindow: sin ventanas nuevas, sin webviews y sin navegar fuera de la propia app
 function hardenWebContents(win) {
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  win.webContents.on("will-navigate", (event, url) => {
-    const startUrl = process.env.ELECTRON_START_URL;
-    const allowed = startUrl ? url.startsWith(startUrl) : url.startsWith("file://");
-    if (!allowed) event.preventDefault();
+  const block = (event, url) => {
+    if (!isAppUrl(url)) event.preventDefault();
+  };
+  win.webContents.on("will-navigate", block);
+  win.webContents.on("will-redirect", block);
+  win.webContents.on("will-attach-webview", (event) => event.preventDefault());
+}
+
+// Solo las páginas de la propia app pueden llamar al IPC (defensa en profundidad: la navegación ya está limitada)
+function isTrustedSender(event) {
+  try {
+    const url = event.senderFrame?.url ?? event.sender.getURL();
+    const ok = isAppUrl(url);
+    if (!ok) console.warn("[iFuel] IPC rechazado desde:", url);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+function handleTrusted(channel, fn) {
+  ipcMain.handle(channel, (event, ...args) => {
+    if (!isTrustedSender(event)) throw new Error("IPC rechazado: origen no permitido");
+    return fn(event, ...args);
+  });
+}
+function onTrusted(channel, fn) {
+  ipcMain.on(channel, (event, ...args) => {
+    if (isTrustedSender(event)) fn(event, ...args);
   });
 }
 
@@ -116,7 +163,7 @@ function createReplayWindow() {
 
   hardenWebContents(replayWindow);
 
-  const startUrl = process.env.ELECTRON_START_URL;
+  const startUrl = DEV_START_URL;
 
   if (startUrl) {
     replayWindow.loadURL(startUrl + "#/replay");
@@ -355,7 +402,7 @@ function readSpotterPhrases() {
 function pushSpotterPhrases() {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("spotter:phrases", readSpotterPhrases());
 }
-ipcMain.handle("spotter:get-phrases", () => readSpotterPhrases());
+handleTrusted("spotter:get-phrases", () => readSpotterPhrases());
 
 let overlayState = loadOverlayState() || { ...DEFAULT_OVERLAY_STATE };
 
@@ -415,7 +462,7 @@ async function stopTelemetryServerInElectron() {
 
 // (opcional/futuro) IPC seguro para leer/actualizar estado desde el renderer
 // Overlay bloqueado = click-through; el renderer avisa cuando el ratón está sobre un botón para dejarlo pulsar.
-ipcMain.on("overlay:mouse-capture", (event, capture) => {
+onTrusted("overlay:mouse-capture", (event, capture) => {
   if (!mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return;
   if (!windowIsOverlay || !overlayState.widgetsLocked) return;
   mainWindow.setIgnoreMouseEvents(!capture, { forward: true });
@@ -430,7 +477,7 @@ const isIbtAllowed = (p) => {
   return ibtAllowed.has(resolved) || path.dirname(resolved) === path.resolve(ibtDir());
 };
 
-ipcMain.handle("ibt:list", () => {
+handleTrusted("ibt:list", () => {
   const dir = ibtDir();
   try {
     const files = fs.readdirSync(dir)
@@ -448,7 +495,7 @@ ipcMain.handle("ibt:list", () => {
   }
 });
 
-ipcMain.handle("ibt:pick", async (event) => {
+handleTrusted("ibt:pick", async (event) => {
   if (!mainWindow || event.sender !== mainWindow.webContents) return null;
   const res = await dialog.showOpenDialog(mainWindow, {
     title: "Abrir telemetría .ibt",
@@ -462,7 +509,7 @@ ipcMain.handle("ibt:pick", async (event) => {
   return { path: p, name: path.basename(p) };
 });
 
-ipcMain.handle("ibt:analyze", (event, filePath) => {
+handleTrusted("ibt:analyze", (event, filePath) => {
   if (!mainWindow || event.sender !== mainWindow.webContents) return { ok: false, error: "Origen no válido" };
   if (!isIbtAllowed(filePath)) return { ok: false, error: "Archivo no permitido" };
   const baseDir = isDev ? path.join(__dirname, "..") : path.join(__dirname, "..", "..");
@@ -471,7 +518,16 @@ ipcMain.handle("ibt:analyze", (event, filePath) => {
     let done = false;
     const finish = (v) => { if (!done) { done = true; resolve(v); } };
     try {
-      const w = new Worker(workerPath, { workerData: { path: path.resolve(filePath) } });
+      // Límites: un .ibt dañado o enorme no puede colgar ni agotar la memoria de la app
+      const w = new Worker(workerPath, {
+        workerData: { path: path.resolve(filePath) },
+        resourceLimits: { maxOldGenerationSizeMb: 1536 },
+      });
+      const timer = setTimeout(() => {
+        finish({ ok: false, error: "El análisis tardó demasiado y se canceló" });
+        w.terminate();
+      }, 10 * 60 * 1000);
+      w.once("exit", () => clearTimeout(timer));
       w.once("message", (m) => finish(m));
       w.once("error", (e) => finish({ ok: false, error: String(e?.message ?? e) }));
       w.once("exit", (code) => finish({ ok: false, error: `El análisis terminó sin resultado (código ${code})` }));
@@ -504,11 +560,11 @@ function fullOverlayState() {
   return { ...overlayState, overlayActive: windowIsOverlay, replayCustom: readReplayColors() };
 }
 
-ipcMain.handle("overlay:get-state", () => {
+handleTrusted("overlay:get-state", () => {
   return fullOverlayState();
 });
 
-ipcMain.handle("overlay:update-partial", (_event, partial) => {
+handleTrusted("overlay:update-partial", (_event, partial) => {
   if (typeof partial !== "object" || partial === null) {
     throw new Error("Invalid overlay update");
   }
@@ -1432,7 +1488,7 @@ function createWindow() {
   hardenWebContents(win);
   createMenu();
 
-  const startUrl = process.env.ELECTRON_START_URL;
+  const startUrl = DEV_START_URL;
   if (startUrl) {
     win.loadURL(startUrl);
   } else {
@@ -1501,6 +1557,11 @@ if (!gotSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    // La app no necesita ningún permiso del navegador (cámara, micro, USB, notificaciones…): todo denegado
+    const ses = session.defaultSession;
+    ses.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
+    ses.setPermissionCheckHandler(() => false);
+    ses.setDevicePermissionHandler(() => false);
     await startTelemetryServerInElectron();
     createWindow();
     createTray();

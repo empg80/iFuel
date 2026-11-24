@@ -26,3 +26,24 @@ test("staticServer: sirve ficheros, 404 y no sale de la raíz", async () => {
     assert.equal((await get("/", "POST")).s, 405);
   } finally { srv.close(); }
 });
+
+test("staticServer: rechaza Host no permitido (DNS rebinding) y añade cabeceras de seguridad", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ifuel-static-"));
+  fs.writeFileSync(path.join(dir, "index.html"), "<p>hola</p>");
+  const srv = http.createServer(createStaticHandler(dir, { allowedHosts: new Set(["127.0.0.1:7071"]) }));
+  await new Promise((r) => srv.listen(0, "127.0.0.1", r));
+  const { port } = srv.address();
+  const get = (host) => new Promise((resolve) => {
+    const req = http.request({ host: "127.0.0.1", port, path: "/", headers: { Host: host } }, (res) => { res.resume(); res.on("end", () => resolve(res)); });
+    req.end();
+  });
+  try {
+    const bad = await get("evil.example.com:7071");
+    assert.equal(bad.statusCode, 403);
+    const ok = await get("127.0.0.1:7071");
+    assert.equal(ok.statusCode, 200);
+    assert.equal(ok.headers["x-content-type-options"], "nosniff");
+    assert.match(ok.headers["content-security-policy"], /frame-ancestors 'none'/);
+    assert.equal(ok.headers["referrer-policy"], "no-referrer");
+  } finally { srv.close(); }
+});

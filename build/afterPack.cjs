@@ -31,8 +31,34 @@ exports.default = async function afterPack(context) {
   }
   console.log(`  • afterPack: node_modules del servidor copiados a ${dest}`);
 
-  if (context.electronPlatformName === "win32") await patchWindowsExe(context);
+  if (context.electronPlatformName === "win32") {
+    await flipSecurityFuses(context);
+    await patchWindowsExe(context);
+  }
 };
+
+// Fuses de Electron: desactivan en el .exe vías de abuso que la app no usa (ejecutarlo como Node con
+// ELECTRON_RUN_AS_NODE, inyectar NODE_OPTIONS o abrir el inspector con --inspect) y obligan a cargar el
+// código solo desde app.asar. Si algo de esto falla, el empaquetado se detiene: mejor eso que un .exe a medias.
+async function flipSecurityFuses(context) {
+  const { flipFuses, getCurrentFuseWire, FuseVersion, FuseV1Options } = require("@electron/fuses");
+  const exePath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.exe`);
+  if (!fs.existsSync(path.join(context.appOutDir, "resources", "app.asar"))) {
+    throw new Error("Falta resources/app.asar: no se puede activar OnlyLoadAppFromAsar");
+  }
+  await flipFuses(exePath, {
+    version: FuseVersion.V1,
+    [FuseV1Options.RunAsNode]: false,
+    [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+    [FuseV1Options.EnableNodeCliInspectArguments]: false,
+    [FuseV1Options.OnlyLoadAppFromAsar]: true,
+  });
+  const wire = await getCurrentFuseWire(exePath);
+  if (wire[FuseV1Options.RunAsNode] || wire[FuseV1Options.EnableNodeOptionsEnvironmentVariable] || wire[FuseV1Options.EnableNodeCliInspectArguments] || !wire[FuseV1Options.OnlyLoadAppFromAsar]) {
+    throw new Error("Los fuses de Electron no quedaron como se esperaba");
+  }
+  console.log("  • afterPack: fuses de seguridad activados (RunAsNode, NODE_OPTIONS e inspector desactivados; solo app.asar)");
+}
 
 // "signAndEditExecutable": false evita necesitar wine, pero entonces electron-builder no pone el icono ni
 // los datos de versión: el .exe salía con el icono de Electron. Se parchean aquí con resedit (JS puro).

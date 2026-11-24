@@ -2,6 +2,8 @@
 // Formato: cabecera irsdk (112 B) + subcabecera de disco (32 B) + sessionInfo (YAML) + cabeceras de variables (144 B c/u) + registros.
 import fs from "node:fs";
 
+// Límite de tamaño: el archivo se lee entero en memoria (Buffer máximo ~2 GB)
+const MAX_IBT_BYTES = 1536 * 1024 * 1024;
 const TYPES = { 0: ["char", 1], 1: ["bool", 1], 2: ["int", 4], 3: ["bitfield", 4], 4: ["float", 4], 5: ["double", 8] };
 
 /**
@@ -9,6 +11,10 @@ const TYPES = { 0: ["char", 1], 1: ["bool", 1], 2: ["int", 4], 3: ["bitfield", 4
  * @param {{channels?: string[]}} [opts] canales a extraer (por defecto todos los escalares numéricos)
  */
 export function readIbt(src, opts = {}) {
+  if (typeof src === "string") {
+    const size = fs.statSync(src).size;
+    if (size > MAX_IBT_BYTES) throw new Error(`Archivo .ibt demasiado grande (${Math.round(size / 1048576)} MB; máximo ${MAX_IBT_BYTES / 1048576} MB)`);
+  }
   const buf = typeof src === "string" ? fs.readFileSync(src) : src;
   if (buf.length < 144) throw new Error("Archivo .ibt demasiado corto");
   const tickRate = buf.readInt32LE(8);
@@ -19,7 +25,12 @@ export function readIbt(src, opts = {}) {
   const bufLen = buf.readInt32LE(36);
   const dataOffset = buf.readInt32LE(52);
   const recordCount = buf.readInt32LE(112 + 28);
-  if (!(tickRate > 0) || !(numVars > 0) || !(bufLen > 0) || numVars > 2000) throw new Error("Cabecera .ibt no válida (¿no es un archivo de telemetría de iRacing?)");
+  const inFile = (o, len) => Number.isInteger(o) && o >= 0 && len >= 0 && o + len <= buf.length;
+  if (
+    !(tickRate > 0 && tickRate <= 1000) || !(numVars > 0 && numVars <= 2000) || !(bufLen > 0 && bufLen <= 1048576) ||
+    !(sessionInfoLen >= 0 && sessionInfoLen <= 16777216) ||
+    !inFile(varHeaderOffset, numVars * 144) || !inFile(sessionInfoOffset, sessionInfoLen) || !inFile(dataOffset, 0)
+  ) throw new Error("Cabecera .ibt no válida (¿no es un archivo de telemetría de iRacing?)");
 
   const vars = new Map();
   for (let i = 0; i < numVars; i++) {

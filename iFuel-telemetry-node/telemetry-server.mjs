@@ -1454,7 +1454,9 @@ async function startTelemetryServer(options = {}) {
   loadClassMapFromDisk_init(options.dataDir);
 
   // N3: con staticDir se sirve la app por HTTP en el mismo puerto (widgets como fuente de navegador de OBS)
-  const httpServer = options.staticDir ? http.createServer(createStaticHandler(options.staticDir)) : null;
+  const httpServer = options.staticDir
+    ? http.createServer(createStaticHandler(options.staticDir, { allowedHosts: new Set([`127.0.0.1:${port}`, `localhost:${port}`]) }))
+    : null;
   const wss = new WebSocketServer({
     ...(httpServer ? { server: httpServer } : { host, port }),
     path: pathWs,

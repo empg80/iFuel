@@ -85,3 +85,13 @@ test("ibt: separa vueltas, elige la mejor, encuentra las 2 curvas y detecta la f
   assert.equal(a.profile.laps.length, 2);
   assert.equal(a.profile.laps[0].speed.length, a.profile.laps[1].speed.length);
 });
+
+test("ibtReader: rechaza cabeceras con desplazamientos o tamaños fuera del archivo", () => {
+  const b = buildIbt();
+  const bad = (mutate) => { const c = Buffer.from(b); mutate(c); assert.throws(() => readIbt(c), /no válida/); };
+  bad((c) => c.writeInt32LE(1_000_000_000, 28)); // varHeaderOffset fuera
+  bad((c) => c.writeInt32LE(1_000_000_000, 20)); // sessionInfoOffset fuera
+  bad((c) => c.writeInt32LE(2_000_000_000, 16)); // sessionInfoLen enorme
+  bad((c) => c.writeInt32LE(5_000_000, 36)); // bufLen absurdo
+  bad((c) => c.writeInt32LE(100_000, 8)); // tickRate absurdo
+});
