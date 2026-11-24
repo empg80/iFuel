@@ -2,8 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { BattlePanel } from "./pitboard/BattlePanel";
 import { BattleCards } from "./BattleCards";
-import { loadWidgetPosition, clampPosition } from "../utils/position";
-import { saveJsonToStorage } from "../utils/storage";
+import { loadWidgetPosition, clampPosition, persistPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
 
@@ -37,7 +36,7 @@ export const RelativeWidgetContainer: React.FC<Props> = ({
 
   useEffect(() => {
     if (isPitboard) return;
-    saveJsonToStorage(POS_KEY_RELATIVE, position);
+    persistPosition(POS_KEY_RELATIVE, position);
   }, [position, isPitboard]);
 
   useEffect(() => {

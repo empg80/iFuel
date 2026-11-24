@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { PitClearAirWidget } from "./PitClearAirWidget";
-import { loadWidgetPosition, clampPosition } from "../utils/position";
-import { saveJsonToStorage } from "../utils/storage";
+import { loadWidgetPosition, clampPosition, persistPosition } from "../utils/position";
 import type { PitClearAirData } from "../types/pit";
 import { useOverlayState } from "../contexts/useOverlayState";
 
@@ -39,7 +38,7 @@ export const PitClearAirWidgetContainer: React.FC<Props> = ({
 
   useEffect(() => {
     if (isPitboard) return;
-    saveJsonToStorage(POS_KEY_PITCLEAR, position);
+    persistPosition(POS_KEY_PITCLEAR, position);
   }, [position, isPitboard]);
 
   useEffect(() => {

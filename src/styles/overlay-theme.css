@@ -709,7 +709,11 @@
 
 /* ---- Standings: sin barra de desplazamiento, la tabla crece con los coches ---- */
 .app-root--free .race-standings-widget {
-  min-width: 560px;
+  /* Ancho fijo: los avisos/penalizaciones (PIT, bandera…) aparecen y desaparecen sin mover el borde del widget */
+  width: 700px;
+  min-width: 700px;
+  max-width: 700px;
+  box-sizing: border-box;
   max-height: none;
   overflow: visible;
   padding: 12px 12px 10px;
@@ -723,6 +727,7 @@
   border-left-width: 5px;
 }
 .app-root--free .race-standings__row--header { font-size: 11px; white-space: nowrap; }
+.app-root--free .race-standings-widget--multi { width: 760px; min-width: 760px; max-width: 760px; }
 /* El número de coche toma el color de su clase: con la leyenda se lee a qué categoría pertenece */
 .app-root--free .race-standings__cell--car .class-badge {
   height: 20px;

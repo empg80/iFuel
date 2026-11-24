@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { loadWidgetPosition, clampPosition } from "../utils/position";
-import { saveJsonToStorage } from "../utils/storage";
+import { loadWidgetPosition, clampPosition, persistPosition } from "../utils/position";
 import { useOverlayState } from "../contexts/useOverlayState";
 
 /**
@@ -22,7 +21,7 @@ export function useDraggableWidget(storageKey: string, fallback: { x: number; y:
     window.addEventListener("mouseup", up);
     return () => { window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); };
   }, [enabled]);
-  useEffect(() => { if (enabled) saveJsonToStorage(storageKey, pos); }, [pos, enabled, storageKey]);
+  useEffect(() => { if (enabled) persistPosition(storageKey, pos); }, [pos, enabled, storageKey]);
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     if (!enabled || locked) return;
     dragging.current = true;

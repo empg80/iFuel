@@ -122,3 +122,16 @@ test("pickWindowBounds recuerda la ventana si su monitor sigue conectado y la de
   assert.equal(pickWindowBounds(null, displays), null);
   assert.equal(pickWindowBounds({ x: 0, y: 0, width: NaN, height: 800 }, displays), null);
 });
+
+test("defaultWindowBounds: monitor distinto del overlay, centrado y limitado a 1280x800", async () => {
+  const { createRequire } = await import("node:module");
+  const ow = createRequire(import.meta.url)("../electron/overlayWindow.cjs");
+  const displays = [
+    { id: 1, workArea: { x: 0, y: 0, width: 5120, height: 1440 } },
+    { id: 2, workArea: { x: 1000, y: -900, width: 1024, height: 768 } },
+  ];
+  assert.deepEqual(ow.defaultWindowBounds(displays, 1), { x: 1000, y: -900, width: 1024, height: 768 });
+  assert.equal(ow.defaultWindowBounds([displays[0]], 1), null);
+  const big = [{ id: 1, workArea: { x: 0, y: 0, width: 5120, height: 1440 } }, { id: 2, workArea: { x: 0, y: -1080, width: 1920, height: 1080 } }];
+  assert.deepEqual(ow.defaultWindowBounds(big, 1), { x: 320, y: -940, width: 1280, height: 800 });
+});

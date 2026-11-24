@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useOverlayState } from "../contexts/useOverlayState";
-import { clampPosition, loadWidgetPosition } from "../utils/position";
-import { saveJsonToStorage } from "../utils/storage";
+import { clampPosition, loadWidgetPosition, persistPosition } from "../utils/position";
 
 type Props = {
   id: string; // clave de posición: ifuel-pos-<id>
@@ -19,7 +18,7 @@ export const FloatingWidget: React.FC<Props> = ({ id, visible, scale, defaultPos
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
 
-  useEffect(() => { saveJsonToStorage(key, position); }, [key, position]);
+  useEffect(() => { persistPosition(key, position); }, [key, position]);
 
   useEffect(() => {
     const move = (e: MouseEvent) => {

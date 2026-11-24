@@ -7,6 +7,7 @@ import { useSpotter } from "./spotter/useSpotter";
 import { useClickableControls } from "./contexts/useClickableControls";
 import { FreeLayout } from "./FreeLayout";
 import { PitboardLayout } from "./PitboardLayout";
+import { ReplayNotice } from "./ReplayNotice";
 
 const App: React.FC = () => {
   const { state, isConnected, sendMessage, serverStatus, raceStandingsRows } =
@@ -18,6 +19,10 @@ const App: React.FC = () => {
   useApplyPitBoardLayout();
   useClickableControls();
   useSpotter(state);
+
+  // En modo replay la retransmisión vive en su propia ventana: esta solo muestra el aviso (sin widgets del layout
+  // libre, que con una ventana pequeña se recolocarían y estropearían las posiciones guardadas).
+  if (mode === "replay") return <ReplayNotice />;
 
   // Fallback mientras no haya estado de telemetría
   if (!state) {

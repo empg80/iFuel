@@ -94,7 +94,7 @@ export function RaceStandingsWidget({
   }
 
   return (
-    <div className="widget race-standings-widget">
+    <div className={clsx("widget race-standings-widget", multi && "race-standings-widget--multi")}>
       <div className="race-standings__head">
         <div className="widget__header">STANDINGS</div>
         {clock ? (

@@ -3,8 +3,7 @@ import type { IfuelState } from "../useIfuelWebSocket";
 import type { StandingsRow } from "../types/standings";
 import { RaceStandingsWidget } from "./RaceStandingsWidget";
 import { useOverlayState } from "../contexts/useOverlayState";
-import { loadWidgetPosition, clampPosition } from "../utils/position";
-import { saveJsonToStorage } from "../utils/storage";
+import { loadWidgetPosition, clampPosition, persistPosition } from "../utils/position";
 
 const POS_KEY_STANDINGS = "ifuel-pos-standings";
 
@@ -43,7 +42,7 @@ export const RaceStandingsWidgetContainer: React.FC<Props> = ({
 
   useEffect(() => {
     if (isPitboard) return;
-    saveJsonToStorage(POS_KEY_STANDINGS, position);
+    persistPosition(POS_KEY_STANDINGS, position);
   }, [position, isPitboard]);
 
   useEffect(() => {

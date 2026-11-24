@@ -2,6 +2,21 @@ iFUEL BETA - GUIA DE LA PRUEBA
 ==============================
 
 
+NOVEDAD BETA.67 - LAYOUTS, POSICIONES Y MONITORES
+ - Layout Replay: la ventana principal ya no pinta los widgets del layout libre, solo un aviso con botones
+   para volver al libre o al Pitboard. (Antes se veian cortados en una ventana pequena.)
+ - Posiciones de widgets: pasar a Replay/Pitboard y volver al libre ya no los mueve. Lo guardado solo cambia
+   cuando TU arrastras un widget.
+ - Standings (libre): ancho fijo (700 px, 760 con varias clases). Los iconos PIT / AVISO / bandera ya no
+   cambian el ancho; si un nombre es largo se recorta con "...".
+ - Monitor por layout: Pitboard y Replay recuerdan su monitor, posicion y tamano (tambien maximizada). La
+   primera vez se abren en un monitor distinto del overlay. Una posicion antigua que quedo en el monitor del
+   juego se descarta.
+ QUE MIRAR: 1) Libre -> Replay -> Libre: widgets en su sitio. 2) Libre -> Pitboard: se abre en la pantalla
+ pequena; muevela/maximizala, cambia a libre y vuelve: debe quedar igual. 3) Standings en carrera con
+ avisos/pit: el ancho no cambia. 4) El tamano del standings (700 px) te parece bien?
+
+
 NOVEDAD BETA.66 - SEGURIDAD Y OPTIMIZACION (sin cambios visibles)
  - Endurecimiento: solo la propia app puede usar los canales internos (IPC); las ventanas no pueden navegar
    fuera ni abrir otras; se deniegan todos los permisos del navegador; el servidor local valida Host y envia

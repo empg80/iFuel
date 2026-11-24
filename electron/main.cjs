@@ -645,6 +645,8 @@ function syncWindowMode() {
       locked: overlayState.widgetsLocked,
       bounds: display.bounds,
     });
+  } else {
+    applyWindowGeometryForLayout();
   }
   return false;
 }
@@ -1426,24 +1428,51 @@ function generateBetaReport({ reveal = false, name = null } = {}) {
   }
 }
 
-// Posición, tamaño y estado maximizado de la ventana normal (pitboard): se recuerdan entre aperturas
+// Posición, tamaño y estado maximizado de la ventana normal, por layout (pitboard y replay pueden ir en
+// monitores distintos). Formato: { pitboard: { bounds, maximized, displayId }, replay: {...} }.
+// El formato antiguo { bounds, maximized } se toma como el de pitboard.
 const windowBoundsPath = path.join(app.getPath("userData"), "window-bounds.json");
-function readWindowBounds() {
+function windowKey() {
+  return overlayState.layoutMode === "replay" ? "replay" : "pitboard";
+}
+function readAllWindowBounds() {
   try {
-    return JSON.parse(fs.readFileSync(windowBoundsPath, "utf8"));
+    const raw = JSON.parse(fs.readFileSync(windowBoundsPath, "utf8"));
+    if (raw && raw.bounds) return { pitboard: raw }; // formato antiguo
+    return raw && typeof raw === "object" ? raw : {};
   } catch {
-    return null;
+    return {};
   }
 }
+function readWindowBounds(key = windowKey()) {
+  return readAllWindowBounds()[key] ?? null;
+}
+// Geometría con la que abrir la ventana normal: la guardada para este layout si sigue cayendo en un monitor
+// conectado; si no hay ninguna, un monitor distinto del overlay (el del juego); si no, el tamaño por defecto.
+function resolveWindowGeometry(key = windowKey()) {
+  const displays = screen.getAllDisplays();
+  const saved = readWindowBounds(key);
+  const overlayDisplay = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
+  let bounds = saved ? overlayWindow.pickWindowBounds(saved.bounds, displays) : null;
+  // Entradas antiguas (sin displayId) que quedaron en el monitor del juego, habiendo otro monitor: se descartan
+  // (un pitboard encima del juego no sirve y era lo que pasaba al pasar de libre a pitboard).
+  if (bounds && saved.displayId == null && displays.length > 1 && screen.getDisplayMatching(bounds).id === overlayDisplay.id) bounds = null;
+  if (bounds) return { bounds, maximized: !!saved.maximized };
+  return { bounds: overlayWindow.defaultWindowBounds(displays, overlayDisplay.id), maximized: false };
+}
+let trackedKey = null;
 function trackWindowBounds(win) {
   let timer = null;
+  trackedKey = windowKey();
   const save = () => {
     if (win.isDestroyed() || win.isMinimized()) return;
     const maximized = win.isMaximized();
-    const prev = readWindowBounds() ?? {};
-    const bounds = maximized && prev.bounds ? prev.bounds : win.getBounds();
+    // getNormalBounds() da la posición "restaurada" también estando maximizada: así se recuerda en qué monitor está
+    const bounds = win.getNormalBounds();
+    const all = readAllWindowBounds();
+    all[trackedKey ?? windowKey()] = { bounds, maximized, displayId: screen.getDisplayMatching(win.getBounds()).id };
     try {
-      fs.writeFileSync(windowBoundsPath, JSON.stringify({ bounds, maximized }));
+      fs.writeFileSync(windowBoundsPath, JSON.stringify(all));
     } catch {
       /* sin permisos: no se recuerda */
     }
@@ -1458,13 +1487,25 @@ function trackWindowBounds(win) {
   win.on("unmaximize", later);
   win.on("close", save);
 }
+// Cambio entre layouts de ventana normal (pitboard <-> replay) sin recrear la ventana: coloca la ventana
+// donde se dejó ese layout.
+function applyWindowGeometryForLayout() {
+  if (!mainWindow || windowIsOverlay) return;
+  const key = windowKey();
+  if (key === trackedKey) return;
+  trackedKey = key;
+  const { bounds, maximized } = resolveWindowGeometry(key);
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  if (bounds) mainWindow.setBounds(bounds);
+  if (maximized) mainWindow.maximize();
+}
 
 let startupSoundTestDone = false;
 
 function createWindow() {
   const overlay = overlayWindow.shouldUseOverlay(overlayState, { forceWindowed });
-  const savedWin = overlay ? null : readWindowBounds();
-  const windowBounds = savedWin ? overlayWindow.pickWindowBounds(savedWin.bounds, screen.getAllDisplays()) : null;
+  const geometry = overlay ? null : resolveWindowGeometry();
+  const windowBounds = geometry ? geometry.bounds : null;
   const display = overlayWindow.pickDisplay(screen, overlayState.overlayDisplayId);
 
   const win = new BrowserWindow(
@@ -1479,7 +1520,7 @@ function createWindow() {
   );
   mainWindow = win;
   if (!overlay) {
-    if (windowBounds && savedWin?.maximized) win.maximize();
+    if (windowBounds && geometry.maximized) win.maximize();
     trackWindowBounds(win);
   }
   windowIsOverlay = overlay;

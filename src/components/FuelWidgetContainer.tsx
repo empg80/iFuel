@@ -10,7 +10,7 @@ import { FuelWidgetOverlay } from "./FuelWidgetOverlay";
 import type { FuelOpts } from "../types/fuel";
 import { loadJsonFromStorage, saveJsonToStorage } from "../utils/storage";
 import { useSafetyLaps, setSafetyLaps, useClearAirSeconds, setClearAirSeconds } from "../utils/safetyMargin";
-import { loadWidgetPosition, clampPosition } from "../utils/position";
+import { loadWidgetPosition, clampPosition, persistPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
 
@@ -123,7 +123,7 @@ export const FuelWidgetContainer: React.FC<FuelWidgetContainerProps> = ({
 
   useEffect(() => {
     if (isPitboard) return;
-    saveJsonToStorage(POS_KEY_FUEL, position);
+    persistPosition(POS_KEY_FUEL, position);
   }, [position, isPitboard]);
 
   useEffect(() => {

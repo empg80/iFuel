@@ -362,3 +362,7 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Pendiente: Electron 40 tiene avisos que solo se cierran en >=42 (probar en beta aparte); vulnerabilidades restantes son de dependencias de desarrollo.
 - Nota privacidad: el informe beta puede incluir rutas de Windows en los logs.
 - Optimizacion: contrapresion WS (1 MB por cliente), retirados widgets antiguos del replay, medidas: bundle JS 374 KB, payload ~10 KB a 4 Hz.
+
+## Beta.67 - layouts y monitores
+- Hecho: aviso en la ventana principal en modo replay; persistPosition (no se guarda la posicion recortada al cargar); standings con ancho fijo; geometria de ventana por layout (window-bounds.json por layout, monitor por defecto distinto del overlay); capturas reales recortadas (docs/screenshots/real-*) y demo (docs/demo-payload.json).
+- Pendiente README: redactarlo con las capturas de docs/screenshots.

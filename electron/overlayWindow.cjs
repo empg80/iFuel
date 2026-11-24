@@ -36,6 +36,19 @@ function pickWindowBounds(saved, displays) {
   return visible ? { x: saved.x, y: saved.y, width: saved.width, height: saved.height } : null;
 }
 
+/**
+ * Posición inicial de la ventana normal cuando aún no hay una guardada: en un monitor distinto del
+ * overlay (el del juego) si existe, centrada y sin pasar de 1280x800. Con un solo monitor, null (tamaño por defecto).
+ */
+function defaultWindowBounds(displays, overlayDisplayId, size = { width: 1280, height: 800 }) {
+  const other = displays.find((d) => d.id !== overlayDisplayId);
+  if (!other) return null;
+  const b = other.workArea ?? other.bounds;
+  const width = Math.min(size.width, b.width);
+  const height = Math.min(size.height, b.height);
+  return { x: Math.round(b.x + (b.width - width) / 2), y: Math.round(b.y + (b.height - height) / 2), width, height };
+}
+
 /** Opciones del BrowserWindow principal, en modo overlay o en modo ventana normal. */
 function buildMainWindowOptions({ overlay, bounds, isDev, preloadPath, iconPath, windowBounds = null }) {
   const webPreferences = {
@@ -123,6 +136,7 @@ module.exports = {
   shouldUseOverlay,
   pickDisplay,
   pickWindowBounds,
+  defaultWindowBounds,
   buildMainWindowOptions,
   applyOverlayBehavior,
   keepOnTop,

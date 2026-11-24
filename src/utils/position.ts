@@ -1,3 +1,5 @@
+import { saveJsonToStorage } from "./storage";
+
 export type WidgetPosition = { x: number; y: number };
 
 // Versión del sistema de posiciones. Hasta la beta.4 los widgets se colocaban con position: relative
@@ -37,16 +39,32 @@ export function clampPosition(
   };
 }
 
+// Posiciones que se mostraron recortadas porque la ventana era más pequeña que la guardada (p. ej. ventana
+// normal de pitboard/replay frente al overlay a pantalla completa). No se vuelven a guardar tal cual:
+// lo guardado solo cambia cuando el usuario arrastra el widget.
+const clampedOnLoad = new Map<string, WidgetPosition>();
+
 export function loadWidgetPosition(key: string, fallback: WidgetPosition): WidgetPosition {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw) as WidgetPosition;
     if (typeof parsed.x === "number" && typeof parsed.y === "number" && Number.isFinite(parsed.x) && Number.isFinite(parsed.y)) {
-      return clampPosition(parsed);
+      const shown = clampPosition(parsed);
+      if (shown.x !== parsed.x || shown.y !== parsed.y) clampedOnLoad.set(key, shown);
+      else clampedOnLoad.delete(key);
+      return shown;
     }
     return fallback;
   } catch {
     return fallback;
   }
+}
+
+/** Guarda la posición de un widget salvo que sea la versión recortada que solo se mostró al cargar. */
+export function persistPosition(key: string, pos: WidgetPosition): void {
+  const shown = clampedOnLoad.get(key);
+  if (shown && shown.x === pos.x && shown.y === pos.y) return;
+  clampedOnLoad.delete(key);
+  saveJsonToStorage(key, pos);
 }

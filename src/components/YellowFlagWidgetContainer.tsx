@@ -1,8 +1,7 @@
 // YellowFlagWidgetContainer.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { YellowFlagWidget } from "./YellowFlagWidget";
-import { loadWidgetPosition, clampPosition } from "../utils/position";
-import { saveJsonToStorage } from "../utils/storage";
+import { loadWidgetPosition, clampPosition, persistPosition } from "../utils/position";
 import type { IfuelState } from "../useIfuelWebSocket";
 import { useOverlayState } from "../contexts/useOverlayState";
 import type { YellowWarning } from "../types/yellow";
@@ -64,7 +63,7 @@ export const YellowFlagWidgetContainer: React.FC<Props> = ({
 
   useEffect(() => {
     if (isPitboard) return;
-    saveJsonToStorage(POS_KEY_YELLOW, position);
+    persistPosition(POS_KEY_YELLOW, position);
   }, [position, isPitboard]);
 
   const handleMouseDown = useCallback(
