@@ -348,3 +348,6 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 
 ## Torre del replay por fases (23-nov noche) - hecho en beta.63, pendiente validar
 - src/utils/towerPhases.ts (con test): fases General + una por categoria; hueco y posicion dentro de la clase; fase del coche en pantalla 1,5x. Clase unica: 20 coches; mas de 20: 3 fijos + scroll suave.
+
+## Tarjeta del piloto en replay (24-nov) - beta.64
+- Sin marcha/RPM; con mejor vuelta, ultima vuelta, neumatico y paradas en boxes (`cameraDriver.lastLapSeconds`, `pitStops` de standings).

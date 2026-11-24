@@ -32,13 +32,6 @@ export function sessionLabel(type: string | null | undefined, name: string | nul
   return name || type || "Sesión";
 }
 
-export function gearLabel(g: number | null | undefined): string {
-  if (g == null) return "--";
-  if (g < 0) return "R";
-  if (g === 0) return "N";
-  return String(g);
-}
-
 // "mercedesamggt4" -> "Mercedes Amggt4" no aporta; se deja el nombre tal cual si viene legible.
 function carLabel(path: string): string {
   return path.replace(/[_-]+/g, " ").trim();
@@ -224,6 +217,8 @@ export const BroadcastCar: React.FC<{ state: IfuelState; rows: StandingsRow[] }>
   const model = row?.carModel || cam.carModel || "";
   const best = cam.bestLapSeconds ?? row?.bestLapTime ?? null;
   const tire = cam.tireName || row?.tireName || null;
+  const last = cam.lastLapSeconds ?? null;
+  const stops = row?.pitStops ?? 0;
   return (
     <div className="bc-car bc-cn">
       <div className="bc-car__pos"><small>POS</small>{cam.position > 0 ? cam.position : "--"}</div>
@@ -232,15 +227,17 @@ export const BroadcastCar: React.FC<{ state: IfuelState; rows: StandingsRow[] }>
         <div className="bc-car__a">{cam.driverName}</div>
         <div className="bc-car__b">
           {carLabel(model)}
-          {best != null ? ` · Mejor ${formatLapTimeSeconds(best)}` : ""}
         </div>
       </div>
       <div className="bc-car__stats">
         <div><small>KM/H</small><b>{cam.speedKph != null ? cam.speedKph : "--"}</b></div>
-        <div><small>MARCHA</small><b>{gearLabel(cam.gear)}</b></div>
-        <div><small>RPM</small><b>{cam.rpm != null ? cam.rpm.toLocaleString("es-ES") : "--"}</b></div>
+        <div><small>MEJOR</small><b>{best != null ? formatLapTimeSeconds(best) : "--"}</b></div>
+        <div><small>ÚLTIMA</small><b>{last != null ? formatLapTimeSeconds(last) : "--"}</b></div>
         <div><small>NEUM.</small><b>{tire ?? "--"}</b></div>
-        {cam.onPitRoad && <div className="bc-car__pit"><b>PIT</b></div>}
+        <div className={cam.onPitRoad ? "bc-car__pit" : ""}>
+          <small>BOX</small>
+          <b>{cam.onPitRoad ? "EN BOX" : stops > 0 ? `${stops} ${stops === 1 ? "parada" : "paradas"}` : "Sin parar"}</b>
+        </div>
       </div>
     </div>
   );

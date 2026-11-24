@@ -77,8 +77,7 @@ type CameraDriverPayload = {
   driverName: string;
   carModel: string;
   bestLapSeconds: number | null;
-  rpm?: number | null;
-  gear?: number | null;
+  lastLapSeconds?: number | null;
   speedKph?: number | null;
   tireName?: string | null;
   onPitRoad?: boolean;
