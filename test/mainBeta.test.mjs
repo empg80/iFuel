@@ -40,6 +40,7 @@ function loadMain({ version }) {
     Notification: Object.assign(function (o) { calls.notifications.push(o); return { show() {} }; }, { isSupported: () => true }),
     nativeImage: { createFromPath: () => ({ isEmpty: () => false }) },
     ipcMain: { handle() {}, on() {} },
+    session: { defaultSession: { setPermissionRequestHandler() {}, setPermissionCheckHandler() {}, setDevicePermissionHandler() {} } },
     globalShortcut: { register: () => true, unregisterAll() {} },
     screen: {
       getPrimaryDisplay: () => ({ id: 1, bounds: { x: 0, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 }),
