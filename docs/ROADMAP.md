@@ -351,3 +351,4 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 
 ## Tarjeta del piloto en replay (24-nov) - beta.64
 - Sin marcha/RPM; con mejor vuelta, ultima vuelta, neumatico y paradas en boxes (`cameraDriver.lastLapSeconds`, `pitStops` de standings).
+- Bug (24-nov): la ventana de replay quedaba abierta al salir y al cambiar de layout; ahora se cierra (beta.64). Idea de Kike: mas disenos y paletas para el layout de replay (ver conversacion; pendiente de mockup).

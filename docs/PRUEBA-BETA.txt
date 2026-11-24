@@ -4,6 +4,7 @@ iFUEL BETA - GUIA DE LA PRUEBA
 NOVEDAD BETA.64 - TARJETA DEL PILOTO EN EL REPLAY
 -------------------------------------------------
 Quitadas marcha y RPM. Ahora: km/h, mejor vuelta, ultima vuelta, neumatico y estado de boxes ("Sin parar", "N paradas" o "EN BOX").
+Tambien: la ventana de replay ya se cierra al salir de iFuel y al cambiar a Libre o PitBoard.
 Que mirar: que la ultima vuelta se actualice al cruzar meta y que el contador de paradas suba tras pasar por boxes.
 
 NOVEDAD BETA.63 - TORRE DEL REPLAY POR CATEGORIAS

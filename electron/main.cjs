@@ -127,8 +127,9 @@ function createReplayWindow() {
     );
   }
 
-  replayWindow.on("closed", () => {
-    replayWindow = null;
+  const win = replayWindow;
+  win.on("closed", () => {
+    if (replayWindow === win) replayWindow = null;
   });
 }
 
@@ -143,7 +144,7 @@ function setReplayVisible(visible) {
       replayWindow.show();
     }
   } else if (replayWindow) {
-    replayWindow.hide();
+    replayWindow.close();
   }
 
   sendOverlayState();
@@ -591,8 +592,7 @@ function buildLegacyMenuTemplate() {
           checked: overlayState.layoutMode === "free",
           click: () => {
             overlayState.layoutMode = "free";
-            saveOverlayState();
-            sendOverlayState();
+            setReplayVisible(false); // guarda, oculta la ventana de replay y envía el estado
           },
         },
         {
@@ -602,8 +602,7 @@ function buildLegacyMenuTemplate() {
           click: () => {
             overlayState.layoutMode = "pitboard";
             overlayState.widgetsLocked = true;
-            saveOverlayState();
-            sendOverlayState();
+            setReplayVisible(false);
           },
         },
         {
@@ -1441,6 +1440,14 @@ app.on("before-quit", (event) => {
   if (quitting) return;
   quitting = true;
   event.preventDefault();
+  // las ventanas desaparecen ya: el cierre (servidor + informe) puede tardar unos segundos
+  for (const w of [replayWindow, mainWindow]) {
+    try {
+      if (w && !w.isDestroyed()) w.destroy();
+    } catch {
+      /* ignorar */
+    }
+  }
   console.log("[iFuel] Cierre: iniciado");
   if (topmostTimer) clearInterval(topmostTimer);
   if (betaTimer) clearInterval(betaTimer);
