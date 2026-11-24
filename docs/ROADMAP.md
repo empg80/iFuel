@@ -356,3 +356,9 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Replay: diseños, paletas e infografia (24-nov) - beta.65, pendiente validar
 - 3 diseños (tv, ribbon, pylon) y 6 paletas; ajustes en overlayState (replayDesign/Palette/GapMode/Guides/PhaseS) enviados tambien a la ventana de replay; color propio en replay-colores.json; parametros por URL para OBS.
 - Torre: cambios de posicion, neumatico, PIT, VR, intervalo; tarjeta: batalla con delante/detras. Tests: replayData.test.mjs, towerPhases.test.mjs (test/_tsLoad.mjs empaqueta TS con esbuild).
+
+## Beta.66 - seguridad y optimizacion
+- IPC solo desde la app (isTrustedSender), navegacion/ventanas bloqueadas, permisos denegados, Host + cabeceras en el servidor estatico, limites .ibt (tamano, worker 1.5 GB/10 min), fuses de Electron, npm audit fix (electron 40.10.6).
+- Pendiente: Electron 40 tiene avisos que solo se cierran en >=42 (probar en beta aparte); vulnerabilidades restantes son de dependencias de desarrollo.
+- Nota privacidad: el informe beta puede incluir rutas de Windows en los logs.
+- Optimizacion: contrapresion WS (1 MB por cliente), retirados widgets antiguos del replay, medidas: bundle JS 374 KB, payload ~10 KB a 4 Hz.

@@ -34,6 +34,7 @@ import { createCarTracker, createTraceBuffer, CAR_VARS } from "./carData.mjs";
 
 const TIMEOUT = Math.floor((1 / 60) * 1000);
 const BROADCAST_INTERVAL = 250; // ms
+const MAX_CLIENT_BACKLOG = 1024 * 1024; // bytes pendientes por cliente WS antes de saltar envíos
 const WS_PORT = 7071;
 const WS_PATH = "/ifuel";
 const WS_HOST = "127.0.0.1"; 
@@ -1379,7 +1380,8 @@ standings.sort((a, b) => a.position - b.position);
     }
 
     wss.clients.forEach((client) => {
-      if (client.readyState === 1) {
+      // Cliente lento (p. ej. OBS bloqueado): si ya tiene >1 MB pendiente se salta el envío para no acumular memoria
+      if (client.readyState === 1 && client.bufferedAmount < MAX_CLIENT_BACKLOG) {
         client.send(payload);
       }
     });
@@ -1409,7 +1411,7 @@ standings.sort((a, b) => a.position - b.position);
           lastCarLeftRight = lr;
           diag.recorder?.write(JSON.stringify({ _spotter: { t: Date.now(), carLeftRight: lr } }) + "\n"); // para revisar el spotter en los informes
           const msg = JSON.stringify({ type: "spotter", carLeftRight: lr, t: Date.now() });
-          wss.clients.forEach((c) => { if (c.readyState === 1) c.send(msg); });
+          wss.clients.forEach((c) => { if (c.readyState === 1 && c.bufferedAmount < MAX_CLIENT_BACKLOG) c.send(msg); });
         }
       } catch { /* ignorar un fallo puntual de lectura */ }
     }, Math.round(1000 / trace.hz));

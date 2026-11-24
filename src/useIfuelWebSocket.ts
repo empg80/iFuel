@@ -135,7 +135,7 @@ type RawMessage = {
   sessionName?: string | null;
   sessionType?: string | null;
 
-  // datos para TrackInfoWidget
+  // datos de pista/meteo
   trackName?: string;
   trackLength?: string;
   windSpeed?: number | null;

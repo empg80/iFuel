@@ -12,9 +12,6 @@ import { PitClearAirWidget } from "../components/PitClearAirWidget";
 import { RaceStandingsWidget } from "../components/RaceStandingsWidget";
 import type { StandingsRow } from "../types/standings";
 import { RaceStandingsWidgetContainer } from "../components/RaceStandingsWidgetContainer";
-import { ReplayTowerWidget } from "../components/ReplayTowerWidget";
-import { DriverFocusWidget } from "../components/DriverFocusWidget";
-import { TrackInfoWidget } from "../components/TrackInfoWidget";
 import { PitboardLayout } from "../PitboardLayout";
 import type { IfuelState } from "../useIfuelWebSocket";
 
@@ -225,27 +222,6 @@ function Scene({ scene }: { scene: string }) {
       <div className="app-root app-root--free" style={{ position: "absolute", inset: 0, display: "block", minHeight: 0 }}>
         <Backdrop />
         <RaceStandingsWidgetContainer state={null} raceStandingsRows={rows} isConnected={true} />
-      </div>
-    );
-  }
-
-  if (scene === "replay") {
-    // Vista replay (retransmisión): torre, piloto en foco e info de pista
-    const towerRows: StandingsRow[] = Array.from({ length: 22 }, (_, i) => {
-      const base = rows[i % rows.length];
-      return { ...base, position: i + 1, carNumber: String(base.carNumber), driverName: i < rows.length ? base.driverName : `Driver ${i + 1}`, gapToLeader: i === 0 ? 0 : i < 14 ? i * 3.417 + (i > 9 ? 40 : 0) : null, lapsDown: i >= 14 ? 1 + (i > 18 ? 1 : 0) : 0 };
-    });
-    return (
-      <div className="replay-root" style={{ position: "absolute", inset: 0 }}>
-        <Backdrop />
-        <TrackInfoWidget trackName="Autodromo Nazionale Monza" trackLength="5.79 km" airTemp={24.3} trackTemp={36.8} windSpeed={11.5} windDirection="NW" rainChance={10} />
-        <ReplayTowerWidget
-          state={{ classColorIndexById: classColors, sessionLapsRemainEx: 12, sessionTimeRemain: 0, yellowWarning: null }}
-          rows={towerRows}
-          highlightCarNumber="14"
-          seriesName="iFuel Replay"
-        />
-        <DriverFocusWidget driver={{ position: 5, carNumber: "14", driverName: "R. Costa", carModel: "Porsche 911 GT3 R", bestLapTime: 109.4 }} />
       </div>
     );
   }

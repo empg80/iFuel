@@ -1,6 +1,17 @@
 iFUEL BETA - GUIA DE LA PRUEBA
 ==============================
 
+
+NOVEDAD BETA.66 - SEGURIDAD Y OPTIMIZACION (sin cambios visibles)
+ - Endurecimiento: solo la propia app puede usar los canales internos (IPC); las ventanas no pueden navegar
+   fuera ni abrir otras; se deniegan todos los permisos del navegador; el servidor local valida Host y envia
+   cabeceras de seguridad; limites de tamano al leer .ibt y memoria/tiempo del analisis; Electron con fuses
+   (sin RunAsNode, sin NODE_OPTIONS, solo carga desde app.asar); dependencias actualizadas (npm audit).
+ - Optimizacion: un cliente lento (OBS bloqueado) ya no acumula memoria en el servidor; codigo muerto retirado.
+ QUE MIRAR: que la app arranca; pestana Analisis (cargar un .ibt); cambios de layout/overlay; ventana de replay
+ (abrir/cerrar); OBS en el navegador (http://127.0.0.1:7071). Si algo de esto falla, mandame el informe beta:
+ el log mostrara "[iFuel] IPC rechazado desde:".
+
 NOVEDAD BETA.65 - REPLAY: DISEÑOS, PALETAS E INFOGRAFIA
 -------------------------------------------------------
 Menu de bandeja > "Replay / retransmision":

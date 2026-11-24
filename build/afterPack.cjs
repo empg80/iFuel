@@ -42,6 +42,7 @@ exports.default = async function afterPack(context) {
 // código solo desde app.asar. Si algo de esto falla, el empaquetado se detiene: mejor eso que un .exe a medias.
 async function flipSecurityFuses(context) {
   const { flipFuses, getCurrentFuseWire, FuseVersion, FuseV1Options } = require("@electron/fuses");
+  const { FuseState } = require("@electron/fuses/dist/constants");
   const exePath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.exe`);
   if (!fs.existsSync(path.join(context.appOutDir, "resources", "app.asar"))) {
     throw new Error("Falta resources/app.asar: no se puede activar OnlyLoadAppFromAsar");
@@ -54,7 +55,13 @@ async function flipSecurityFuses(context) {
     [FuseV1Options.OnlyLoadAppFromAsar]: true,
   });
   const wire = await getCurrentFuseWire(exePath);
-  if (wire[FuseV1Options.RunAsNode] || wire[FuseV1Options.EnableNodeOptionsEnvironmentVariable] || wire[FuseV1Options.EnableNodeCliInspectArguments] || !wire[FuseV1Options.OnlyLoadAppFromAsar]) {
+  const expected = {
+    [FuseV1Options.RunAsNode]: FuseState.DISABLE,
+    [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: FuseState.DISABLE,
+    [FuseV1Options.EnableNodeCliInspectArguments]: FuseState.DISABLE,
+    [FuseV1Options.OnlyLoadAppFromAsar]: FuseState.ENABLE,
+  };
+  if (Object.entries(expected).some(([k, v]) => wire[k] !== v)) {
     throw new Error("Los fuses de Electron no quedaron como se esperaba");
   }
   console.log("  • afterPack: fuses de seguridad activados (RunAsNode, NODE_OPTIONS e inspector desactivados; solo app.asar)");
