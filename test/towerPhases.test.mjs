@@ -1,12 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
-import fs from "node:fs";
-import ts from "typescript";
 
-const src = fs.readFileSync(new URL("../src/utils/towerPhases.ts", import.meta.url), "utf8");
-const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2020 } }).outputText;
-const m = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+import { loadTs } from "./_tsLoad.mjs";
+const m = await loadTs("../src/utils/towerPhases.ts");
 
 const row = (position, classId, gap, lapsDown = 0) => ({ position, classId, carNumber: String(position), driverName: "x", gapToLeader: gap, lapsDown });
 

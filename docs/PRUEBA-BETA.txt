@@ -1,6 +1,17 @@
 iFUEL BETA - GUIA DE LA PRUEBA
 ==============================
 
+NOVEDAD BETA.65 - REPLAY: DISEÑOS, PALETAS E INFOGRAFIA
+-------------------------------------------------------
+Menu de bandeja > "Replay / retransmision":
+  - Diseño: TV moderno (torre lateral), Cinta inferior, Pilon estrecho.
+  - Paleta: Cian y violeta, Rojo F1, Verde, Naranja, Monocromo, Color propio (edita replay-colores.json: fondo, acento, acento2).
+  - Huecos: al lider o intervalo con el de delante. Cambio de fase: 5/10/15/20 s. Contorno de los huecos de logo y trazado.
+Torre: flechas de puestos ganados/perdidos (desde que ves el replay), neumatico (S/M/H...), PIT, VR (vuelta rapida).
+Tarjeta del piloto: tira con el coche de delante y de detras (verde/rojo segun se acerque o se aleje: delante acercarse = bien, detras acercarse = amenaza).
+OBS: la misma pagina admite parametros: http://127.0.0.1:7071/#/replay?design=ribbon&palette=f1&gap=interval&guides=1&phase=10&serie=Nombre
+Que mirar: que cada diseño/paleta se aplique al momento, que las flechas y VR tengan sentido, y que los huecos de logo/trazado queden vacios.
+
 NOVEDAD BETA.64 - TARJETA DEL PILOTO EN EL REPLAY
 -------------------------------------------------
 Quitadas marcha y RPM. Ahora: km/h, mejor vuelta, ultima vuelta, neumatico y estado de boxes ("Sin parar", "N paradas" o "EN BOX").

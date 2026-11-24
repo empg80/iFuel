@@ -352,3 +352,7 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Tarjeta del piloto en replay (24-nov) - beta.64
 - Sin marcha/RPM; con mejor vuelta, ultima vuelta, neumatico y paradas en boxes (`cameraDriver.lastLapSeconds`, `pitStops` de standings).
 - Bug (24-nov): la ventana de replay quedaba abierta al salir y al cambiar de layout; ahora se cierra (beta.64). Idea de Kike: mas disenos y paletas para el layout de replay (ver conversacion; pendiente de mockup).
+
+## Replay: diseños, paletas e infografia (24-nov) - beta.65, pendiente validar
+- 3 diseños (tv, ribbon, pylon) y 6 paletas; ajustes en overlayState (replayDesign/Palette/GapMode/Guides/PhaseS) enviados tambien a la ventana de replay; color propio en replay-colores.json; parametros por URL para OBS.
+- Torre: cambios de posicion, neumatico, PIT, VR, intervalo; tarjeta: batalla con delante/detras. Tests: replayData.test.mjs, towerPhases.test.mjs (test/_tsLoad.mjs empaqueta TS con esbuild).

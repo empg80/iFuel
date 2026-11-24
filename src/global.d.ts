@@ -41,6 +41,12 @@ declare global {
 
     layoutMode?: "free" | "pitboard" | "replay"; // añade "replay"
     replayVisible?: boolean; // opcional, para saber si la ventana está abierta
+    replayDesign?: "tv" | "ribbon" | "pylon";
+    replayPalette?: "cyan" | "f1" | "green" | "orange" | "mono" | "custom";
+    replayGapMode?: "leader" | "interval";
+    replayGuides?: boolean;
+    replayPhaseS?: number;
+    replayCustom?: { fondo: string; acento: string; acento2: string };
   }
 
   interface IfuelOverlayAPI {
@@ -48,6 +54,7 @@ declare global {
       callback: (state: IfuelOverlayState) => void,
     ): () => void;
     setMouseCapture?(capture: boolean): void;
+    getState?(): Promise<IfuelOverlayState>;
     updateState?(partial: Partial<IfuelOverlayState>): Promise<unknown>;
     getSpotterPhrases?(): Promise<unknown>;
     onSpotterPhrases?(callback: (phrases: unknown) => void): () => void;

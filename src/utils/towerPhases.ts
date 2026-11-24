@@ -1,8 +1,9 @@
 // Fases de la torre de replay: General y una por categoría (si hay más de una clase).
 import type { StandingsRow } from "../types/standings";
+import { classIntervals } from "./replayData";
 
 export type TowerPhase = { key: string; classId: number | null };
-export type TowerRow = StandingsRow & { shownPos: number; gapText: string };
+export type TowerRow = StandingsRow & { shownPos: number; gapText: string; intervalText: string };
 
 export const TOWER_MAX_ROWS = 20;
 export const TOWER_PINNED = 3;
@@ -35,11 +36,19 @@ function gapLabel(gap: number | null | undefined, lapsDown: number): string {
 
 export function phaseRows(rows: StandingsRow[], phase: TowerPhase): TowerRow[] {
   const sorted = [...rows].sort((a, b) => a.position - b.position);
+  const iv = classIntervals(rows);
+  const ivText = (r: StandingsRow): string => {
+    const v = iv.get(r.carNumber.replace(/^#/, "").replace(/^0+(?=\d)/, ""));
+    if (!v) return "Líder";
+    if (v.laps > 0) return `L${v.laps}`;
+    return v.seconds == null ? "--" : `+${v.seconds.toFixed(1)}`;
+  };
   if (phase.classId == null) {
     return sorted.map((r) => ({
       ...r,
       shownPos: r.position,
       gapText: r.position === sorted[0].position ? "Líder" : gapLabel(r.gapToLeader, r.lapsDown),
+      intervalText: ivText(r),
     }));
   }
   const cls = sorted.filter((r) => r.classId === phase.classId);
@@ -47,6 +56,7 @@ export function phaseRows(rows: StandingsRow[], phase: TowerPhase): TowerRow[] {
   return cls.map((r, i) => ({
     ...r,
     shownPos: i + 1,
+    intervalText: ivText(r),
     gapText:
       i === 0
         ? "Líder"

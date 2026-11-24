@@ -6,6 +6,7 @@
   --bc-violet: #7c3aed;
   --bc-mute: #8fa0bb;
   --bc-dark-on-cyan: #04202a;
+  --bc-on-b: #ffffff;
   font-family: "Barlow", "Barlow Condensed", system-ui, sans-serif;
   color: #fff;
   font-variant-numeric: tabular-nums;
@@ -45,7 +46,7 @@
 .bc-flag { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; }
 .bc-flag--green { background: #a3e635; }
 .bc-flag--yellow { background: #fbbf24; }
-.bc-tower__time { display: flex; justify-content: space-between; align-items: center; background: var(--bc-violet); padding: 5px 14px; font-size: 17px; font-weight: 600; }
+.bc-tower__time { display: flex; justify-content: space-between; align-items: center; color: var(--bc-on-b); background: var(--bc-violet); padding: 5px 14px; font-size: 17px; font-weight: 600; }
 .bc-row { display: flex; align-items: center; gap: 8px; background: var(--bc-ink); height: 28px; margin-top: 2px; padding-right: 14px; font-size: 18px; font-weight: 600; border-radius: 0 6px 6px 0; }
 .bc-row__pos { width: 32px; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bc-ink-2); }
 .bc-row__cls { width: 4px; height: 60%; border-radius: 2px; background: var(--cc, #5b6b86); }
@@ -69,13 +70,23 @@
 .bc-circuit__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 2px; }
 .bc-circuit__grid div { background: var(--bc-ink); padding: 6px 14px; font-size: 13px; color: var(--bc-mute); line-height: 1.1; }
 .bc-circuit__grid b { display: block; font-size: 20px; color: #fff; font-weight: 600; }
-.bc-circuit__clock { display: flex; justify-content: space-between; align-items: center; background: var(--bc-violet); padding: 6px 16px; margin-top: 2px; border-radius: 0 0 10px 10px; font-size: 17px; font-weight: 600; }
+.bc-circuit__clock { display: flex; justify-content: space-between; align-items: center; color: var(--bc-on-b); background: var(--bc-violet); padding: 6px 16px; margin-top: 2px; border-radius: 0 0 10px 10px; font-size: 17px; font-weight: 600; }
 
 /* ---------- coche en pantalla ---------- */
-.bc-car { position: fixed; left: 50%; transform: translateX(-50%); bottom: 5vh; width: 68vw; max-width: 1300px; min-width: 640px; display: flex; height: 72px; border-radius: 12px; overflow: hidden; }
+.bc-carwrap { position: fixed; left: 50%; transform: translateX(-50%); bottom: 5vh; width: 68vw; max-width: 1300px; min-width: 640px; }
+.bc-car { display: flex; height: 72px; border-radius: 0 0 12px 12px; overflow: hidden; margin-top: 2px; }
+.bc-battle { display: flex; gap: 2px; }
+.bc-battle__side { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--bc-ink); padding: 5px 14px; font-size: 16px; font-weight: 600; }
+.bc-battle__side:first-child { border-radius: 12px 0 0 0; }
+.bc-battle__side:last-child { border-radius: 0 12px 0 0; }
+.bc-battle__side b { font-size: 22px; font-weight: 700; }
+.bc-battle__side em { font-style: normal; font-size: 13px; font-weight: 500; color: var(--bc-mute); min-width: 84px; text-align: right; }
+.bc-battle__side.is-good b, .bc-battle__side.is-good em { color: #4ade80; }
+.bc-battle__side.is-bad b, .bc-battle__side.is-bad em { color: #f87171; }
+.bc-battle__side--empty { color: var(--bc-mute); font-weight: 500; justify-content: center; }
 .bc-car__pos { background: var(--bc-cyan); color: var(--bc-dark-on-cyan); width: 78px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; line-height: 0.9; flex: none; }
 .bc-car__pos small { font-size: 12px; letter-spacing: 0.1em; }
-.bc-car__num { background: var(--bc-violet); width: 70px; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 700; flex: none; }
+.bc-car__num { background: var(--bc-violet); color: var(--bc-on-b); width: 70px; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 700; flex: none; }
 .bc-car__name { background: var(--bc-ink); flex: 1; padding: 0 18px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .bc-car__a { font-size: 28px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bc-car__b { font-size: 14px; color: var(--bc-mute); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -98,3 +109,55 @@
 .bc-pin { border-left: 3px solid var(--ph, var(--bc-violet)); margin-top: 2px; }
 .bc-pin .bc-row:first-child { margin-top: 0; }
 .bc-scroll { position: relative; overflow: hidden; height: calc(17 * 30px); margin-top: 2px; }
+
+/* cambios de posición, insignias */
+.bc-ar { width: 30px; text-align: center; font-size: 13px; font-weight: 600; flex: none; }
+.bc-ar--up { color: #4ade80; }
+.bc-ar--dn { color: #f87171; }
+.bc-ar--eq { color: var(--bc-mute); }
+.bc-row.is-focus .bc-ar { color: var(--bc-dark-on-cyan); }
+.bc-tag { font-size: 12px; font-weight: 700; border-radius: 3px; padding: 0 5px; line-height: 17px; flex: none; }
+.bc-tag--vr { background: #d946ef; color: #fff; }
+.bc-tag--pit { background: #fbbf24; color: #1a1200; }
+.bc-tag--tS { background: #ef4444; color: #fff; }
+.bc-tag--tM { background: #fbbf24; color: #1a1200; }
+.bc-tag--tH { background: #e5e7eb; color: #111; }
+.bc-tag--tI { background: #22c55e; color: #052e16; }
+.bc-tag--tW { background: #3b82f6; color: #fff; }
+.bc-tag--tD { background: #cbd5e1; color: #111; }
+
+/* ---------- diseño cinta inferior ---------- */
+.d-ribbon .bc-tower { display: none; }
+.bc-session { position: fixed; left: 2.2vw; top: 4vh; display: flex; align-items: center; gap: 10px; background: var(--bc-ink); border-radius: 10px; padding: 6px 14px 6px 6px; max-width: 36vw; overflow: hidden; }
+.bc-session .bc-flag { border-radius: 0; }
+.bc-session__b { font-size: 15px; font-weight: 600; color: var(--bc-cyan); white-space: nowrap; }
+.bc-ribbon { position: fixed; left: 2.2vw; right: 2.2vw; bottom: 3vh; height: 46px; display: flex; align-items: stretch; background: var(--bc-ink); border-radius: 8px; overflow: hidden; }
+.bc-ribbon__bar { position: absolute; left: 0; right: 0; top: 0; height: 3px; }
+.bc-ribbon__bar i { display: block; height: 3px; width: 100%; background: var(--ph, var(--bc-cyan)); transform-origin: left; animation: bc-phase linear forwards; }
+.bc-ribbon__lbl { flex: none; background: var(--bc-violet); color: var(--bc-on-b); padding: 0 16px; display: flex; flex-direction: column; justify-content: center; font-size: 20px; font-weight: 700; line-height: 1; }
+.bc-ribbon__lbl small { font-size: 12px; font-weight: 500; opacity: 0.85; }
+.bc-ribbon__list { flex: 1; display: flex; min-width: 0; animation: bc-fade 0.35s ease-out; }
+.bc-ribbon__pin { display: flex; flex: none; border-right: 3px solid var(--ph, var(--bc-violet)); }
+.bc-ribbon__scroll { display: flex; flex: 1; overflow: hidden; min-width: 0; }
+.bc-chip { display: flex; align-items: center; gap: 6px; padding: 0 12px; flex: none; font-size: 19px; font-weight: 600; border-left: 1px solid rgba(255, 255, 255, 0.1); white-space: nowrap; }
+.bc-chip__pos { font-weight: 700; }
+.bc-chip__cls { width: 4px; height: 55%; border-radius: 2px; background: var(--cc, #5b6b86); }
+.bc-chip__gap { color: var(--bc-mute); font-weight: 500; }
+.bc-chip.is-focus { background: var(--bc-cyan); color: var(--bc-dark-on-cyan); }
+.bc-chip.is-focus .bc-chip__gap, .bc-chip.is-focus .bc-ar { color: var(--bc-dark-on-cyan); }
+.d-ribbon .bc-carwrap { bottom: calc(3vh + 56px); }
+.d-ribbon .bc-circuit__map { display: none; }
+
+/* ---------- diseño pilón estrecho ---------- */
+.d-pylon .bc-tower { top: 3vh; bottom: 3vh; width: 15vw; min-width: 190px; max-width: 280px; display: flex; flex-direction: column; }
+.d-pylon .bc-tower__list { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.d-pylon .bc-tower__a { font-size: 17px; }
+.d-pylon .bc-tower__time { font-size: 13px; padding: 3px 8px; flex-direction: column; align-items: flex-start; }
+.d-pylon .bc-row { height: 24px; font-size: 16px; gap: 5px; padding-right: 8px; }
+.d-pylon .bc-row__pos { width: 26px; }
+.d-pylon .bc-ar { width: 24px; font-size: 11px; }
+.d-pylon .bc-scroll { height: auto; flex: 1; }
+.d-pylon .bc-slot--logo { width: 40px; height: 40px; }
+.d-pylon .bc-carwrap { left: auto; right: 2.2vw; transform: none; width: 56vw; min-width: 520px; }
+.d-pylon .bc-car__opt { display: none; }
+.d-pylon .bc-circuit { right: 2.2vw; }

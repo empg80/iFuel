@@ -128,6 +128,9 @@ function createReplayWindow() {
   }
 
   const win = replayWindow;
+  win.webContents.on("did-finish-load", () => {
+    if (!win.isDestroyed()) win.webContents.send("overlay-state-changed", fullOverlayState());
+  });
   win.on("closed", () => {
     if (replayWindow === win) replayWindow = null;
   });
@@ -168,6 +171,11 @@ const DEFAULT_OVERLAY_STATE = {
   widgetsLocked: true,
   fuelSettingsVisible: false,
   replayVisible: false, // ventana de broadcast apagada por defecto
+  replayDesign: "tv", // tv | ribbon | pylon
+  replayPalette: "cyan", // cyan | f1 | green | orange | mono | custom
+  replayGapMode: "leader", // leader | interval
+  replayGuides: false, // contorno de los huecos de logo y trazado (para colocar la imagen en OBS)
+  replayPhaseS: 10, // segundos por fase (General / categorías)
 
   fuelScale: 1,
   relativeScale: 1,
@@ -249,6 +257,12 @@ function validateOverlayState(candidate) {
   ) {
     return false;
   }
+
+  if (candidate.replayDesign != null && !["tv", "ribbon", "pylon"].includes(candidate.replayDesign)) return false;
+  if (candidate.replayPalette != null && !["cyan", "f1", "green", "orange", "mono", "custom"].includes(candidate.replayPalette)) return false;
+  if (candidate.replayGapMode != null && !["leader", "interval"].includes(candidate.replayGapMode)) return false;
+  if (candidate.replayGuides != null && typeof candidate.replayGuides !== "boolean") return false;
+  if (candidate.replayPhaseS != null && ![5, 10, 15, 20].includes(candidate.replayPhaseS)) return false;
 
   if (
     candidate.overlayDisplayId != null &&
@@ -467,8 +481,31 @@ ipcMain.handle("ibt:analyze", (event, filePath) => {
   });
 });
 
+// ---- Paleta propia del replay: replay-colores.json en la carpeta de datos (editable) ----
+const replayColorsPath = path.join(app.getPath("userData"), "replay-colores.json");
+let replayColorsWatched = false;
+const REPLAY_COLORS_DEFAULT = { fondo: "#0b0f19", acento: "#ec4899", acento2: "#38bdf8" };
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+function readReplayColors() {
+  try {
+    if (!fs.existsSync(replayColorsPath)) {
+      fs.writeFileSync(replayColorsPath, JSON.stringify(REPLAY_COLORS_DEFAULT, null, 2), "utf8");
+      return { ...REPLAY_COLORS_DEFAULT };
+    }
+    const parsed = JSON.parse(fs.readFileSync(replayColorsPath, "utf8"));
+    const out = { ...REPLAY_COLORS_DEFAULT };
+    for (const k of Object.keys(out)) if (typeof parsed?.[k] === "string" && HEX_RE.test(parsed[k])) out[k] = parsed[k];
+    return out;
+  } catch {
+    return { ...REPLAY_COLORS_DEFAULT };
+  }
+}
+function fullOverlayState() {
+  return { ...overlayState, overlayActive: windowIsOverlay, replayCustom: readReplayColors() };
+}
+
 ipcMain.handle("overlay:get-state", () => {
-  return overlayState;
+  return fullOverlayState();
 });
 
 ipcMain.handle("overlay:update-partial", (_event, partial) => {
@@ -500,6 +537,11 @@ const allowedKeys = new Set([
   "dashScale",
   "layoutMode",
   "replayVisible",
+  "replayDesign",
+  "replayPalette",
+  "replayGapMode",
+  "replayGuides",
+  "replayPhaseS",
   "overlayMode",
   "overlayDisplayId",
   "fuelDetail",
@@ -552,12 +594,12 @@ function syncWindowMode() {
 }
 
 function sendOverlayState() {
+  if (replayWindow && !replayWindow.isDestroyed()) {
+    replayWindow.webContents.send("overlay-state-changed", fullOverlayState());
+  }
   if (!mainWindow) return;
   if (syncWindowMode()) return; // la ventana nueva envía el estado al terminar de cargar
-  mainWindow.webContents.send("overlay-state-changed", {
-    ...overlayState,
-    overlayActive: windowIsOverlay,
-  });
+  mainWindow.webContents.send("overlay-state-changed", fullOverlayState());
   refreshTray();
 }
 
@@ -1025,6 +1067,50 @@ function buildMenuTemplate() {
           click: (item) => { overlayState.showAllWidgets = item.checked; save(); },
         },
         pick("Restablecer posiciones de los widgets"),
+      ],
+    },
+    {
+      label: "Replay / retransmisión",
+      submenu: [
+        { label: "Diseño", enabled: false },
+        ...[["tv", "TV moderno (torre lateral)"], ["ribbon", "Cinta inferior"], ["pylon", "Pilón estrecho"]].map(([v, label]) => ({
+          label, type: "radio", checked: overlayState.replayDesign === v,
+          click: () => { overlayState.replayDesign = v; save(); },
+        })),
+        { type: "separator" },
+        { label: "Paleta de colores", enabled: false },
+        ...[["cyan", "Cian y violeta"], ["f1", "Rojo F1"], ["green", "Verde"], ["orange", "Naranja"], ["mono", "Monocromo"], ["custom", "Color propio"]].map(([v, label]) => ({
+          label, type: "radio", checked: overlayState.replayPalette === v,
+          click: () => { overlayState.replayPalette = v; save(); },
+        })),
+        {
+          label: "Editar color propio (abre replay-colores.json)",
+          click: () => {
+            readReplayColors(); // crea el archivo si no existe
+            shell.openPath(replayColorsPath);
+            if (!replayColorsWatched) {
+              replayColorsWatched = true;
+              fs.watchFile(replayColorsPath, { interval: 1500 }, () => sendOverlayState());
+            }
+          },
+        },
+        { type: "separator" },
+        { label: "Huecos en la torre", enabled: false },
+        ...[["leader", "Hueco al líder"], ["interval", "Intervalo con el de delante"]].map(([v, label]) => ({
+          label, type: "radio", checked: overlayState.replayGapMode === v,
+          click: () => { overlayState.replayGapMode = v; save(); },
+        })),
+        { type: "separator" },
+        { label: "Cambio de fase (General / categorías)", enabled: false },
+        ...[5, 10, 15, 20].map((n) => ({
+          label: `${n} s`, type: "radio", checked: overlayState.replayPhaseS === n,
+          click: () => { overlayState.replayPhaseS = n; save(); },
+        })),
+        { type: "separator" },
+        {
+          label: "Mostrar contorno de los huecos (logo y trazado)", type: "checkbox", checked: overlayState.replayGuides,
+          click: (item) => { overlayState.replayGuides = item.checked; save(); },
+        },
       ],
     },
     find("Spotter"),
