@@ -2,6 +2,8 @@
   <img src="docs/screenshots/hero.png" alt="iFuel · Overlay de combustible y estrategia para iRacing" width="100%">
 </p>
 
+<p align="center"><b>Español</b> · <a href="README.en.md">English</a></p>
+
 # iFuel · Overlay de combustible y estrategia para iRacing
 
 iFuel es una aplicación de escritorio para Windows que lee la telemetría de iRacing y te la muestra donde la necesitas: un **overlay** sobre el juego, un **pitboard** en una segunda pantalla, una **retransmisión estilo TV** para tus directos y un **analizador de vueltas** a partir de tus archivos `.ibt`. Todo funciona en local: sin cuentas, sin servicios externos.
