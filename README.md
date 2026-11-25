@@ -240,4 +240,4 @@ La hoja de ruta y las notas de cada versión están en [`docs/ROADMAP.md`](docs/
 - Diseño y pruebas: **Racing Day** ([YouTube](https://www.youtube.com/@RacingDaySimracing)).
 - Lectura de telemetría: [`irsdk-node`](https://github.com/bengsfort/irsdk-node). Tipografías: [Barlow](https://github.com/jpt/barlow) y Barlow Condensed (SIL Open Font License).
 - iRacing es una marca de iRacing.com Motorsport Simulations. iFuel es un proyecto independiente y no está afiliado a iRacing.
-- **Licencia:** por definir antes de la `v0.1.0`.
+- **Licencia:** [MIT](LICENSE). El nombre y el logo de Racing Day **no** están cubiertos por la licencia: no se pueden reutilizar sin permiso.
