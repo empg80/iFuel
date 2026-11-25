@@ -1,3 +1,4 @@
+import { shortDriverName } from "../utils/driverName";
 import React, { useMemo } from "react";
 import type { RelativeCar, OnTrackCar } from "../types/relative";
 import {
@@ -9,13 +10,6 @@ import { ClassBadge } from "./ClassBadge";
 import { ClassLegend } from "./ClassLegend";
 
 // "Nombre Apellido Segundo" -> "N. Apellido Segundo" (cabe mejor en el overlay)
-function shortDriverName(name?: string | null): string {
-  if (!name) return "";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length < 2) return name;
-  return `${parts[0][0]}. ${parts.slice(1).join(" ")}`;
-}
-
 type RelativeWidgetProps = {
   ahead: RelativeCar;
   behind: RelativeCar;

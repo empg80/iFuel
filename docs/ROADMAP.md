@@ -366,3 +366,7 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Beta.67 - layouts y monitores
 - Hecho: aviso en la ventana principal en modo replay; persistPosition (no se guarda la posicion recortada al cargar); standings con ancho fijo; geometria de ventana por layout (window-bounds.json por layout, monitor por defecto distinto del overlay); capturas reales recortadas (docs/screenshots/real-*) y demo (docs/demo-payload.json).
 - Pendiente README: redactarlo con las capturas de docs/screenshots.
+
+## Hacia beta.68 (sin empaquetar)
+- Nombres de piloto en formato "N. Apellido" en standings, relative, battle y replay (utils/driverName.ts; quita el sufijo numérico de iRacing).
+- Docs: hero.png (mosaico Racing Day) y replay-designs.png en docs/screenshots.

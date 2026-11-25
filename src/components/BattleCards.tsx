@@ -1,3 +1,4 @@
+import { shortDriverName } from "../utils/driverName";
 import React from "react";
 import type { RelativeCar, OnTrackCar } from "../types/relative";
 import { ClassBadge } from "./ClassBadge";
@@ -12,11 +13,6 @@ type Props = {
 };
 
 const gap = (g: number | null | undefined) => (g == null || !Number.isFinite(g) ? "--" : Math.abs(g) < 100 ? Math.abs(g).toFixed(1) : String(Math.round(Math.abs(g))));
-const short = (n?: string | null) => {
-  if (!n) return "";
-  const p = n.trim().split(/\s+/);
-  return p.length < 2 ? n : `${p[0][0]}. ${p.slice(1).join(" ")}`;
-};
 
 const Card: React.FC<{ side: "ahead" | "behind"; car: RelativeCar; cls?: Record<number, number> }> = ({ side, car, cls }) => {
   const d = car?.deltaLastToMe ?? null;
@@ -29,7 +25,7 @@ const Card: React.FC<{ side: "ahead" | "behind"; car: RelativeCar; cls?: Record<
       <span className="bc__side">{side === "ahead" ? "▲" : "▼"}</span>
       <b className="bc__num">{car?.carNum ?? "--"}</b>
       <ClassBadge small classId={car?.classId ?? null} classPosition={car?.classPosition ?? null} classColorIndexById={cls} />
-      <span className="bc__name">{short(car?.driverName)}</span>
+      <span className="bc__name">{shortDriverName(car?.driverName)}</span>
       <b className="bc__gap">{gap(car?.gapSeconds)}<small>s</small></b>
     </div>
   );

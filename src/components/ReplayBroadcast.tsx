@@ -1,5 +1,6 @@
 // src/components/ReplayBroadcast.tsx
 // Layout de replay estilo retransmisión: torre de tiempos, circuito y datos del coche en pantalla.
+import { shortDriverName } from "../utils/driverName";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { StandingsRow } from "../types/standings";
@@ -39,11 +40,6 @@ function carLabel(path: string): string {
   return path.replace(/[_-]+/g, " ").trim();
 }
 
-function shortName(full: string): string {
-  const p = (full || "").trim().split(/\s+/);
-  if (p.length <= 1) return p[0] ?? "";
-  return `${p[0].charAt(0).toUpperCase()}. ${p[p.length - 1]}`;
-}
 
 /* ---------- Torre (modelo común a los tres diseños) ---------- */
 type TowerProps = {
@@ -216,7 +212,7 @@ const TowerColumn: React.FC<TowerProps> = (p) => {
       <Change r={r} baseline={m.baseline} />
       <span className="bc-row__cls" />
       {!pylon && <span className="bc-row__num">{r.carNumber}</span>}
-      <span className="bc-row__name">{pylon ? shortCode(r.driverName) : shortName(r.driverName)}</span>
+      <span className="bc-row__name">{pylon ? shortCode(r.driverName) : shortDriverName(r.driverName)}</span>
       {!pylon && <Badges r={r} vr={m.vr} />}
       {pylon && r.inPit && <span className="bc-tag bc-tag--pit">PIT</span>}
       <span className="bc-row__gap">{m.gapOf(r)}</span>

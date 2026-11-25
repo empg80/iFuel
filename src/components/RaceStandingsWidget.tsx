@@ -1,3 +1,4 @@
+import { shortDriverName } from "../utils/driverName";
 import React from "react";
 // components/RaceStandingsWidget.tsx
 import clsx from "clsx";
@@ -165,7 +166,7 @@ export function RaceStandingsWidget({
                     </span>
                     <span className="race-standings__cell race-standings__cell--driver">
                       {isMe && <span className="race-standings__me-mark" aria-hidden="true">▶</span>}
-                      <span className="race-standings__name">{row.driverName}</span>
+                      <span className="race-standings__name">{shortDriverName(row.driverName)}</span>
                       {row.inPit && <span className="race-standings__tag race-standings__tag--pit" title="En boxes">PIT</span>}
                       {row.penalty && (
                         <span className={clsx("race-standings__tag", `race-standings__tag--${PENALTY[row.penalty].cls}`)} title={PENALTY[row.penalty].title}>
