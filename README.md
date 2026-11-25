@@ -179,7 +179,7 @@ El menú **Spotter** activa avisos de voz con voces naturales pregrabadas en esp
 
 ## Privacidad y seguridad
 
-- **Todo es local.** El servidor de telemetría escucha solo en `127.0.0.1:7071`; iFuel no envía datos a ningún servicio externo ni pide cuentas.
+- **Todo es local.** El servidor de telemetría escucha solo en `127.0.0.1:7071`; iFuel no envía datos de telemetría a ningún servicio ni pide cuentas. La única conexión externa es la comprobación opcional de versiones nuevas (consulta pública a `api.github.com`, sin enviar datos tuyos); se desactiva en *Avanzado → Comprobar actualizaciones automáticamente*. No descarga ni instala nada: solo avisa y abre la página del release.
 - Solo la propia aplicación puede usar sus canales internos; las ventanas no pueden navegar a otras páginas ni abrir ventanas nuevas, y se deniegan todos los permisos del navegador (cámara, micrófono, USB…).
 - El servidor valida la cabecera `Host` y envía cabeceras de seguridad.
 - Electron se empaqueta con los *fuses* de seguridad activados (sin `RunAsNode`, sin `NODE_OPTIONS`, sin inspector y cargando solo desde `app.asar`).

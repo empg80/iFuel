@@ -1062,6 +1062,68 @@ function buildLegacyMenuTemplate() {
 }
 
 // Menú principal reorganizado: lo de uso frecuente primero (widgets), luego pantalla, spotter, OBS y avanzado.
+// ── Actualizaciones (nivel 1: solo avisa y abre la página del release; no descarga ni instala nada) ──
+const updateCheck = require("./updateCheck.cjs");
+const updateSettingsPath = path.join(app.getPath("userData"), "update-settings.json");
+const updateSettings = { auto: true, betas: true, lastNotified: "" };
+let availableUpdate = null;
+let updateTimer = null;
+let updateFirstTimer = null;
+
+try {
+  const raw = JSON.parse(fs.readFileSync(updateSettingsPath, "utf8"));
+  if (typeof raw.auto === "boolean") updateSettings.auto = raw.auto;
+  if (typeof raw.betas === "boolean") updateSettings.betas = raw.betas;
+  if (typeof raw.lastNotified === "string") updateSettings.lastNotified = raw.lastNotified.slice(0, 64);
+} catch { /* primera vez o archivo ilegible: valores por defecto */ }
+
+function saveUpdateSettings() {
+  try { fs.writeFileSync(updateSettingsPath, JSON.stringify(updateSettings, null, 2)); } catch { /* best-effort */ }
+}
+
+function openUpdatePage() {
+  // la URL se reconstruye desde el tag validado, nunca viene tal cual de la respuesta
+  if (availableUpdate) shell.openExternal(updateCheck.releaseUrl(availableUpdate.tag)).catch(() => {});
+}
+
+async function runUpdateCheck({ manual }) {
+  const res = await updateCheck.checkForUpdate({ currentVersion: app.getVersion(), includePrereleases: updateSettings.betas });
+  availableUpdate = res.ok ? res.update : availableUpdate;
+  createMenu();
+  refreshTray();
+  if (res.ok && res.update) {
+    const u = res.update;
+    if (manual) {
+      const r = await dialog.showMessageBox({
+        type: "info", title: "iFuel", buttons: ["Abrir página de descarga", "Cerrar"], defaultId: 0, cancelId: 1,
+        message: `Hay una versión nueva: v${u.version}${u.prerelease ? " (beta)" : ""}`,
+        detail: `Tienes la v${app.getVersion()}.\n\n${u.notes.slice(0, 600)}\n\nSe abrirá la página de descarga en tu navegador; la instalación es manual.`,
+      });
+      if (r.response === 0) openUpdatePage();
+    } else if (updateSettings.lastNotified !== u.tag && Notification.isSupported()) {
+      updateSettings.lastNotified = u.tag;
+      saveUpdateSettings();
+      const n = new Notification({ title: "iFuel: actualización disponible", body: `Versión v${u.version}. Haz clic para abrir la descarga.` });
+      n.on("click", () => openUpdatePage());
+      n.show();
+    }
+  } else if (manual) {
+    await dialog.showMessageBox({
+      type: res.ok ? "info" : "warning", title: "iFuel", buttons: ["Cerrar"],
+      message: res.ok ? "Tienes la última versión." : "No se pudo comprobar las actualizaciones.",
+      detail: res.ok ? `Versión instalada: v${app.getVersion()}` : String(res.error),
+    });
+  }
+}
+
+function scheduleUpdateChecks() {
+  clearTimeout(updateFirstTimer);
+  clearInterval(updateTimer);
+  if (!updateSettings.auto || isDev) return;
+  updateFirstTimer = setTimeout(() => runUpdateCheck({ manual: false }), 10_000);
+  updateTimer = setInterval(() => runUpdateCheck({ manual: false }), 6 * 60 * 60 * 1000);
+}
+
 function buildMenuTemplate() {
   const old = buildLegacyMenuTemplate();
   const find = (label) => old.find((i) => i.label === label);
@@ -1179,9 +1241,23 @@ function buildMenuTemplate() {
         { label: "Servidor de telemetría", submenu: find("Server").submenu },
         { label: "Diagnóstico", submenu: find("Diagnostics").submenu },
         { type: "separator" },
+        { label: "Buscar actualizaciones…", click: () => runUpdateCheck({ manual: true }) },
+        {
+          label: "Comprobar actualizaciones automáticamente", type: "checkbox", checked: updateSettings.auto,
+          click: (item) => { updateSettings.auto = item.checked; saveUpdateSettings(); scheduleUpdateChecks(); },
+        },
+        {
+          label: "Incluir versiones beta", type: "checkbox", checked: updateSettings.betas,
+          click: (item) => { updateSettings.betas = item.checked; saveUpdateSettings(); runUpdateCheck({ manual: false }); },
+        },
+        { type: "separator" },
         { label: "Recargar widgets", role: "reload" },
       ],
     },
+    ...(availableUpdate ? [{
+      label: `⬆ Actualización disponible: v${availableUpdate.version}`,
+      submenu: [{ label: "Abrir página de descarga", click: () => openUpdatePage() }],
+    }] : []),
     ...(find("Prueba BETA") ? [find("Prueba BETA")] : []),
   ];
 }
@@ -1608,6 +1684,7 @@ if (!gotSingleInstanceLock) {
     createTray();
     registerShortcuts();
     startBetaSession();
+    scheduleUpdateChecks();
 
     // Reafirma "siempre encima" y reacomoda el overlay si cambian los monitores
     topmostTimer = setInterval(() => {

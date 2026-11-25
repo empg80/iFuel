@@ -1,6 +1,12 @@
 iFUEL BETA - GUIA DE LA PRUEBA
 ==============================
 
+NOVEDAD BETA.68 - AVISO DE ACTUALIZACIONES Y NOMBRES
+ - Nombres de piloto en formato "N. Apellido" (standings, relative, battle, replay).
+ - Aviso de versión nueva: a los 10 s de arrancar y cada 6 h consulta los releases de GitHub. Si hay una mayor, notificación una vez por versión y entrada "Actualización disponible" en el menú y la bandeja que abre la página de descarga. La instalación es manual.
+ - Menú Avanzado: "Buscar actualizaciones…", "Comprobar actualizaciones automáticamente", "Incluir versiones beta".
+ - Qué mirar: Avanzado > Buscar actualizaciones… debe decir "Tienes la última versión" (o avisar si ya existe una beta posterior).
+
 
 NOVEDAD BETA.67 - LAYOUTS, POSICIONES Y MONITORES
  - Layout Replay: la ventana principal ya no pinta los widgets del layout libre, solo un aviso con botones

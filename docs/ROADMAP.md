@@ -370,3 +370,4 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 ## Hacia beta.68 (sin empaquetar)
 - Nombres de piloto en formato "N. Apellido" en standings, relative, battle y replay (utils/driverName.ts; quita el sufijo numérico de iRacing).
 - Docs: hero.png (mosaico Racing Day) y replay-designs.png en docs/screenshots.
+- Actualizador nivel 1 hecho (electron/updateCheck.cjs): avisa y abre el release, sin autoinstalar. Nivel 2 (descarga + verificación SHA-256) descartado de momento.
