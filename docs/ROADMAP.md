@@ -371,3 +371,10 @@ Todo el roadmap entra antes de la release y no se añade nada nuevo hasta termin
 - Nombres de piloto en formato "N. Apellido" en standings, relative, battle y replay (utils/driverName.ts; quita el sufijo numérico de iRacing).
 - Docs: hero.png (mosaico Racing Day) y replay-designs.png en docs/screenshots.
 - Actualizador nivel 1 hecho (electron/updateCheck.cjs): avisa y abre el release, sin autoinstalar. Nivel 2 (descarga + verificación SHA-256) descartado de momento.
+
+## Test fin de semana 27-nov (beta.68) - pendiente, sin implementar
+- Pitboard, columna central: PARADAS PREVISTAS sale cortado (se ve solo la 1a fila). REGLAS DE LA CARRERA ocupa sitio debajo; propuesta: moverlo a la columna derecha.
+- Dashboard, tarjeta Trafico: en vez de solo "#35 delante" mostrar "#35 N. Apellido" (shortDriverName) delante y detras.
+- Analizador: poder cargar la vuelta/archivo .ibt de otro piloto para compararla con la propia (referencia externa).
+- Observado en el informe: sesion limpia (26 min, sin errores; cierre de iRacing y reconexion OK). overlay-state.overlayDisplayId (3339345084) no coincide con ningun monitor listado (1031760527, 2718332084): revisar que el overlay se recoloque si el id guardado ya no existe.
+- Actualizador: la beta.68 ya muestra "Actualizacion disponible: v0.1.0" en el menu (funciona).
